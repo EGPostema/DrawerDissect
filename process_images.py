@@ -8,16 +8,20 @@ from infer_trays import infer_tray_images
 from crop_specimens import crop_specimens_from_trays
 
 # Define directories
-fullsize_dir = 'data/drawers/fullsize'
-resized_dir = 'data/drawers/resized'
-trays_dir = 'data/drawers/trays'
-resized_trays_dir = 'data/drawers/resized_trays'
-specimens_dir = 'data/drawers/specimens'
+fullsize_dir = 'coloroptera/drawers/fullsize'
+resized_dir = 'coloroptera/drawers/resized'
+coordinates_dir = os.path.join(resized_dir, 'coordinates')
+trays_dir = 'coloroptera/drawers/trays'
+resized_trays_dir = 'coloroptera/drawers/resized_trays'
+resized_trays_coordinates_dir = os.path.join(resized_trays_dir, 'coordinates')
+specimens_dir = 'coloroptera/drawers/specimens'
 
 # Ensure necessary directories exist
 os.makedirs(resized_dir, exist_ok=True)
+os.makedirs(coordinates_dir, exist_ok=True)
 os.makedirs(trays_dir, exist_ok=True)
 os.makedirs(resized_trays_dir, exist_ok=True)
+os.makedirs(resized_trays_coordinates_dir, exist_ok=True)
 os.makedirs(specimens_dir, exist_ok=True)
 
 def main():
@@ -25,7 +29,7 @@ def main():
     resize_drawer_images(fullsize_dir, resized_dir)
 
     # Step 2: Run Inference on Resized Images
-    infer_drawers(resized_dir)
+    infer_drawers(resized_dir, coordinates_dir)
 
     # Step 3: Crop Trays from Fullsize Images
     crop_trays_from_fullsize(fullsize_dir, resized_dir, trays_dir)
@@ -37,10 +41,11 @@ def main():
     transcribe_labels_and_ids(resized_trays_dir)
 
     # Step 6: Run Inference on Trays
-    infer_tray_images(resized_trays_dir)
+    infer_tray_images(resized_trays_dir, resized_trays_coordinates_dir)
 
     # Step 7: Crop Specimens from Trays
     crop_specimens_from_trays(trays_dir, resized_trays_dir, specimens_dir)
 
 if __name__ == '__main__':
     main()
+
