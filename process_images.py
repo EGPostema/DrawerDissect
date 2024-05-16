@@ -7,6 +7,13 @@ from label_transcription import transcribe_labels_and_ids
 from infer_trays import infer_tray_images
 from crop_specimens import crop_specimens_from_trays
 
+# User inputs for API key and model details
+API_KEY = 'YOUR_API_KEY'
+DRAWER_MODEL_ENDPOINT = 'YOUR_DRAWER_MODEL_ENDPOINT'
+DRAWER_MODEL_VERSION = 1  # Adjust the version as needed
+TRAY_MODEL_ENDPOINT = 'YOUR_TRAY_MODEL_ENDPOINT'
+TRAY_MODEL_VERSION = 1  # Adjust the version as needed
+
 # Define directories
 fullsize_dir = 'coloroptera/drawers/fullsize'
 resized_dir = 'coloroptera/drawers/resized'
@@ -29,7 +36,7 @@ def main():
     resize_drawer_images(fullsize_dir, resized_dir)
 
     # Step 2: Run Inference on Resized Images
-    infer_drawers(resized_dir, coordinates_dir)
+    infer_drawers(resized_dir, coordinates_dir, API_KEY, DRAWER_MODEL_ENDPOINT, DRAWER_MODEL_VERSION)
 
     # Step 3: Crop Trays from Fullsize Images
     crop_trays_from_fullsize(fullsize_dir, resized_dir, trays_dir)
@@ -41,7 +48,7 @@ def main():
     transcribe_labels_and_ids(resized_trays_dir)
 
     # Step 6: Run Inference on Trays
-    infer_tray_images(resized_trays_dir, resized_trays_coordinates_dir)
+    infer_tray_images(resized_trays_dir, resized_trays_coordinates_dir, API_KEY, TRAY_MODEL_ENDPOINT, TRAY_MODEL_VERSION)
 
     # Step 7: Crop Specimens from Trays
     crop_specimens_from_trays(trays_dir, resized_trays_dir, specimens_dir)
