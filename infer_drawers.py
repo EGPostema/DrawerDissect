@@ -2,7 +2,7 @@ import os
 import json
 from roboflow import Roboflow
 
-def infer_drawers(input_dir, output_dir, api_key='YOUR_API_KEY', model_endpoint='YOUR_MODEL_ENDPOINT', version=1, confidence=50, overlap=50):
+def infer_drawers(input_dir, output_dir, api_key, model_endpoint, version, confidence=50, overlap=50):
     os.makedirs(output_dir, exist_ok=True)
     rf = Roboflow(api_key=api_key)
     project = rf.workspace().project(model_endpoint)
@@ -18,6 +18,6 @@ def infer_drawers(input_dir, output_dir, api_key='YOUR_API_KEY', model_endpoint=
                     json.dump(prediction, json_file)
 
 if __name__ == '__main__':
-    infer_drawers('coloroptera/drawers/resized', 'coloroptera/drawers/resized/coordinates')
+    infer_drawers('coloroptera/drawers/resized', 'coloroptera/drawers/resized/coordinates', 'YOUR_API_KEY', 'YOUR_DRAWER_MODEL_ENDPOINT', 1)
 
 
