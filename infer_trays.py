@@ -2,7 +2,7 @@ import os
 import json
 from roboflow import Roboflow
 
-def infer_tray_images(input_dir, output_dir, api_key='YOUR_API_KEY', model_endpoint='YOUR_MODEL_ENDPOINT', version=1, confidence=50, overlap=50):
+def infer_tray_images(input_dir, output_dir, api_key, model_endpoint, version, confidence=50, overlap=50):
     os.makedirs(output_dir, exist_ok=True)
     rf = Roboflow(api_key=api_key)
     project = rf.workspace().project(model_endpoint)
@@ -18,5 +18,5 @@ def infer_tray_images(input_dir, output_dir, api_key='YOUR_API_KEY', model_endpo
                     json.dump(prediction, json_file)
 
 if __name__ == '__main__':
-    infer_tray_images('coloroptera/drawers/resized_trays', 'coloroptera/drawers/resized_trays/coordinates')
+    infer_tray_images('coloroptera/drawers/resized_trays', 'coloroptera/drawers/resized_trays/coordinates', 'YOUR_API_KEY', 'YOUR_TRAY_MODEL_ENDPOINT', 1)
 
