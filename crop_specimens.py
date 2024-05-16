@@ -2,54 +2,35 @@ import os
 import json
 from PIL import Image
 
-# Directory setup
-resized_trays_dir = 'resized_trays'
-trays_dir = 'trays'
-coordinates_dir = os.path.join(resized_trays_dir, 'coordinates')
-specimens_dir = 'specimens'
+def crop_specimens_from_trays(trays_dir, resized_trays_dir, specimens_dir):
+    for root, _, files in os.walk(resized_trays_dir):
+        for file in files:
+            if file.endswith(".json"):
+                json_path = os.path.join(root, file)
+                with open(json_path) as json_file:
+                    annotations = json.load(json_file)
+                    image_filename = annotations['image']['file_name']
+                    original_path = os.path.join(trays_dir, image_filename)
+                    resized_path = os.path.join(resized_trays_dir, image_filename)
+                    crop_images_based_on_bboxes(original_path, resized_path, annotations['predictions'], specimens_dir)
 
-# Ensure the specimens directory exists
-os.makedirs(specimens_dir, exist_ok=True)
-
-def crop_images_based_on_bboxes(original_path, resized_path, annotations, output_folder):
+def crop_images_based_on_bboxes(original_path, resized_path, bboxes, output_folder):
     with Image.open(original_path) as orig_img, Image.open(resized_path) as resized_img:
         scale_x = orig_img.width / resized_img.width
         scale_y = orig_img.height / resized_img.height
-        
         buffer = 50  # 50px buffer
 
-        for i, annotation in enumerate(annotations, 1):
-            bbox = annotation['bbox']
-            xmin = max(int((bbox[0] * scale_x) - buffer), 0)
-            xmax = min(int((bbox[0] + bbox[2]) * scale_x) + buffer, orig_img.width)
-            ymin = max(int((bbox[1] * scale_y) - buffer), 0)
-            ymax = min(int((bbox[1] + bbox[3]) * scale_y) + buffer, orig_img.height)
+        for i, bbox in enumerate(bboxes):
+            x, y, width, height = bbox['bbox']
+            x1 = int((x - buffer) * scale_x)
+            y1 = int((y - buffer) * scale_y)
+            x2 = int((x + width + buffer) * scale_x)
+            y2 = int((y + height + buffer) * scale_y)
+            cropped_img = orig_img.crop((x1, y1, x2, y2))
+            crop_filename = f"{os.path.basename(original_path).split('.')[0]}_specimen_{i+1}.jpg"
+            cropped_img.save(os.path.join(output_folder, crop_filename))
 
-            # Only crop if the bounding box is valid
-            if xmax > xmin and ymax > ymin:
-                cropped_img = orig_img.crop((xmin, ymin, xmax, ymax))
-                cropped_image_path = os.path.join(output_folder, f'{os.path.splitext(os.path.basename(original_path))[0]}_spec_{i:03}.jpg')
-                cropped_img.save(cropped_image_path)
+if __name__ == '__main__':
+    crop_specimens_from_trays('data/drawers/trays', 'data/drawers/resized_trays', 'data/drawers/specimens')
 
-# Read and process each JSON file
-for json_filename in os.listdir(coordinates_dir):
-    json_path = os.path.join(coordinates_dir, json_filename)
-    with open(json_path, 'r') as file:
-        data = json.load(file)
-
-    # Process each image referenced in the JSON file
-    for image_info in data['images']:
-        base_name = image_info['file_name'].split('.')[0]  # Get base name without extension and extra details
-        resized_image_name = f"{base_name}_1000.jpg"
-        original_image_name = f"{base_name.replace('_1000', '')}.jpg"
-
-        resized_image_path = os.path.join(resized_trays_dir, resized_image_name)
-        original_image_path = os.path.join(trays_dir, original_image_name)
-        
-        # Check if both the resized and original images exist
-        if os.path.exists(resized_image_path) and os.path.exists(original_image_path):
-            annotations = [ann for ann in data['annotations'] if ann['image_id'] == image_info['id']]
-            crop_images_based_on_bboxes(original_image_path, resized_image_path, annotations, specimens_dir)
-
-print("Processing complete. Images cropped and saved in the 'specimens' directory.")
 
