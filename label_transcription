@@ -4,12 +4,6 @@ import pandas as pd
 import os
 import re
 
-# Specify the base directory containing the resized_trays folder
-base_directory = '/home/epostema/drawers/resized_trays'
-
-# List to hold extracted data
-data = []
-
 # Function to extract label information
 def extract_label_info(image_path):
     # Open the image file
@@ -96,24 +90,33 @@ def extract_id(image_path):
     else:
         return ''
 
-# Iterate through all subfolders and files in the resized_trays directory
-for root, dirs, files in os.walk(base_directory):
-    for file in files:
-        if file.endswith('.jpg') and 'checkpoint' not in file:
-            image_path = os.path.join(root, file)
-            label_info = extract_label_info(image_path)
-            label_info['id'] = extract_id(image_path)
-            data.append(label_info)
+# Main function to transcribe labels and IDs
+def transcribe_labels_and_ids(resized_trays_dir):
+    # List to hold extracted data
+    data = []
 
-# Convert the data to a pandas DataFrame
-df = pd.DataFrame(data)
+    # Iterate through all subfolders and files in the resized_trays directory
+    for root, dirs, files in os.walk(resized_trays_dir):
+        for file in files:
+            if file.endswith('.jpg') and 'checkpoint' not in file:
+                image_path = os.path.join(root, file)
+                label_info = extract_label_info(image_path)
+                label_info['id'] = extract_id(image_path)
+                data.append(label_info)
 
-# Create the label_data directory if it doesn't exist
-label_data_directory = os.path.join(base_directory, 'label_data')
-os.makedirs(label_data_directory, exist_ok=True)
+    # Convert the data to a pandas DataFrame
+    df = pd.DataFrame(data)
 
-# Save the data to a CSV file in the label_data directory
-csv_path = os.path.join(label_data_directory, 'labels.csv')
-df.to_csv(csv_path, index=False)
+    # Create the label_data directory if it doesn't exist
+    label_data_directory = os.path.join(resized_trays_dir, 'label_data')
+    os.makedirs(label_data_directory, exist_ok=True)
 
-print(f"Label data saved to {csv_path}")
+    # Save the data to a CSV file in the label_data directory
+    csv_path = os.path.join(label_data_directory, 'labels.csv')
+    df.to_csv(csv_path, index=False)
+
+    print(f"Label data saved to {csv_path}")
+
+if __name__ == '__main__':
+    transcribe_labels_and_ids('/home/epostema/drawers/resized_trays')
+
