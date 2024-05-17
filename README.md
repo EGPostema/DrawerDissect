@@ -16,25 +16,35 @@ Make a note for the person to remember the model name, version, and their API ke
 
 Make sure that conda is installed and updated. Then, create a new conda environment that includes all the necessary packages for image resizing, cropping, and OCR.
 
-```sh conda create -n <your-env-name> -c conda-forge python=3.9 pillow pandas pytesseract tesseract pip```
+```sh 
+conda create -n <your-env-name> -c conda-forge python=3.9 pillow pandas pytesseract tesseract pip
+```
 
 Activate your new environment.
 
-```sh conda activate <your-env-name>```
+```sh 
+conda activate <your-env-name>
+```
 
 Then, pip install roboflow so you can run inference. Roboflow can sometimes install weirdly, so it's good to specify exactly where you want it to go.
 
-```sh /home/<your-username>/miniconda3/envs/<your-env-name>/bin/python -m pip install roboflow```
+```sh
+/home/<your-username>/miniconda3/envs/<your-env-name>/bin/python -m pip install roboflow
+```
 
 # Cloning the Repository
 
 To clone this repository, use the following command:
 
-```sh git clone https://github.com/EGPostema/coloroptera.git```
+```sh 
+git clone https://github.com/EGPostema/coloroptera.git
+```
 
 Make sure to navigate to the correct project directory before you start adding and processing images, which you can do with this command.
 
-```sh cd coloroptera```
+```sh 
+cd coloroptera
+```
 
 # Processing a Batch of New Images
 
