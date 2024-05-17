@@ -6,6 +6,7 @@ from functions.resize_trays import resize_tray_images
 from functions.label_transcription import transcribe_labels_and_ids
 from functions.infer_trays import infer_tray_images
 from functions.crop_specimens import crop_specimens_from_trays
+import argparse
 
 # Set base directory
 base_dir = os.path.abspath(os.path.dirname(__file__))
@@ -39,15 +40,19 @@ os.makedirs(resized_trays_coordinates_dir, exist_ok=True)
 os.makedirs(specimens_dir, exist_ok=True)
 
 def main():
-
-# You can adjust the preferred % confidence and object overlap here. Default is 50% for both; e.g., the model only reports predictions where it is more than 50% confident, and expects objects that may overlap in some cases.
+    
+    # You can adjust the preferred % confidence and object overlap for each model (drawers to trays & trays to specimens) here. 
+    # The default is 50% for both; e.g., the model only reports predictions where it is more than 50% confident, and expects objects to overlap.    
     
     parser = argparse.ArgumentParser(description="Process images with specified confidence and overlap.")
-    parser.add_argument('--confidence', type=int, default=50, help="Confidence level for inference. Default is 50.")
-    parser.add_argument('--overlap', type=int, default=50, help="Overlap level for inference. Default is 50.")
+    parser.add_argument('--drawer_confidence', type=int, default=50, help="Confidence level for drawer inference. Default is 50.")
+    parser.add_argument('--drawer_overlap', type=int, default=50, help="Overlap level for drawer inference. Default is 50.")
+    parser.add_argument('--tray_confidence', type=int, default=50, help="Confidence level for tray inference. Default is 50.")
+    parser.add_argument('--tray_overlap', type=int, default=50, help="Overlap level for tray inference. Default is 50.")
     
     args = parser.parse_args()
-    
+
+    # Let's process some images!
     print("Starting the image processing pipeline...")
     
     # Step 1: Shrink Fullsize Drawer Images
@@ -55,7 +60,7 @@ def main():
     print(f"Resized images saved in {resized_dir}")
 
     # Step 2: Run Inference on Resized Drawers to Detect Trays
-    infer_drawers(resized_dir, coordinates_dir, API_KEY, DRAWER_MODEL_ENDPOINT, DRAWER_MODEL_VERSION)
+   infer_drawers(resized_dir, coordinates_dir, API_KEY, DRAWER_MODEL_ENDPOINT, DRAWER_MODEL_VERSION, confidence=args.drawer_confidence, overlap=args.drawer_overlap)
     print(f"Inference results saved in {coordinates_dir}")
 
     # Step 3: Crop Trays from Fullsize Drawer Images
@@ -71,7 +76,7 @@ def main():
     print(f"Labels transcribed and saved in {os.path.join(resized_trays_dir, 'label_data')}")
 
     # Step 6: Run Inference on Resized Trays to Detect Individual Specimens
-    infer_tray_images(resized_trays_dir, resized_trays_coordinates_dir, API_KEY, TRAY_MODEL_ENDPOINT, TRAY_MODEL_VERSION)
+    infer_tray_images(resized_trays_dir, resized_trays_coordinates_dir, API_KEY, TRAY_MODEL_ENDPOINT, TRAY_MODEL_VERSION, confidence=args.tray_confidence, overlap=args.tray_overlap)
     print(f"Inference results for trays saved in {resized_trays_coordinates_dir}")
 
     # Step 7: Crop Specimens from Trays
