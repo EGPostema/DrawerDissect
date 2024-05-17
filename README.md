@@ -48,7 +48,8 @@ cd coloroptera
 
 You can use the ```cd``` and ```ls``` commands to navigate the directory and see what folders and files are present. Make sure that you have all of the following within the project folder 'coloroptera':
 
-```coloroptera/
+```
+coloroptera/
 ├── functions/ <-- This is where all the image processing scripts live!
 │ ├── resize_drawer.py 
 │ ├── infer_drawers.py
