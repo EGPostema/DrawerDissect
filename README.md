@@ -32,6 +32,10 @@ To clone this repository, use the following command:
 
 ```git clone https://github.com/EGPostema/coloroptera.git```
 
+Make sure to navigate to the correct project directory before you start adding and processing images, which you can do with this command.
+
+```cd coloroptera```
+
 # Processing a Batch of New Images
 
 describe where to put images here! ensure they are .jpgs, though the code could certainly be modified to handle other file formats if needed.
