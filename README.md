@@ -50,7 +50,7 @@ You can use the ```cd``` and ```ls``` commands to navigate the directory and see
 
 ```
 coloroptera/
-├── functions/ # This is where all the image processing scripts live!
+├── functions/ ## This is where all the image processing scripts live!
 │ ├── resize_drawer.py 
 │ ├── infer_drawers.py
 │ ├── crop_trays.py
@@ -59,12 +59,8 @@ coloroptera/
 │ ├── infer_trays.py
 │ └── crop_specimens.py
 ├── drawers/
-│ ├── fullsize/ # This is where you will add new images to process
-│ ├── resized/
-│ ├── trays/
-│ ├── resized_trays/
-│ └── specimens/
-└── process_images.py # This is the master script that runs all the individual processes from 'functions'
+│ ├── fullsize/ ## This is where you will add new images to process
+└── process_images.py ## This is the master script that runs all the individual processes from 'functions'
 ```
 
 # Processing a Batch of New Images
