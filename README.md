@@ -49,16 +49,27 @@ cd coloroptera
 You can use the ```cd``` and ```ls``` commands to navigate the directory and see what folders and files are present. Make sure that you have all of the following within the project folder 'coloroptera':
 
 coloroptera/
+
 ├── functions/
+
 │ ├── resize_drawer.py
+
 │ ├── infer_drawers.py
+
 │ ├── crop_trays.py
+
 │ ├── resize_trays.py
+
 │ ├── label_transcription.py
+
 │ ├── infer_trays.py
+
 │ └── crop_specimens.py
+
 ├── drawers/
+
 │ ├── fullsize/
+
 └── process_images.py
 
 # Processing a Batch of New Images
