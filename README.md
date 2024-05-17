@@ -1,8 +1,15 @@
-# Introduction & Summary of Steps?
+# Introduction 
 
-tbd
+Welcome to __, and AI-powered method for processing whole-drawer images of insects into individual specimens. More summary stuff here...
 
-# Train Roboflow Models with Our Data
+1. bla
+2. bla
+3. bla
+4. bla
+
+Expected input --> expected outputs
+
+# 1. Train Roboflow Models with Our Data
 
 Provide link to most updated repository where we put our images and annotations
 
@@ -12,7 +19,7 @@ Also describe how they can even update the model with their own data if they wan
 
 Make a note for the person to remember the model name, version, and their API key to use
 
-# Set up a Conda Environment for COLORoptera Image Processing
+# 2. Set up a Conda Environment for COLORoptera Image Processing
 
 Make sure that conda is installed and updated. Then, create a new conda environment that includes all the necessary packages for image resizing, cropping, and OCR.
 
@@ -32,7 +39,7 @@ Then, pip install roboflow so you can run inference. Roboflow can sometimes inst
 /home/<your-username>/miniconda3/envs/<your-env-name>/bin/python -m pip install roboflow
 ```
 
-# Cloning the Repository
+# 3. Cloning the Repository
 
 To clone this repository, use the following command:
 
@@ -63,7 +70,7 @@ coloroptera/
 └── process_images.py  <-- This is the master script that runs all the individual processes from 'functions'
 ```
 
-# Processing a Batch of New Images
+# 4. Processing a Batch of New Images
 
 describe where to put images here! ensure they are .jpgs, though the code could certainly be modified to handle other file formats if needed.
 
