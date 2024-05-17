@@ -53,7 +53,9 @@ Make sure to navigate to the correct project directory before you start adding a
 cd coloroptera
 ```
 
-You can use the ```cd``` and ```ls``` commands to navigate the directory and see what folders and files are present. Make sure that you have all of the following within the project folder 'coloroptera':
+You can use the ```cd``` and ```ls``` commands to navigate the directory and see what folders and files are present. You can also use ```pwd``` to check your current directory, which should be ~/coloroptera. 
+
+Make sure that you have all of the following within the main project folder:
 
 ```
 coloroptera/
