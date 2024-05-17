@@ -39,6 +39,15 @@ os.makedirs(resized_trays_coordinates_dir, exist_ok=True)
 os.makedirs(specimens_dir, exist_ok=True)
 
 def main():
+
+# You can adjust the preferred % confidence and object overlap here. Default is 50% for both; e.g., the model only reports predictions where it is more than 50% confident, and expects objects that may overlap in some cases.
+    
+    parser = argparse.ArgumentParser(description="Process images with specified confidence and overlap.")
+    parser.add_argument('--confidence', type=int, default=50, help="Confidence level for inference. Default is 50.")
+    parser.add_argument('--overlap', type=int, default=50, help="Overlap level for inference. Default is 50.")
+    
+    args = parser.parse_args()
+    
     print("Starting the image processing pipeline...")
     
     # Step 1: Shrink Fullsize Drawer Images
