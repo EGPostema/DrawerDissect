@@ -63,13 +63,13 @@ To clone this repository, use the following command:
 git clone https://github.com/EGPostema/coloroptera.git
 ```
 
-Make sure to navigate to the correct project directory before you start adding and processing images, which you can do with this command.
+Make sure to navigate to the correct project directory before you start adding and processing images, using ```cd```.
 
 ```sh 
 cd coloroptera
 ```
 
-You can use the ```cd``` and ```ls``` commands to navigate the directory and see what folders and files are present. You can also use ```pwd``` to check your current directory, which should be ~/coloroptera. 
+You can use the ```cd``` and ```ls``` commands to navigate through the directory and see what folders and files are present. You can also use ```pwd``` to check your current directory, which should be ~/coloroptera. 
 
 Make sure that you have all of the following within the main project folder:
 
@@ -90,6 +90,6 @@ coloroptera/
 
 # 4. Processing a Batch of New Images
 
-describe where to put images here! ensure they are .jpgs, though the code could certainly be modified to handle other file formats if needed.
+Put everything in the 'drawers' folder! ensure they are .jpgs, though the code could certainly be modified to handle other file formats if needed.
 
 
