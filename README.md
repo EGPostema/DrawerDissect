@@ -21,7 +21,7 @@ Make a note for the person to remember the model name, version, and their API ke
 
 # 2. Set up a Conda Environment for COLORoptera Image Processing
 
-Make sure that conda is installed and updated. Then, create a new conda environment that includes all the necessary packages for image resizing, cropping, and OCR.
+Make sure that conda is installed and updated. Then, create a new conda environment that includes all the necessary packages for image resizing, cropping, and OCR. Make sure to replace ```<your-env-name>``` with the actual name you want for the environment.
 
 ```sh 
 conda create -n <your-env-name> -c conda-forge python=3.9 pillow pandas pytesseract tesseract pip
@@ -33,7 +33,7 @@ Activate your new environment.
 conda activate <your-env-name>
 ```
 
-Then, pip install roboflow so you can run inference. Roboflow can sometimes install weirdly, so it's good to specify exactly where you want it to go.
+Then, pip install roboflow so you can run inference. Roboflow can sometimes install weirdly, so it's good to specify exactly where you want it to go. Make sure to replace ```<your-usernamee>``` with your real username, or the appropriate path to ~/bin/python
 
 ```sh
 /home/<your-username>/miniconda3/envs/<your-env-name>/bin/python -m pip install roboflow
