@@ -13,8 +13,16 @@ data = []
 # Function to extract label information
 def extract_label_info(image_path):
     img = Image.open(image_path)
+    if img.width < 200 or img.height < 200:
+        print(f"image {os.path.basename(image_path)} failed to transcribe: Image dimensions are too small")
+        return None
+        
     cropped_img = img.crop((0, 0, img.width, 200))
     full_trans = pytesseract.image_to_string(cropped_img)
+    if not full_trans.strip():
+        print(f"image {os.path.basename(image_path)} failed to transcribe: No label information found")
+        return None
+        
     lines = full_trans.split('\n')
     full_taxon = lines[0].strip()
     split_taxon = full_taxon.split()
@@ -75,21 +83,38 @@ def extract_id(image_path):
         return ''
 
 def transcribe_labels_and_ids(resized_trays_dir):
+    label_data_directory = os.path.join(resized_trays_dir, 'label_data')
+    csv_path = os.path.join(label_data_directory, 'labels.csv')
+    
+    if os.path.exists(csv_path):
+        existing_df = pd.read_csv(csv_path)
+        existing_files = set(existing_df['image_file'])
+    else:
+        existing_files = set()
+    
     data = []
     for root, dirs, files in os.walk(resized_trays_dir):
         for file in files:
             if file.endswith('.jpg') and 'checkpoint' not in file:
                 image_path = os.path.join(root, file)
+                if file in existing_files:
+                    print(f"image {file} has already been transcribed")
+                    continue
                 label_info = extract_label_info(image_path)
+                if label_info is None:
+                    print(f"image {file} failed to transcribe")
+                    continue
                 label_info['id'] = extract_id(image_path)
                 data.append(label_info)
 
-    df = pd.DataFrame(data)
-    label_data_directory = os.path.join(resized_trays_dir, 'label_data')
-    os.makedirs(label_data_directory, exist_ok=True)
-    csv_path = os.path.join(label_data_directory, 'labels.csv')
-    df.to_csv(csv_path, index=False)
-    print(f"Label data saved to {csv_path}")
+    if data:
+        df = pd.DataFrame(data)
+        if os.path.exists(csv_path):
+            df.to_csv(csv_path, mode='a', header=False, index=False)
+        else:
+            os.makedirs(label_data_directory, exist_ok=True)
+            df.to_csv(csv_path, index=False)
+        print(f"Label data saved to {csv_path}")
 
 if __name__ == '__main__':
     transcribe_labels_and_ids(drawers/resized_trays)
