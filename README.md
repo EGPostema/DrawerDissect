@@ -39,6 +39,17 @@ Then, pip install roboflow so you can run inference. Roboflow can sometimes inst
 /home/<your-username>/miniconda3/envs/<your-env-name>/bin/python -m pip install roboflow
 ```
 
+You can double-check that everything is installed properly with the following commands:
+
+```sh
+ls /home/<your-username>/miniconda3/envs/<your-env-name>/lib/python3.9/site-packages/roboflow
+pip list | grep roboflow
+conda list pillow
+conda list pandas
+conda list pytesseract
+conda list tesseract
+```
+
 # 3. Cloning the Repository
 
 To clone this repository, use the following command:
