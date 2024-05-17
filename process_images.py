@@ -1,3 +1,5 @@
+# Import all necessary functions from the scripts in the 'functions' folder
+
 import os
 from functions.resize_drawer import resize_drawer_images
 from functions.infer_drawers import infer_drawers
@@ -11,14 +13,14 @@ import argparse
 # Set base directory
 base_dir = os.path.abspath(os.path.dirname(__file__))
 
-# User inputs for API key and model details **MAKE SURE TO MODIFY THIS**
+# User inputs for API key and model details **MAKE SURE TO MODIFY THIS!**
 API_KEY = 'YOUR_API_KEY'
 
-# User inputs for roboflow model that seperates TRAYS from DRAWERS **MAKE SURE TO MODIFY THIS**
+# User inputs for roboflow model that seperates TRAYS from DRAWERS **MAKE SURE TO MODIFY THIS!**
 DRAWER_MODEL_ENDPOINT = 'YOUR_DRAWER_MODEL_ENDPOINT'
 DRAWER_MODEL_VERSION = 1  # Adjust the version as needed
 
-# User inputs for roboflow model that seperates SPECIMENS from TRAYS **MAKE SURE TO MODIFY THIS**
+# User inputs for roboflow model that seperates SPECIMENS from TRAYS **MAKE SURE TO MODIFY THIS!**
 TRAY_MODEL_ENDPOINT = 'YOUR_TRAY_MODEL_ENDPOINT'
 TRAY_MODEL_VERSION = 1  # Adjust the version as needed
 
