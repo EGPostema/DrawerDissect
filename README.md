@@ -33,7 +33,7 @@ Activate your new environment.
 conda activate <your-env-name>
 ```
 
-Then, pip install roboflow so you can run inference. Roboflow can sometimes install weirdly, so it's good to specify exactly where you want it to go. Make sure to replace ```<your-usernamee>``` with your real username, or the appropriate path to ~/bin/python
+Then, pip install roboflow so you can run inference. Roboflow can sometimes install weirdly, so it's good to specify exactly where you want it to go. Make sure to replace ```<your-username>``` with your real username, or the appropriate path to ~/bin/python
 
 ```sh
 /home/<your-username>/miniconda3/envs/<your-env-name>/bin/python -m pip install roboflow
