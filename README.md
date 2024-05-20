@@ -92,4 +92,8 @@ coloroptera/
 
 Put everything in the 'drawers' folder! ensure they are .jpgs, though the code could certainly be modified to handle other file formats if needed.
 
+Make sure that process_images.py is modified for the user's roboflow details (API key, model names, versions, and desired confidence/overlap).
+
+Within the ```coloroptera``` directory, run ```python process_image.py``` to start the script.
+
 
