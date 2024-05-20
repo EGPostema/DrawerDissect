@@ -13,14 +13,10 @@ data = []
 # Function to extract label information
 def extract_label_info(image_path):
     img = Image.open(image_path)
-    if img.width < 200 or img.height < 200:
-        print(f"image {os.path.basename(image_path)} failed to transcribe: Image dimensions are too small")
-        return None
-        
     cropped_img = img.crop((0, 0, img.width, 200))
     full_trans = pytesseract.image_to_string(cropped_img)
     if not full_trans.strip():
-        print(f"image {os.path.basename(image_path)} failed to transcribe: No label information found")
+        print(f"Transcription failed for image '{os.path.basename(image_path)}'")
         return None
         
     lines = full_trans.split('\n')
