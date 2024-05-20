@@ -98,7 +98,7 @@ How to find roboflow API key: https://docs.roboflow.com/api-reference/authentica
 
 Finding your model's name and version, go to your projects > choose your model > versions > click whatever version you want to use. You'll see something like this in the middle of the page:
 
-<img width="622" alt="Screenshot 2024-05-20 at 1 35 34 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/0147fdd6-699d-49e1-8fc8-6a30fed14ef3">
+<img width="782" alt="Screenshot 2024-05-20 at 1 39 37 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/e2918f19-9867-42d1-ae20-53369f2d4018">
 
 The model's name will always be uncapitalized and without spaces. The version # will be to the right of the model name. This makes it easy to go back and just update the version # as you train better models!
 
