@@ -90,7 +90,7 @@ coloroptera/
 
 # 4. Processing a Batch of New Images
 
-Put everything in the 'drawers' folder! ensure they are .jpgs, though the code could certainly be modified to handle other file formats if needed.
+Put all images in ~/drawers/fullsize. Ensure they are .jpgs, though the code could probably be modified to handle other file formats if needed.
 
 Make sure that process_images.py is modified for the user's roboflow details (API key, model names, versions, and desired confidence/overlap). The easiest way to do this is to edit the script directly in the terminal with the command ```nano process_images.py```
 
