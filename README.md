@@ -129,10 +129,8 @@ You can personalize your desired % confidence and overlap for each model. The de
 
 The easiest way to modify these details in is to edit the script directly with the command ```nano process_images.py```
 
-## Running the Script & Ouputs
+## Running the Script
 
 Once the script has been updated with information from roboflow, you can start the script within the ```coloroptera``` directory with command ```python process_images.py```
-
-Describe outputs here...
 
 
