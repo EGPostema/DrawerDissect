@@ -122,7 +122,7 @@ The model's name will always be uncapitalized and without spaces (or dashes inst
 
 ## CONFIDENCE / OVERLAP 
 
-You can personalize your desired % confidence and overlap for each model. The default is set to 50% for each.
+You can personalize your desired % confidence and overlap for each model. The default is set to 50% for each. Numbers can be changes to anything from 1-100.
 - "50% confidence" means that only annotations the model is over 50% sure about will be recorded in the coordinates file.
 - "50% overlap" means that the model expects that different objects in the JPG may have bounding boxes around them that overlap by up to 50%.
 
