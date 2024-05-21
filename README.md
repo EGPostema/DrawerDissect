@@ -77,7 +77,7 @@ cd coloroptera
 
 You can use the ```cd``` and ```ls``` commands to navigate through the directory and see what folders and files are present. You can also use ```pwd``` to check your current directory, which should be ```coloroptera``` 
 
-Make sure that you have all of the following within the main project folder:
+**Before you start processing new images,** make sure that you have all of the following within the main project folder:
 
 ```
 coloroptera/
