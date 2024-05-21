@@ -11,12 +11,17 @@ def infer_tray_images(input_dir, output_dir, api_key, model_endpoint, version, c
     for root, _, files in os.walk(input_dir):
         for file in files:
             if file.endswith('_1000.jpg'):
+                json_path = os.path.join(output_dir, file.replace('.jpg', '.json'))
+                
+                # Check if JSON file already exists
+                if os.path.exists(json_path):
+                    print(f"'{file}' already has specimen coordinates, skipping...")
+                    continue
+
                 file_path = os.path.join(root, file)
                 prediction = model.predict(file_path, confidence=confidence, overlap=overlap).json()
-                json_path = os.path.join(output_dir, file.replace('.jpg', '.json'))
                 with open(json_path, 'w') as json_file:
                     json.dump(prediction, json_file)
 
 if __name__ == '__main__':
     infer_tray_images('coloroptera/drawers/resized_trays', 'coloroptera/drawers/resized_trays/coordinates', 'YOUR_API_KEY', 'YOUR_TRAY_MODEL_ENDPOINT', 1)
-
