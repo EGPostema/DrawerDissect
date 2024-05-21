@@ -3,14 +3,14 @@
 Welcome to __, and AI-powered method for processing whole-drawer images of insects into individual specimens, with as little manual input as possible.
 
 To get started, follow the steps below:
-1. Train Roboflow Models with Our Data
-2. Set up a Conda Environment for COLORoptera Image Processing
+1. Train Roboflow Models 
+2. Set up a Conda Environment
 3. Clone the Repository
 4. Process a Batch of New Images
 
 For a full summary of each processing step (with descriptions of inputs and outputs), see the README file in the 'functions' folder.
 
-# 1. Train Roboflow Models with Our Data
+# 1. Train Roboflow Models
 
 Provide link to most updated repository where we put our images and annotations
 
@@ -20,7 +20,7 @@ Also describe how they can even update the model with their own data if they wan
 
 **Make a note for the person to remember the model name, version, and their API key to put in the master image-processing script! Other than uploading images to /drawers/fullsize, this should be the only thing necessary to directly modify**
 
-# 2. Set up a Conda Environment for COLORoptera Image Processing
+# 2. Set up a Conda Environment
 
 Make sure that conda is installed and updated. Then, create a new conda environment that includes all the necessary packages for image resizing, cropping, and OCR. Make sure to replace ```<your-env-name>``` with the actual name you want for the environment.
 
