@@ -110,7 +110,9 @@ MODEL/VERSION: To find your model's name and version in roboflow, go to your pro
 
 <img width="782" alt="Screenshot 2024-05-20 at 1 39 37 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/e2918f19-9867-42d1-ae20-53369f2d4018">
 
-The model's name will always be uncapitalized and without spaces (or dashes instead of spaces). The version # will be to the right of the model name. This makes it easy to go back and just update the version # as you train better version of the same model! Make sure to fill in these details for BOTH models used in this script (see above); one model should seperate trays from drawers, and the other should seperate specimens from trays.
+The model's name will always be uncapitalized and without spaces (or dashes instead of spaces). The version # will be to the right of the model name. This makes it easy to go back and just update the version # as you train better version of the same model! 
+
+**Make sure to fill in these details for BOTH models used in this script; one model should seperate trays from drawers, and the other should seperate specimens from trays.**
 
 CONFIDENCE/OVERLAP: You can personalize your desired % confidence and overlap for each model. The default is set to 50% for each.
 - "50% confidence" means that only annotations the model is over 50% sure about will be recorded in the coordinates file.
