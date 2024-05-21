@@ -2,9 +2,9 @@
 
 Welcome to __, and AI-powered method for processing whole-drawer images of insects into individual specimens. 
 
-For a full summary of each processing step (with descriptions of inputs and outputs), see the README file in the 'functions' folder: functions/README.md.
-
 Add some more description/introduction here.
+
+For a full summary of each processing step (with descriptions of inputs and outputs), see the README file in the 'functions' folder.
 
 # 1. Train Roboflow Models with Our Data
 
