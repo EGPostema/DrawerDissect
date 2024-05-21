@@ -98,6 +98,8 @@ Make sure that process_images.py is modified for the user's roboflow details. Yo
 - Model names and versions
 - Desired model confidence/overlap.
 
+![Screenshot 2024-05-21 at 1 51 42 PM](https://github.com/EGPostema/coloroptera/assets/142446286/5f970493-2d4f-4327-aaed-e46dc7dcdd7e)
+
 API KEY: Your API key is PRIVATE to your own account. Make sure not to share this widely. Here's how to find roboflow API key: https://docs.roboflow.com/api-reference/authentication
 
 WORKSPACE: Your workspace id can be found in your roboflow workspace page, under settings:
@@ -114,9 +116,9 @@ CONFIDENCE/OVERLAP: You can personalize your desired % confidence and overlap fo
 - "50% confidence" means that only annotations the model is over 50% sure about will be recorded in the coordinates file.
 - "50% overlap" means that the model expects that different objects in the JPG may have bounding boxes around them that overlap by up to 50%.
 
-The easiest way to modify these details in is to edit the script directly with the command ```nano process_images.py```
+<img width="1031" alt="Screenshot 2024-05-21 at 1 55 19 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/161ff11d-e05e-428c-b168-e1e306869527">
 
-<img width="1147" alt="Screenshot 2024-05-20 at 1 47 11 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/16dae1e8-11fe-41f7-837e-ba2d5ca911fb">
+The easiest way to modify these details in is to edit the script directly with the command ```nano process_images.py```
 
 Once the script has been updated with information from roboflow, you can start the script within the ```coloroptera``` directory with command ```python process_images.py```
 
