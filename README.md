@@ -24,8 +24,6 @@ Describe how to upload and train the two models needed, using either the free or
 
 Also describe how they can even update the model with their own data if they want (various ways to do this)
 
-**Make a note for the person to remember the model name, version, and their API key to put in the master image-processing script! Other than uploading images to /drawers/fullsize, this should be the only thing necessary to directly modify**
-
 # 2. Set up a Conda Environment
 
 Make sure that conda is installed and updated. Then, create a new conda environment that includes all the necessary packages for image resizing, cropping, and OCR. Make sure to replace ```<your-env-name>``` with the actual name you want for the environment.
