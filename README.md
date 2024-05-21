@@ -25,7 +25,7 @@ Also describe how they can even update the model with their own data if they wan
 Make sure that conda is installed and updated. Then, create a new conda environment that includes all the necessary packages for image resizing, cropping, and OCR. Make sure to replace ```<your-env-name>``` with the actual name you want for the environment.
 
 ```sh 
-conda create -n <your-env-name> -c conda-forge python=3.9 pillow pandas pytesseract tesseract pip
+conda create -n <your-env-name> -c conda-forge python=3.9 pillow pandas pytesseract tesseract pip git
 ```
 
 Activate your new environment.
@@ -48,6 +48,7 @@ conda list pillow
 conda list pandas
 conda list pytesseract
 conda list tesseract
+conda list git
 ```
 
 It's also useful to make sure roboflow is in the right place:
