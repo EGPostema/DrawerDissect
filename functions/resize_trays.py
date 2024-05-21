@@ -9,6 +9,11 @@ def resize_tray_images(input_dir, output_dir, new_width=1000):
         if filename.endswith('.jpg'):
             input_path = os.path.join(input_dir, filename)
             output_path = os.path.join(output_dir, filename.replace('.jpg', '_1000.jpg'))
+
+            if os.path.exists(output_path):
+                print(f"Skipping {filename}, already resized.")
+                continue
+
             with Image.open(input_path) as img:
                 new_height = int((new_width / img.width) * img.height)
                 resized_img = img.resize((new_width, new_height), Image.LANCZOS)
