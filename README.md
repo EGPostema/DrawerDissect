@@ -16,9 +16,8 @@ For a full summary of each processing step (with descriptions of inputs and outp
 
 ## Quick-Start: Use Our Data to Train Basic Models
 
-Provide link to most updated repository where we put our images and annotations
-
-Describe how to upload and train the two models needed, using either the free or upgraded version of roboflow
+- Provide link to most updated repository where we put our images and annotations
+- Describe how to upload and train the two models needed, using either the free or upgraded version of roboflow
 
 ## Update Models with your Own Data
 
