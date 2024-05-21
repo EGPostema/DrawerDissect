@@ -98,7 +98,7 @@ Make sure that process_images.py is modified for the user's roboflow details. Yo
 - Model names and versions
 - Desired model confidence/overlap.
 
-![Screenshot 2024-05-21 at 1 51 42 PM](https://github.com/EGPostema/coloroptera/assets/142446286/5f970493-2d4f-4327-aaed-e46dc7dcdd7e)
+<img width="1038" alt="Screenshot 2024-05-21 at 1 56 55 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/864a9d8a-a6a3-4d59-8d78-3887125578b1">
 
 API KEY: Your API key is PRIVATE to your own account. Make sure not to share this widely. Here's how to find roboflow API key: https://docs.roboflow.com/api-reference/authentication
 
