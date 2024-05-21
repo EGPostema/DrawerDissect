@@ -100,9 +100,9 @@ coloroptera/
 
 Put all images in ~/drawers/fullsize. Ensure they are .jpgs, though the code could probably be modified to handle other file formats if needed. It is helpful to have a consistent naming convention for the drawers that is also taxonomically descriptive (if applicable).
 
-## Add Your Roboflow Info to process_images.py
+## Add Your Roboflow Info
 
-Make sure that process_images.py is modified for the user's roboflow details. You will need to find the following information: 
+Make sure that process_images.py is modified for your own roboflow details. You will need to find the following information: 
 - API key
 - Workspace id
 - Model names and versions
