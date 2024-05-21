@@ -90,11 +90,15 @@ coloroptera/
 
 # 4. Processing a Batch of New Images
 
-Put all images in ~/drawers/fullsize. Ensure they are .jpgs, though the code could probably be modified to handle other file formats if needed.
+Put all images in ~/drawers/fullsize. Ensure they are .jpgs, though the code could probably be modified to handle other file formats if needed. It is helpful to have a consistent naming convention for the drawers that is also taxonomically descriptive (if applicable).
 
-Make sure that process_images.py is modified for the user's roboflow details (API key, model names, versions, and desired confidence/overlap). The easiest way to do this is to edit the script directly in the terminal with the command ```nano process_images.py```
+Make sure that process_images.py is modified for the user's roboflow details (API key, workspace, model names, versions, and desired confidence/overlap). The easiest way to do this is to edit the script directly in the terminal with the command ```nano process_images.py```
 
 You API key is PRIVATE to your own account. Make sure not to share this widely. Here's how to find roboflow API key: https://docs.roboflow.com/api-reference/authentication
+
+Your workspace id can be found in your roboflow workspace page, under settings:
+
+<img width="807" alt="Screenshot 2024-05-21 at 1 37 39 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/19016e31-2542-48b5-9e51-7372de3e5b90">
 
 Then, to find your model's name and version in roboflow, go to your projects > choose your model > versions > click whatever version you want to use. You'll see something like this in the middle of the page:
 
