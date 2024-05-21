@@ -98,19 +98,23 @@ Make sure that process_images.py is modified for the user's roboflow details. Yo
 - Model names and versions
 - Desired model confidence/overlap.
 
-You API key is PRIVATE to your own account. Make sure not to share this widely. Here's how to find roboflow API key: https://docs.roboflow.com/api-reference/authentication
+API KEY: Your API key is PRIVATE to your own account. Make sure not to share this widely. Here's how to find roboflow API key: https://docs.roboflow.com/api-reference/authentication
 
-Your workspace id can be found in your roboflow workspace page, under settings:
+WORKSPACE: Your workspace id can be found in your roboflow workspace page, under settings:
 
 <img width="807" alt="Screenshot 2024-05-21 at 1 37 39 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/19016e31-2542-48b5-9e51-7372de3e5b90">
 
-To find your model's name and version in roboflow, go to your projects > choose your model > versions > click whatever version you want to use. You'll see something like this in the middle of the page:
+MODEL/VERSION: To find your model's name and version in roboflow, go to your projects > choose your model > versions > click whatever version you want to use. You'll see something like this in the middle of the page:
 
 <img width="782" alt="Screenshot 2024-05-20 at 1 39 37 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/e2918f19-9867-42d1-ae20-53369f2d4018">
 
 The model's name will always be uncapitalized and without spaces (or dashes instead of spaces). The version # will be to the right of the model name. This makes it easy to go back and just update the version # as you train better version of the same model! Make sure to fill in these details for BOTH models used in this script (see above); one model should seperate trays from drawers, and the other should seperate specimens from trays.
 
-The easiest way to do add these details in is to edit the script directly with the command ```nano process_images.py```
+CONFIDENCE/OVERLAP: You can personalize your desired % confidence and overlap for each model. The default is set to 50% for each.
+- "50% confidence" means that only annotations the model is over 50% sure about will be recorded in the coordinates file.
+- "50% overlap" means that the model expects that different objects in the JPG may have bounding boxes around them that overlap by up to 50%.
+
+The easiest way to modify these details in is to edit the script directly with the command ```nano process_images.py```
 
 <img width="1147" alt="Screenshot 2024-05-20 at 1 47 11 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/16dae1e8-11fe-41f7-837e-ba2d5ca911fb">
 
