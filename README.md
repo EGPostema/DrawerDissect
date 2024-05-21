@@ -100,13 +100,17 @@ Make sure that process_images.py is modified for the user's roboflow details. Yo
 
 <img width="1038" alt="Screenshot 2024-05-21 at 1 56 55 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/864a9d8a-a6a3-4d59-8d78-3887125578b1">
 
-API KEY: Your API key is PRIVATE to your own account. Make sure not to share this widely. Here's how to find roboflow API key: https://docs.roboflow.com/api-reference/authentication
+## API KEY 
+Your API key is PRIVATE to your own account. Make sure not to share this widely. Here's how to find roboflow API key: https://docs.roboflow.com/api-reference/authentication
 
-WORKSPACE: Your workspace id can be found in your roboflow workspace page, under settings:
+## WORKSPACE 
+Your workspace id can be found in your roboflow workspace page, under settings:
 
 <img width="807" alt="Screenshot 2024-05-21 at 1 37 39 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/19016e31-2542-48b5-9e51-7372de3e5b90">
 
-MODEL/VERSION: To find your model's name and version in roboflow, go to your projects > choose your model > versions > click whatever version you want to use. You'll see something like this in the middle of the page:
+## MODEL / VERSION
+
+To find your model's name and version in roboflow, go to your projects > choose your model > versions > click whatever version you want to use. You'll see something like this in the middle of the page:
 
 <img width="782" alt="Screenshot 2024-05-20 at 1 39 37 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/e2918f19-9867-42d1-ae20-53369f2d4018">
 
@@ -114,14 +118,19 @@ The model's name will always be uncapitalized and without spaces (or dashes inst
 
 **Make sure to fill in these details for BOTH models used in this script; one model should seperate trays from drawers, and the other should seperate specimens from trays.**
 
-CONFIDENCE/OVERLAP: You can personalize your desired % confidence and overlap for each model. The default is set to 50% for each.
+## CONFIDENCE / OVERLAP 
+You can personalize your desired % confidence and overlap for each model. The default is set to 50% for each.
 - "50% confidence" means that only annotations the model is over 50% sure about will be recorded in the coordinates file.
 - "50% overlap" means that the model expects that different objects in the JPG may have bounding boxes around them that overlap by up to 50%.
 
 <img width="1031" alt="Screenshot 2024-05-21 at 1 55 19 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/161ff11d-e05e-428c-b168-e1e306869527">
 
+## How to Modify Roboflow Details
 The easiest way to modify these details in is to edit the script directly with the command ```nano process_images.py```
 
+## Running the Script & Ouputs
 Once the script has been updated with information from roboflow, you can start the script within the ```coloroptera``` directory with command ```python process_images.py```
+
+Describe outputs here...
 
 
