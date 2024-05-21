@@ -1,8 +1,12 @@
 # Introduction 
 
-Welcome to __, and AI-powered method for processing whole-drawer images of insects into individual specimens. 
+Welcome to __, and AI-powered method for processing whole-drawer images of insects into individual specimens, with as little manual input as possible.
 
-Add some more description/introduction here.
+To get started, follow the steps below:
+1. Train Roboflow Models with Our Data
+2. Set up a Conda Environment for COLORoptera Image Processing
+3. Clone the Repository
+4. Process a Batch of New Images
 
 For a full summary of each processing step (with descriptions of inputs and outputs), see the README file in the 'functions' folder.
 
@@ -52,7 +56,7 @@ ls /home/<your-username>/miniconda3/envs/<your-env-name>/lib/python3.9/site-pack
 ```
 
 
-# 3. Cloning the Repository
+# 3. Clone the Repository
 
 To clone this repository, use the following command:
 
@@ -85,7 +89,7 @@ coloroptera/
 └── process_images.py  <-- This is the master script that runs all the processing steps
 ```
 
-# 4. Processing a Batch of New Images
+# 4. Process a Batch of New Images
 
 Put all images in ~/drawers/fullsize. Ensure they are .jpgs, though the code could probably be modified to handle other file formats if needed. It is helpful to have a consistent naming convention for the drawers that is also taxonomically descriptive (if applicable).
 
