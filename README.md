@@ -138,7 +138,11 @@ You can personalize your desired % confidence and overlap for each model. The de
 
 ## Running the Script
 
-Once the script has been updated with information from roboflow, you can start the script within the ```coloroptera``` directory with command ```python process_images.py```
+Once the script has been updated with information from roboflow, you can start the script within the ```coloroptera``` directory: 
+
+```sh
+python process_images.py
+```
 
 ## Calling Individual Steps
 
@@ -152,8 +156,10 @@ python process_images.py resize_drawers
 
 **Find Tray Coordinates**
 
+Modify confidence or overlap % by changing 50 to any number 1-100. 50% is default.
+
 ```sh 
-python process_images.py infer_drawers --drawer_confidence 50 --drawer_overlap 50 #modify confidence/overlap here, default 50%
+python process_images.py infer_drawers --drawer_confidence 50 --drawer_overlap 50
 ```
 
 **Crop Trays from Drawers**
@@ -176,8 +182,10 @@ python process_images.py transcribe_labels
 
 **Find Specimen Coordinates**
 
+Modify confidence or overlap % by changing 50 to any number 1-100. 50% is default.
+
 ```sh 
-python process_images.py infer_trays --tray_confidence 50 --tray_overlap 50 #modify confidence/overlap here, default 50%
+python process_images.py infer_trays --tray_confidence 50 --tray_overlap 50
 ```
 
 **Crop Specimens from Trays**
