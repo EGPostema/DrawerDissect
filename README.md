@@ -1,8 +1,10 @@
 # Introduction 
 
-Welcome to __, and AI-powered method for processing whole-drawer images of insects into individual specimens, with as little manual input as possible.
+**Welcome to COLORoptera, and AI-powered method for processing whole-drawer images of insects into individual specimens!**
 
-To get started, follow the steps below:
+(Add a short summary here. Python + conda environment + OS command line. Meant to be quite simple / for a beginner at computer programming.)
+
+**To get started, follow the steps below:**
 1. Train Roboflow Models 
 2. Set up a Conda Environment
 3. Clone the Repository
