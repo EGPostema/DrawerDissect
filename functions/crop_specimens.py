@@ -1,56 +1,62 @@
 import os
 import json
+import time
 from PIL import Image, ImageFile
 
 # Adjust the max image pixels limit
 Image.MAX_IMAGE_PIXELS = None  # Remove the limit entirely
 ImageFile.LOAD_TRUNCATED_IMAGES = True  # Allow loading of truncated images
 
-# Directory setup
-resized_trays_dir = 'drawers/resized_trays'
-trays_dir = 'drawers/trays'
-coordinates_dir = os.path.join(resized_trays_dir, 'coordinates')
-specimens_dir = 'drawers/specimens'
+def crop_specimens_from_trays(trays_dir, resized_trays_dir, specimens_dir):
+    start_time = time.time()  # Start the timer
 
-# Ensure the specimens directory exists
-os.makedirs(specimens_dir, exist_ok=True)
+    resized_trays_coordinates_dir = os.path.join(resized_trays_dir, 'coordinates')
 
-def crop_images_based_on_bboxes(original_path, resized_path, annotations, output_folder):
-    with Image.open(original_path) as orig_img, Image.open(resized_path) as resized_img:
-        scale_x = orig_img.width / resized_img.width
-        scale_y = orig_img.height / resized_img.height
-        
-        for i, annotation in enumerate(annotations, 1):
-            bbox = annotation['bbox']
-            xmin = max(int((bbox[0] - 50) * scale_x), 0)
-            xmax = min(int((bbox[0] + bbox[2] + 50) * scale_x), orig_img.width)
-            ymin = max(int((bbox[1] - 50) * scale_y), 0)
-            ymax = min(int((bbox[1] + bbox[3] + 50) * scale_y), orig_img.height)
+    # Iterate through resized images
+    for resized_filename in os.listdir(resized_trays_dir):
+        if resized_filename.endswith('_1000.jpg'):  # Ensure we are processing the correct JPEG images
+            base_name = os.path.splitext(resized_filename)[0].replace('_1000', '')
+            original_filename = base_name + '.jpg'
+            original_image_path = os.path.join(trays_dir, original_filename)
+            resized_image_path = os.path.join(resized_trays_dir, resized_filename)
+            json_filename = resized_filename.replace('.jpg', '.json')
+            json_file_path = os.path.join(resized_trays_coordinates_dir, json_filename)
 
-            # Only crop if the bounding box is valid
-            if xmax > xmin and ymax > ymin:
-                cropped_img = orig_img.crop((xmin, ymin, xmax, ymax))
-                cropped_image_path = os.path.join(output_folder, f'{os.path.splitext(os.path.basename(original_path))[0]}_spec_{i:03}.jpg')
-                cropped_img.save(cropped_image_path)
+            # Check if the JSON file exists
+            if not os.path.exists(json_file_path):
+                print(f"Warning: JSON file '{json_file_path}' not found for {base_name}. Skipping...")
+                continue
 
-# Read and process each JSON file
-for json_filename in os.listdir(coordinates_dir):
-    json_path = os.path.join(coordinates_dir, json_filename)
-    with open(json_path, 'r') as file:
-        data = json.load(file)
+            # Load the JSON data
+            with open(json_file_path, 'r') as file:
+                data = json.load(file)
+                annotations = data['predictions']
 
-    # Process each image referenced in the JSON file
-    for image_info in data['images']:
-        base_name = image_info['file_name'].split('.')[0]  # Get base name without extension and extra details
-        resized_image_name = f"{base_name}_1000.jpg"
-        original_image_name = f"{base_name.replace('_1000', '')}.jpg"
+            with Image.open(original_image_path) as original_img, Image.open(resized_image_path) as resized_img:
+                # Calculate scale factors
+                scale_x = original_img.width / resized_img.width
+                scale_y = original_img.height / resized_img.height
 
-        resized_image_path = os.path.join(resized_trays_dir, resized_image_name)
-        original_image_path = os.path.join(trays_dir, original_image_name)
-        
-        # Check if both the resized and original images exist
-        if os.path.exists(resized_image_path) and os.path.exists(original_image_path):
-            annotations = [ann for ann in data['annotations'] if ann['image_id'] == image_info['id']]
-            crop_images_based_on_bboxes(original_image_path, resized_image_path, annotations, specimens_dir)
+                # Crop images based on scaled coordinates, adding a 50 pixel buffer, and save
+                for i, annotation in enumerate(annotations, 1):
+                    x = annotation['x'] - annotation['width'] / 2
+                    y = annotation['y'] - annotation['height'] / 2
+                    width = annotation['width']
+                    height = annotation['height']
 
-print("Processing complete. Images cropped and saved in the 'specimens' directory.")
+                    xmin = max(int((x - 50) * scale_x), 0)
+                    ymin = max(int((y - 50) * scale_y), 0)
+                    xmax = min(int((x + width + 50) * scale_x), original_img.width)
+                    ymax = min(int((y + height + 50) * scale_y), original_img.height)
+
+                    # Crop the image
+                    cropped_img = original_img.crop((xmin, ymin, xmax, ymax))
+
+                    # Format the file name with leading zeros
+                    formatted_number = f'{i:03}'  # Pad with zeros (e.g., 001, 002, ...)
+                    cropped_image_path = os.path.join(specimens_dir, f'{base_name}_spec_{formatted_number}.jpg')
+                    cropped_img.save(cropped_image_path)
+
+    end_time = time.time()  # End the timer
+    elapsed_time = end_time - start_time
+    print(f"Processing complete. Cropped specimens are saved in the '{specimens_dir}' folder. Total time: {elapsed_time:.2f} seconds.")
