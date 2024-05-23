@@ -1,4 +1,4 @@
-# Introduction 
+# Introduction - WIP
 
 **Welcome to COLORoptera, and AI-powered method for processing whole-drawer images of insects!**
 
@@ -12,7 +12,7 @@
 
 For a full summary of each processing step (with descriptions of inputs and outputs), see the README file in the 'functions' folder.
 
-# 1. Train Roboflow Models
+# 1. Train Roboflow Models - WIP
 
 ## Quick-Start: Use Our Data to Train Basic Models
 
