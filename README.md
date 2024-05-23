@@ -1,6 +1,6 @@
 # Introduction 
 
-**Welcome to COLORoptera, and AI-powered method for processing whole-drawer images of insects into individual specimens!**
+**Welcome to COLORoptera, and AI-powered method for processing whole-drawer images of insects!**
 
 (Add a short summary here about intended purposes etc. Python + conda environment + OS command line. Meant to be quite simple / for a beginner at computer programming.)
 
