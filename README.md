@@ -131,7 +131,9 @@ To find your model's name and version in roboflow, go to your projects > choose 
 
 The model's name will always be uncapitalized and without spaces (or dashes instead of spaces). The version # will be to the right of the model name. This makes it easy to go back and just update the version # as you train better version of the same model! 
 
-**Make sure to fill in these details for BOTH models used in this script; one model should seperate trays from drawers, and the other should seperate specimens from trays.**
+**Make sure to fill in both MODEL_ENDPOINT and VERSION for EACH model used in this script.** 
+- One model should seperate trays from drawers ('TRAY_SEPERATING_MODEL_HERE')
+- The other should seperate specimens from trays ('SPECIMEN_SEPERATING_MODEL_HERE')
 
 ### CONFIDENCE / OVERLAP 
 
