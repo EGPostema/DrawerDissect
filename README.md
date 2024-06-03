@@ -201,3 +201,7 @@ python process_images.py infer_trays --tray_confidence 50 --tray_overlap 50
 ```sh 
 python process_images.py crop_specimens
 ```
+
+## Outputs and Analysis - WIP
+
+<i>describe outputs here and ways to analyze data here </i>
