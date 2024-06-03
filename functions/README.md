@@ -8,11 +8,11 @@ The "functions" folder contains 7 scripts that resize images, generate coordinat
 - Resizes full-size drawer images to 1000 pixels wide.
 
 **Process**
-- Iterate Through Input Directory: Processes each full-size drawer image.
+- Iterate Through Folder: Processes each full-size drawer image.
 - File Handling: Ensures only .jpg images are processed.
 - Skip Existing Resized Images: Skips processing if the resized image already exists.
 - Resize Image: Resizes the image to a width of 1000 pixels, maintaining aspect ratio.
-- Save Resized Image: Saves the resized image to the output directory with _1000.jpg suffix.
+- Save Resized Image: Saves the resized image to the 'resized' folder with _1000.jpg suffix.
 
 **Inputs**
 - Full-size drawer images from fullsize_dir.
