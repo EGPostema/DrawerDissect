@@ -10,7 +10,7 @@
 3. Clone the Repository
 4. Process a Batch of New Images
 
-For a full summary of each processing step (with descriptions of inputs and outputs), see the README file in the 'functions' folder.
+For a full summary of each processing step (with descriptions of inputs and outputs), [see the README file in the 'functions' folder](https://github.com/EGPostema/coloroptera/blob/main/functions/README.md)
 
 # 1. Train Roboflow Models - WIP
 
