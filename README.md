@@ -2,7 +2,7 @@
 
 **Welcome to COLORoptera, and AI-powered method for processing whole-drawer images of insects!**
 
-(Add a short summary here about intended purposes etc. Python + conda environment + OS command line. Meant to be quite simple / for a beginner at computer programming.)
+<i>(Add a short summary here about intended purposes etc. Python + conda environment + OS command line. Meant to be quite simple / for a beginner at computer programming.)</i>
 
 **To get started, follow the steps below:**
 1. Train Roboflow Models 
@@ -10,18 +10,19 @@
 3. Clone the Repository
 4. Process a Batch of New Images
 
-For a full summary of each processing step (with descriptions of inputs and outputs), see the README file in the 'functions' folder.
+<i>For a full summary of each processing step (with descriptions of inputs and outputs), see the README file in the 'functions' folder.</i>
 
 # 1. Train Roboflow Models - WIP
 
 ## Quick-Start: Use Our Data to Train Basic Models
 
-- Provide link to most updated repository where we put our images and annotations
-- Describe how to upload and train the two models needed, using either the free or upgraded version of roboflow
+<i> - Provide link to most updated repository where we put our images and annotations</i>
+
+<i> - Describe how to upload and train the two models needed, using either the free or upgraded version of roboflow</i>
 
 ## Update Models with your Own Data
 
-Also describe how they can even update the model with their own data if they want (various ways to do this)
+<i>Also describe how they can even update the model with their own data if they want (various ways to do this)</i>
 
 # 2. Set up a Conda Environment
 
@@ -99,7 +100,7 @@ coloroptera/
 
 Put all images in ~/drawers/fullsize. Ensure they are .jpgs, though the code could probably be modified to handle other file formats if needed. It is helpful to have a consistent naming convention for the drawers that is also taxonomically descriptive (if applicable).
 
-PHOTO HERE!
+<i>PHOTO HERE!</i>
 
 ## Add Your Roboflow Info
 
