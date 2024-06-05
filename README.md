@@ -105,7 +105,7 @@ coloroptera
 
 ## Upload Images
 
-Put all images in the "fullsize" folder. Ensure they are .jpgs, though the code could probably be modified to handle other file formats if needed. It is helpful to have a consistent naming convention for the drawers. For example, at the Field, we use a drawer name that is consistent with EMu, our museum database. This name corresponds to the physical row, cabinet, and position that the drawer is located in.
+Put all images in the "fullsize" folder. Ensure they are .jpgs, though the code could probably be modified to handle other file formats if needed. It is helpful to have a consistent naming convention for the drawers. For example, at the Field, we use a drawer name that is consistent with EMu, our museum databasing program. This name corresponds to the physical row, cabinet, and position that the drawer is located in (ex: "63_05_08" refers to a drawer in row 63, cabinet 5, 8 down from the top).
 
 <i>PHOTO HERE!</i>
 
