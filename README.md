@@ -68,12 +68,6 @@ conda list tesseract
 conda list git
 ```
 
-It's also useful to make sure roboflow is in the right place:
-```sh
-ls /home/<your-username>/miniconda3/envs/<your-env-name>/lib/python3.9/site-packages/roboflow
-```
-
-
 # 3. Clone the Repository
 
 To clone this repository, use the following command:
