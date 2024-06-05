@@ -87,8 +87,8 @@ You can use the ```cd``` and ```ls``` (Mac) or ```dir``` (Windows) commands to n
 **Before you start processing new images,** make sure that you have all of the following within the main project folder:
 
 ```
-coloroptera/
-├── functions/ <-- This is where all the image processing scripts live!
+coloroptera
+├── functions <-- This is where all the image processing scripts live!
 │ ├── resize_drawer.py 
 │ ├── infer_drawers.py
 │ ├── crop_trays.py
@@ -96,8 +96,8 @@ coloroptera/
 │ ├── label_transcription.py
 │ ├── infer_trays.py
 │ └── crop_specimens.py
-├── drawers/
-│ ├── fullsize/  <-- This is where you will add new images to process
+├── drawers
+│ ├── fullsize  <-- This is where you will add new images to process
 └── process_images.py  <-- This is the master script that runs all the processing steps
 ```
 
