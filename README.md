@@ -2,7 +2,7 @@
 
 **Welcome to COLORoptera, and AI-powered method for processing whole-drawer images of insects!**
 
-<i>(Add a short summary here about intended purposes etc. Python + conda environment + OS command line. Meant to be quite simple / for a beginner at computer programming.)</i>
+<i>(Add a short summary here about intended purposes etc. Python + conda environment. Meant to be quite simple / for someone with VERY basic knowledge of command-line functions.</i>
 
 **To get started, follow the steps below:**
 1. Train Roboflow Models 
@@ -22,7 +22,7 @@ For a full summary of each processing step (with descriptions of inputs and outp
 
 ## Update Models with your Own Data
 
-<i>Also describe how they can even update the model with their own data if they want (various ways to do this)</i>
+<i>Also describe how they can even update the model with their own data if they want, or train models for totally new functions</i>
 
 # 2. Set up a Conda Environment
 
