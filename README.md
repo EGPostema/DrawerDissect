@@ -26,7 +26,9 @@ For a full summary of each processing step (with descriptions of inputs and outp
 
 # 2. Set up a Conda Environment
 
-Make sure that conda is installed and updated. Then, create a new conda environment that includes all the necessary packages for image resizing, cropping, and OCR. Make sure to replace ```<your-env-name>``` with the actual name you want for the environment. 
+Make sure that miniconda is installed and updated. [Download the latest version here.](https://docs.anaconda.com/free/miniconda/)
+
+Then, create a new conda environment that includes all the necessary packages for image resizing, cropping, and OCR. Make sure to replace ```<your-env-name>``` with the actual name you want for the environment. 
 - On a Mac, you can do this in the terminal.
 - For Windows, search for and open the "Anaconda Prompt" to create your conda environment.
 
