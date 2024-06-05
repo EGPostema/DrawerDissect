@@ -106,7 +106,7 @@ coloroptera/
 
 ## Upload Images
 
-Put all images in ~/drawers/fullsize. Ensure they are .jpgs, though the code could probably be modified to handle other file formats if needed. It is helpful to have a consistent naming convention for the drawers that is also taxonomically descriptive (if applicable).
+Put all images in the "fullsize" folder. Ensure they are .jpgs, though the code could probably be modified to handle other file formats if needed. It is helpful to have a consistent naming convention for the drawers that is also taxonomically descriptive (if applicable).
 
 <i>PHOTO HERE!</i>
 
@@ -120,7 +120,9 @@ Make sure that process_images.py is modified for your own roboflow details. You 
 
 <img width="1038" alt="Screenshot 2024-05-21 at 1 56 55 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/864a9d8a-a6a3-4d59-8d78-3887125578b1">
 
-The easiest way to modify these details in is to edit the script directly with the command ```nano process_images.py```
+- On a Mac, the easiest way to modify these details in is to edit the script directly with the command ```nano process_images.py```
+- On Mac, you can also open and edit the script in with TextEdit. Make sure to save your changes!
+- On a Windows computer, you can navigate to process_images.py and edit it directly with the notepad. Make sure to save your changes!
 
 ### API KEY 
 
