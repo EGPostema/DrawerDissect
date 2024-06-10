@@ -82,7 +82,7 @@ Make sure to navigate to the correct project directory before you start adding a
 cd coloroptera
 ```
 
-You can use the ```cd``` and ```ls``` (Mac) or ```dir``` (Windows) commands to navigate through the directory and see what folders and files are present.
+You can use the ```cd``` and ```ls``` commands to navigate through the directory and see what folders and files are present.
 
 **Before you start processing new images,** make sure that you have all of the following within the main project folder:
 
