@@ -8,7 +8,11 @@ def resize_drawer_images(input_dir, output_dir):
     for filename in os.listdir(input_dir):
         if filename.endswith('.jpg'):
             input_path = os.path.join(input_dir, filename)
-            output_path = os.path.join(output_dir, filename.replace('.jpg', '_1000.jpg'))
+
+            # Extract the desired part of the filename and add _1000 suffix
+            base_name = '_'.join(filename.split('_')[:3])
+            output_filename = f"{base_name}_1000.jpg"
+            output_path = os.path.join(output_dir, output_filename)
             
             if os.path.exists(output_path):
                 print(f"Skipping {filename}, already resized.")
