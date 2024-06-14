@@ -34,9 +34,15 @@ specimens_dir = 'drawers/specimens'
 
 # Ensure necessary directories exist
 directories = [fullsize_dir, resized_dir, coordinates_dir, trays_dir, resized_trays_dir, resized_trays_coordinates_dir, specimens_dir]
+all_exist = True
 for directory in directories:
-    print(f"Creating directory: {directory}")
-    os.makedirs(directory, exist_ok=True)
+    if not os.path.exists(directory):
+        print(f"Creating directory: {directory}")
+        os.makedirs(directory, exist_ok=True)
+        all_exist = False
+
+if all_exist:
+    print("All directories exist.")
 
 # Import functions from functions folder
 
