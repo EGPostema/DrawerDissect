@@ -1,10 +1,14 @@
 from PIL import Image, ImageFile
 import os
+import time
 
 Image.MAX_IMAGE_PIXELS = None
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 def resize_tray_images(input_dir, output_dir, new_width=1000):
+
+    start_time = time.time()  # Start the timer
+    
     for filename in os.listdir(input_dir):
         if filename.endswith('.jpg'):
             input_path = os.path.join(input_dir, filename)
@@ -18,6 +22,11 @@ def resize_tray_images(input_dir, output_dir, new_width=1000):
                 new_height = int((new_width / img.width) * img.height)
                 resized_img = img.resize((new_width, new_height), Image.LANCZOS)
                 resized_img.save(output_path)
+                print(f"Resized {filename} and saved to {output_path}")
+                
+    end_time = time.time()  # End the timer
+    elapsed_time = end_time - start_time
+    print(f"Tray resizing complete. Total time: {elapsed_time:.2f} seconds.")
 
 if __name__ == '__main__':
     resize_tray_images('coloroptera/drawers/trays', 'coloroptera/drawers/resized_trays')
