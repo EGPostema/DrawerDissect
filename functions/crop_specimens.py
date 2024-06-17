@@ -44,10 +44,10 @@ def crop_specimens_from_trays(trays_dir, resized_trays_dir, specimens_dir):
                     width = annotation['width']
                     height = annotation['height']
 
-                    xmin = max(int((x - 50) * scale_x), 0)
-                    ymin = max(int((y - 50) * scale_y), 0)
-                    xmax = min(int((x + width + 50) * scale_x), original_img.width)
-                    ymax = min(int((y + height + 50) * scale_y), original_img.height)
+                    xmin = max(int((x - 5) * scale_x), 0)
+                    ymin = max(int((y - 5) * scale_y), 0)
+                    xmax = min(int((x + width + 5) * scale_x), original_img.width)
+                    ymax = min(int((y + height + 5) * scale_y), original_img.height)
 
                     # Crop the image
                     cropped_img = original_img.crop((xmin, ymin, xmax, ymax))
