@@ -15,12 +15,30 @@ def crop_trays_from_fullsize(fullsize_dir, resized_dir, trays_dir):
     # Iterate through resized images
     for resized_filename in os.listdir(resized_dir):
         if resized_filename.endswith('_1000.jpg'):  # Ensure we are processing the correct JPEG images
-            base_name = os.path.splitext(resized_filename)[0].replace('_1000', '')
-            original_filename = base_name + '.jpg'
+            base_name = '_'.join(resized_filename.split('_')[:3])
+            # Search for the matching original file in the fullsize directory
+            original_filename = None
+            for filename in os.listdir(fullsize_dir):
+                if filename.startswith(base_name) and filename.endswith('.jpg'):
+                    original_filename = filename
+                    break
+            
+            if not original_filename:
+                print(f"Warning: Original image file starting with '{base_name}' not found. Skipping...")
+                continue
+
             original_image_path = os.path.join(fullsize_dir, original_filename)
             resized_image_path = os.path.join(resized_dir, resized_filename)
             json_filename = resized_filename.replace('.jpg', '.json')
             json_file_path = os.path.join(coordinates_dir, json_filename)
+
+            # Debugging statements
+            print(f"Resized filename: {resized_filename}")
+            print(f"Base name: {base_name}")
+            print(f"Original filename: {original_filename}")
+            print(f"Original image path: {original_image_path}")
+            print(f"Resized image path: {resized_image_path}")
+            print(f"JSON file path: {json_file_path}")
 
             # Check if the JSON file exists
             if not os.path.exists(json_file_path):
