@@ -23,6 +23,10 @@ DRAWER_MODEL_VERSION = 1  # Adjust the version as needed!
 TRAY_MODEL_ENDPOINT = 'SPECIMEN_SEPERATING_MODEL_HERE'
 TRAY_MODEL_VERSION = 1  # Adjust the version as needed
 
+# User inputs for roboflow model that detects labels **MAKE SURE TO MODIFY THIS!**
+LABEL_MODEL_ENDPOINT = 'labelfinder'
+LABEL_MODEL_VERSION = 1  # Adjust the version as needed!
+
 # Define directories
 fullsize_dir = 'drawers/fullsize'
 resized_dir = 'drawers/resized'
@@ -62,6 +66,8 @@ def main():
     parser.add_argument('--drawer_overlap', type=int, default=50, help="Overlap level for drawer inference. Default is 50.")
     parser.add_argument('--tray_confidence', type=int, default=50, help="Confidence level for tray inference. Default is 50.")
     parser.add_argument('--tray_overlap', type=int, default=50, help="Overlap level for tray inference. Default is 50.")
+    parser.add_argument('--label_confidence', type=int, default=50, help="Confidence level for label inference. Default is 50.")
+    parser.add_argument('--label_overlap', type=int, default=50, help="Overlap level for label inference. Default is 50.")
     
     args = parser.parse_args()
 
@@ -79,7 +85,7 @@ def main():
         resize_tray_images(trays_dir, resized_trays_dir)
         print(f"Resized tray images saved in {resized_trays_dir}")
 
-        transcribe_labels_and_ids(resized_trays_dir)
+        transcribe_labels_and_ids(resized_trays_dir, API_KEY, LABEL_MODEL_ENDPOINT, LABEL_MODEL_VERSION, confidence=args.label_confidence, overlap=args.label_overlap)
         print(f"Labels transcribed and saved in {os.path.join(resized_trays_dir, 'label_data')}")
 
         infer_tray_images(resized_trays_dir, resized_trays_coordinates_dir, API_KEY, TRAY_MODEL_ENDPOINT, TRAY_MODEL_VERSION, confidence=args.tray_confidence, overlap=args.tray_overlap)
@@ -106,7 +112,7 @@ def main():
         resize_tray_images(trays_dir, resized_trays_dir)
         print(f"Resized tray images saved in {resized_trays_dir}")
     elif args.step == 'transcribe_labels':
-        transcribe_labels_and_ids(resized_trays_dir)
+        transcribe_labels_and_ids(resized_trays_dir, API_KEY, LABEL_MODEL_ENDPOINT, LABEL_MODEL_VERSION, confidence=args.label_confidence, overlap=args.label_overlap)
         print(f"Labels transcribed and saved in {os.path.join(resized_trays_dir, 'label_data')}")
     elif args.step == 'infer_trays':
         infer_tray_images(resized_trays_dir, resized_trays_coordinates_dir, API_KEY, TRAY_MODEL_ENDPOINT, TRAY_MODEL_VERSION, confidence=args.tray_confidence, overlap=args.tray_overlap)
