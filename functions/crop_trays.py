@@ -11,7 +11,8 @@ def crop_trays_from_fullsize(fullsize_dir, resized_dir, trays_dir):
     start_time = time.time()  # Start the timer
 
     coordinates_dir = os.path.join(resized_dir, 'coordinates')
-
+    cropped_count = 0  # Initialize a counter for cropped specimens
+    
     # Iterate through resized images
     for resized_filename in os.listdir(resized_dir):
         if resized_filename.endswith('_1000.jpg'):  # Ensure we are processing the correct JPEG images
@@ -77,4 +78,4 @@ def crop_trays_from_fullsize(fullsize_dir, resized_dir, trays_dir):
 
     end_time = time.time()  # End the timer
     elapsed_time = end_time - start_time
-    print(f"Processing complete. Cropped images are saved in the '{trays_dir}' folder. Total time: {elapsed_time:.2f} seconds.")
+    print(f"Processing complete. {cropped_count} trays are saved in the '{trays_dir}' folder. Total time: {elapsed_time:.2f} seconds.")
