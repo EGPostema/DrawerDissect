@@ -33,14 +33,6 @@ def crop_trays_from_fullsize(fullsize_dir, resized_dir, trays_dir):
             json_filename = resized_filename.replace('.jpg', '.json')
             json_file_path = os.path.join(coordinates_dir, json_filename)
 
-            # Debugging statements
-            print(f"Resized filename: {resized_filename}")
-            print(f"Base name: {base_name}")
-            print(f"Original filename: {original_filename}")
-            print(f"Original image path: {original_image_path}")
-            print(f"Resized image path: {resized_image_path}")
-            print(f"JSON file path: {json_file_path}")
-
             # Check if the JSON file exists
             if not os.path.exists(json_file_path):
                 print(f"Warning: JSON file '{json_file_path}' not found for {base_name}. Skipping...")
