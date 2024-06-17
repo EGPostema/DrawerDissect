@@ -9,6 +9,7 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True  # Allow loading of truncated images
 
 def crop_specimens_from_trays(trays_dir, resized_trays_dir, specimens_dir):
     start_time = time.time()  # Start the timer
+    cropped_count = 0  # Initialize counter for new images created
 
     resized_trays_coordinates_dir = os.path.join(resized_trays_dir, 'coordinates')
 
@@ -37,7 +38,7 @@ def crop_specimens_from_trays(trays_dir, resized_trays_dir, specimens_dir):
                 scale_x = original_img.width / resized_img.width
                 scale_y = original_img.height / resized_img.height
 
-                # Crop images based on scaled coordinates, adding a 50 pixel buffer, and save
+                # Crop images based on scaled coordinates, adding a 5 pixel buffer, and save
                 for i, annotation in enumerate(annotations, 1):
                     x = annotation['x'] - annotation['width'] / 2
                     y = annotation['y'] - annotation['height'] / 2
@@ -56,7 +57,8 @@ def crop_specimens_from_trays(trays_dir, resized_trays_dir, specimens_dir):
                     formatted_number = f'{i:03}'  # Pad with zeros (e.g., 001, 002, ...)
                     cropped_image_path = os.path.join(specimens_dir, f'{base_name}_spec_{formatted_number}.jpg')
                     cropped_img.save(cropped_image_path)
+                    cropped_count += 1  # Increment the counter
 
     end_time = time.time()  # End the timer
     elapsed_time = end_time - start_time
-    print(f"Processing complete. Cropped specimens are saved in the '{specimens_dir}' folder. Total time: {elapsed_time:.2f} seconds.")
+    print(f"Processing complete. {cropped_count} specimens are saved in the '{specimens_dir}' folder. Total time: {elapsed_time:.2f} seconds.")
