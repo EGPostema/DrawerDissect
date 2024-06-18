@@ -80,20 +80,8 @@ You can use the ```cd``` and ```ls``` commands to navigate through the directory
 
 **Before you start processing new images,** make sure that you have all of the following within the main project folder:
 
-```
-coloroptera
-├── functions <-- This is where all the image processing scripts live!
-│ ├── resize_drawer.py 
-│ ├── infer_drawers.py
-│ ├── crop_trays.py
-│ ├── resize_trays.py
-│ ├── label_transcription.py
-│ ├── infer_trays.py
-│ └── crop_specimens.py
-├── drawers
-│ ├── fullsize  <-- This is where you will add new images to process
-└── process_images.py  <-- This is the master script that runs all the processing steps
-```
+<img width="299" alt="Screenshot 2024-06-18 at 12 21 05 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/36ca24fb-6505-4b9e-a399-7e9cc68f8cd1">
+
 
 # 4. Process a Batch of New Images
 
