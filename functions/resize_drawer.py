@@ -21,12 +21,16 @@ def resize_drawer_images(input_dir, output_dir):
             if os.path.exists(output_path):
                 print(f"Skipping {filename}, already resized.")
                 continue
-            
-            with Image.open(input_path) as img:
-                img_resized = img.resize((1000, int(img.height * (1000 / img.width))))
-                img_resized.save(output_path)
-                print(f"Resized {filename} and saved to {output_path}")
-
-    end_time = time.time()  # End the timer
-    elapsed_time = end_time - start_time
+                
+            try:
+                with Image.open(input_path) as img:
+                    new_width = 1000
+                    new_height = int(img.height * (1000 / img.width))
+                    img_resized = img.resize((new_width, new_height))
+                    img_resized.save(output_path)
+                    print(f"Resized {filename} and saved to {output_path}")
+            except Exception as e:
+                print(f"Error processing {filename}: {e}")
+    
+    elapsed_time = time.time() - start_time
     print(f"Drawer resizing complete. Total time: {elapsed_time:.2f} seconds.")
