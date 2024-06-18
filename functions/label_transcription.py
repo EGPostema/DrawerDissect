@@ -6,11 +6,7 @@ from pytesseract import pytesseract
 from roboflow import Roboflow
 
 # Function to call the Roboflow model
-def get_detections(image_path, api_key, model_endpoint, version, confidence, overlap, label_coordinates_dir):
-    rf = Roboflow(api_key=api_key)
-    project = rf.workspace().project(model_endpoint)
-    model = project.version(version).model
-
+def get_detections(image_path, model, confidence, overlap, label_coordinates_dir):
     prediction = model.predict(image_path, confidence=confidence, overlap=overlap).json()
     
     # Save prediction to JSON file
@@ -28,7 +24,7 @@ def extract_text_from_area(image, area):
     return text.strip()
 
 # Function to extract label information using detections
-def extract_label_info(image_path, api_key, model_endpoint, version, confidence, overlap, label_coordinates_dir):
+def extract_label_info(image_path, model, confidence, overlap, label_coordinates_dir):
     img = Image.open(image_path)
     json_filename = os.path.splitext(os.path.basename(image_path))[0] + '.json'
     json_path = os.path.join(label_coordinates_dir, json_filename)
@@ -37,7 +33,7 @@ def extract_label_info(image_path, api_key, model_endpoint, version, confidence,
         with open(json_path, 'r') as json_file:
             detections = json.load(json_file)
     else:
-        detections, json_filename = get_detections(image_path, api_key, model_endpoint, version, confidence, overlap, label_coordinates_dir)
+        detections, json_filename = get_detections(image_path, model, confidence, overlap, label_coordinates_dir)
 
     if not detections.get('predictions'):
         print(f"No label information found for {os.path.basename(image_path)}, label not transcribed")
@@ -65,6 +61,10 @@ def extract_label_info(image_path, api_key, model_endpoint, version, confidence,
     return label_info
 
 def transcribe_labels_and_ids(resized_trays_dir, api_key, model_endpoint, version, confidence, overlap):
+    rf = Roboflow(api_key=api_key)
+    project = rf.workspace().project(model_endpoint)
+    model = project.version(version).model
+
     label_coordinates_dir = os.path.join(resized_trays_dir, 'label_coordinates')
     label_data_directory = os.path.join(resized_trays_dir, 'label_data')
     os.makedirs(label_coordinates_dir, exist_ok=True)
@@ -90,7 +90,7 @@ def transcribe_labels_and_ids(resized_trays_dir, api_key, model_endpoint, versio
                 if file in existing_transcriptions:
                     print(f"Transcription for image {file} already exists in CSV")
                     continue
-                label_info = extract_label_info(image_path, api_key, model_endpoint, version, confidence, overlap, label_coordinates_dir)
+                label_info = extract_label_info(image_path, model, confidence, overlap, label_coordinates_dir)
                 if label_info:
                     data.append(label_info)
     
