@@ -23,7 +23,7 @@ DRAWER_MODEL_VERSION = 1  # Adjust the version as needed!
 TRAY_MODEL_ENDPOINT = 'SPECIMEN_SEPERATING_MODEL_HERE'
 TRAY_MODEL_VERSION = 1  # Adjust the version as needed
 
-# User inputs for roboflow model that detects LABEL LOCATIONS for OCR **MAKE SURE TO MODIFY THIS!**
+# User inputs for roboflow model that detects labels **MAKE SURE TO MODIFY THIS!**
 LABEL_MODEL_ENDPOINT = 'labelfinder'
 LABEL_MODEL_VERSION = 1  # Adjust the version as needed!
 
