@@ -59,6 +59,5 @@ def crop_specimens_from_trays(trays_dir, resized_trays_dir, specimens_dir):
                     cropped_img.save(cropped_image_path)
                     cropped_count += 1  # Increment the counter
 
-    end_time = time.time()  # End the timer
-    elapsed_time = end_time - start_time
+    elapsed_time = time.time() - start_time
     print(f"Processing complete. {cropped_count} specimens are saved in the '{specimens_dir}' folder. Total time: {elapsed_time:.2f} seconds.")
