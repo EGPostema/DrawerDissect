@@ -66,7 +66,7 @@ def main():
     parser.add_argument('--drawer_overlap', type=int, default=50, help="Overlap level for drawer inference. Default is 50.")
     parser.add_argument('--tray_confidence', type=int, default=50, help="Confidence level for tray inference. Default is 50.")
     parser.add_argument('--tray_overlap', type=int, default=50, help="Overlap level for tray inference. Default is 50.")
-    parser.add_argument('--label_confidence', type=int, default=50, help="Confidence level for label inference. Default is 50.")
+    parser.add_argument('--label_confidence', type=int, default=30, help="Confidence level for label inference. Default is 30.")
     parser.add_argument('--label_overlap', type=int, default=50, help="Overlap level for label inference. Default is 50.")
     
     args = parser.parse_args()
