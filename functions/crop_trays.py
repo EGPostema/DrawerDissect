@@ -48,6 +48,10 @@ def crop_trays_from_fullsize(fullsize_dir, resized_dir, trays_dir):
                 scale_x = original_img.width / resized_img.width
                 scale_y = original_img.height / resized_img.height
 
+                # Create a subfolder for the base name if it doesn't exist
+                base_folder_path = os.path.join(trays_dir, base_name)
+                os.makedirs(base_folder_path, exist_ok=True)
+
                 # Crop images based on scaled coordinates and save
                 for i, annotation in enumerate(annotations, 1):
                     x = annotation['x'] - annotation['width'] / 2
@@ -65,9 +69,10 @@ def crop_trays_from_fullsize(fullsize_dir, resized_dir, trays_dir):
 
                     # Format the file name with leading zeros
                     formatted_number = f'{i:02}'  # Pad with zeros (e.g., 01, 02, ...)
-                    cropped_image_path = os.path.join(trays_dir, f'{base_name}_tray_{formatted_number}.jpg')
+                    cropped_image_path = os.path.join(base_folder_path, f'{base_name}_tray_{formatted_number}.jpg')
                     cropped_img.save(cropped_image_path)
-
+                    cropped_count += 1
+                    
     end_time = time.time()  # End the timer
     elapsed_time = end_time - start_time
     print(f"Processing complete. {cropped_count} trays are saved in the '{trays_dir}' folder. Total time: {elapsed_time:.2f} seconds.")
