@@ -188,7 +188,7 @@ python process_images.py resize_trays
 **Transcribe Labels**
 
 ```sh 
-python process_images.py transcribe_labels
+python process_images.py transcribe_labels --label_confidence 30 --drawer_overlap 50
 ```
 
 **Find Specimen Coordinates**
