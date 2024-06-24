@@ -27,8 +27,5 @@ def infer_drawers(input_dir, output_dir, api_key, model_endpoint, version, confi
     end_time = time.time()  # End the timer
     elapsed_time = end_time - start_time
     print(f"Inference complete. Total time: {elapsed_time:.2f} seconds.")
-    
-if __name__ == '__main__':
-    infer_drawers('coloroptera/drawers/resized', 'coloroptera/drawers/resized/coordinates', 'YOUR_API_KEY', 'YOUR_DRAWER_MODEL_ENDPOINT', 1)
 
 
