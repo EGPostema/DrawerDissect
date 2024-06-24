@@ -134,6 +134,10 @@ To find your model's name and version in roboflow, go to your projects > choose 
 
 <img width="782" alt="Screenshot 2024-05-20 at 1 39 37 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/e2918f19-9867-42d1-ae20-53369f2d4018">
 
+In the script, for this model, I would input the information like this:
+
+<img width="486" alt="Screenshot 2024-06-24 at 1 02 10 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/1070e844-ab02-4c6a-a605-bdf781498f62">
+
 The model's name will always be uncapitalized and without spaces (or dashes instead of spaces). The version # will be to the right of the model name. This makes it easy to go back and just update the version # as you train better version of the same model! 
 
 **Make sure to fill in both MODEL NAME and VERSION for EACH model used in this script.** 
