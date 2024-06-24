@@ -101,6 +101,3 @@ def transcribe_labels_and_ids(resized_trays_dir, api_key, model_endpoint, versio
         else:
             df.to_csv(csv_path, index=False)
         print(f"Label data saved to {csv_path}")
-
-if __name__ == '__main__':
-    transcribe_labels_and_ids('coloroptera/drawers/resized_trays', 'YOUR_API_KEY', 'YOUR_LABEL_MODEL_ENDPOINT', 1)
