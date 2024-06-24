@@ -49,9 +49,13 @@ from functions.label_transcription import transcribe_labels_and_ids
 from functions.infer_trays import infer_tray_images
 from functions.crop_specimens import crop_specimens_from_trays
 
+# Define roboflow commands
+
 def load_roboflow_workspace_and_project():
     rf = roboflow.Roboflow(api_key=API_KEY)
     workspace = rf.workspace(WORKSPACE)
+
+# Use argparser to allow individual steps to be called (see README for commands)
 
 def main():
     parser = argparse.ArgumentParser(description="Process images with specified confidence and overlap.")
@@ -61,7 +65,7 @@ def main():
     parser.add_argument('--drawer_overlap', type=int, default=50, help="Overlap level for drawer inference. Default is 50.")
     parser.add_argument('--tray_confidence', type=int, default=50, help="Confidence level for tray inference. Default is 50.")
     parser.add_argument('--tray_overlap', type=int, default=50, help="Overlap level for tray inference. Default is 50.")
-    parser.add_argument('--label_confidence', type=int, default=30, help="Confidence level for label inference. Default is 30.")
+    parser.add_argument('--label_confidence', type=int, default=50, help="Confidence level for label inference. Default is 50.")
     parser.add_argument('--label_overlap', type=int, default=50, help="Overlap level for label inference. Default is 50.")
     
     args = parser.parse_args()
