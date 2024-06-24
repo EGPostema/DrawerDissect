@@ -32,6 +32,3 @@ def infer_tray_images(input_dir, output_dir, api_key, model_endpoint, version, c
 
     elapsed_time = time.time() - start_time
     print(f"Inference complete. Total time: {elapsed_time:.2f} seconds.")
-
-if __name__ == '__main__':
-    infer_tray_images('coloroptera/drawers/resized_trays', 'coloroptera/drawers/resized_trays/coordinates', 'YOUR_API_KEY', 'YOUR_TRAY_MODEL_ENDPOINT', 1)
