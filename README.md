@@ -78,7 +78,7 @@ cd coloroptera
 
 You can use the ```cd``` and ```ls``` commands to navigate through the directory and see what folders and files are present.
 
-**Before you start processing new images,** make sure that you have all of the following within the main project folder:
+**Before you start processing new images,** make sure that you have all of the following folders/files:
 
 <img width="299" alt="Screenshot 2024-06-18 at 12 21 05 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/36ca24fb-6505-4b9e-a399-7e9cc68f8cd1">
 
@@ -92,6 +92,8 @@ Within the ```functions``` folder, there should be 7 scripts for the 7 different
 - resize_drawer.py
 - resize_trays.py
 
+Each of these steps gets called on automatically by the main processing script in step 4.
+
 # 4. Process a Batch of New Images
 
 ## Upload Images
@@ -104,13 +106,15 @@ Put all images in the ```fullsize``` folder. Ensure they are .jpgs, though the c
 
 ## Add Your Roboflow Info
 
-Make sure that process_images.py is modified for your own roboflow details. You will need to find the following information: 
+Make sure that process_images.py is modified for your own roboflow details. **The script WILL NOT RUN otherwise.** 
+
+You will need to find the following information: 
 - API key
 - Workspace id
 - Model names and versions
-- Desired model confidence/overlap.
+- Desired model confidence/overlap
 
-<img width="1038" alt="Screenshot 2024-05-21 at 1 56 55 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/864a9d8a-a6a3-4d59-8d78-3887125578b1">
+![Screenshot 2024-06-24 at 12 55 05 PM](https://github.com/EGPostema/coloroptera/assets/142446286/a2181fad-c177-41bc-9ea7-7d46dd75db78)
 
 process_image.py can be edited using the ```nano``` command on both windows and mac, or via applications like notepad and textedit.
 
