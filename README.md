@@ -82,14 +82,25 @@ You can use the ```cd``` and ```ls``` commands to navigate through the directory
 
 <img width="299" alt="Screenshot 2024-06-18 at 12 21 05 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/36ca24fb-6505-4b9e-a399-7e9cc68f8cd1">
 
+Within the ```functions``` folder, there should be 7 scripts for the 7 different image processing steps (2 for cropping, 2 for running inference, 1 for label transcription, and 2 for image resizing):
+
+- crop_specimens.py
+- crop_trays.py
+- infer_drawers.py
+- infer_trays.py
+- label_transcription.py
+- resize_drawer.py
+- resize_trays.py
 
 # 4. Process a Batch of New Images
 
 ## Upload Images
 
-Put all images in the "fullsize" folder. Ensure they are .jpgs, though the code could probably be modified to handle other file formats if needed. It is helpful to have a consistent naming convention for the drawers. For example, at the Field, we use a drawer name that is consistent with EMu, our museum databasing program. This name corresponds to the physical row, cabinet, and position that the drawer is located in (ex: "63_05_08" refers to a drawer in row 63, cabinet 5, 8 down from the top).
+Put all images in the ```fullsize``` folder. Ensure they are .jpgs, though the code could  be modified to handle other file formats if needed. It is helpful to have a consistent naming convention for the drawers. For example, at the Field, we use a drawer name that is consistent with EMu, our museum databasing program. This name corresponds to the physical row, cabinet, and position that the drawer is located in (ex: "63_5_8" refers to a drawer in row 63, cabinet 5, 8 down from the top). Our photos are also timestamped.
 
-<i>PHOTO HERE!</i>
+<img width="461" alt="Screenshot 2024-06-24 at 12 04 05 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/c6526924-908f-4999-af55-8c89962b2518">
+
+**This script is currently only set up to handle filenames with the ```##_##_##_timestamp.jpg``` naming convention, though we plan to update this in future versions.**
 
 ## Add Your Roboflow Info
 
@@ -101,13 +112,11 @@ Make sure that process_images.py is modified for your own roboflow details. You 
 
 <img width="1038" alt="Screenshot 2024-05-21 at 1 56 55 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/864a9d8a-a6a3-4d59-8d78-3887125578b1">
 
-- On a Mac, the easiest way to modify these details in is to edit the script directly with the command ```nano process_images.py```
-- On Mac, you can also open and edit the script in with TextEdit. Make sure to save your changes!
-- On a Windows computer, you can navigate to process_images.py and edit it directly with the notepad. Make sure to save your changes!
+process_image.py can be edited using the ```nano``` command on both windows and mac, or via applications like notepad and textedit.
 
 ### API KEY 
 
-Your API key is PRIVATE to your own account. Make sure not to share this widely. Here's how to find roboflow API key: https://docs.roboflow.com/api-reference/authentication
+Your API key is PRIVATE to your own account. Make sure not to share this widely. Here's how to find the roboflow API key for your account: https://docs.roboflow.com/api-reference/authentication
 
 ### WORKSPACE 
 
@@ -123,13 +132,14 @@ To find your model's name and version in roboflow, go to your projects > choose 
 
 The model's name will always be uncapitalized and without spaces (or dashes instead of spaces). The version # will be to the right of the model name. This makes it easy to go back and just update the version # as you train better version of the same model! 
 
-**Make sure to fill in both MODEL_ENDPOINT and VERSION for EACH model used in this script.** 
-- One model should seperate trays from drawers ('TRAY_SEPERATING_MODEL_HERE')
-- The other should seperate specimens from trays ('SPECIMEN_SEPERATING_MODEL_HERE')
+**Make sure to fill in both MODEL NAME and VERSION for EACH model used in this script.** 
+- One model should seperate trays from drawers ('DRAWER_MODEL_ENDPOINT')
+- One should seperate specimens from trays ('TRAY_MODEL_ENDPOINT')
+- The third should find the location of label information ('LABEL_MODEL_ENDPOINT')
 
 ### CONFIDENCE / OVERLAP 
 
-You can personalize your desired % confidence and overlap for each model. The default is set to 50% for each. Numbers can be changes to anything from 1-100.
+You can personalize your desired % confidence and overlap for each model. The default is set to 50% for each - this  works well for most models. 
 - "50% confidence" means that only annotations the model is over 50% sure about will be recorded in the coordinates file.
 - "50% overlap" means that the model expects that different objects in the JPG may have bounding boxes around them that overlap by up to 50%.
 
