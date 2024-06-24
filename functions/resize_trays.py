@@ -29,7 +29,4 @@ def resize_tray_images(input_dir, output_dir, new_width=1000):
     elapsed_time = time.time() - start_time
     print(f"Tray resizing complete. Total time: {elapsed_time:.2f} seconds.")
 
-if __name__ == '__main__':
-    resize_tray_images('coloroptera/drawers/trays', 'coloroptera/drawers/resized_trays')
-
 
