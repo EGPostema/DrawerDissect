@@ -22,6 +22,8 @@ TRAY_MODEL_ENDPOINT = 'SPECIMEN-SEPERATING-MODEL-HERE'
 TRAY_MODEL_VERSION = 1  # Adjust the version as needed
 LABEL_MODEL_ENDPOINT = 'LABEL-TRANSCRIPTION-MODEL-HERE'
 LABEL_MODEL_VERSION = 1  # Adjust the version as needed!
+MASK_MODEL_ENDPOINT = 'beetlemasker'
+MASK_MODEL_VERSION = 9  # Adjust the version as needed!
 
 # Define directories
 directories = {
