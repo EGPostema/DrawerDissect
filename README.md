@@ -2,7 +2,7 @@
 
 **Welcome to COLORoptera, and AI-powered method for processing whole-drawer images of insects!**
 
-<i>(Add a short summary here about intended purposes etc. Python + conda environment. Meant to be quite simple / for someone with VERY basic knowledge of command-line functions.</i>
+The goal of this python-based pipeline is to get individual-level photographs and data (taxonomic, geographic, phenotypic) from large, high-resolution images that contain many specimens. Normally, extracting this information takes an enormous amount of time and effort. With COLORoptera, these outputs and information can be extracted in just a few minutes per drawer.
 
 **To get started, follow the steps below:**
 1. Train Roboflow Models 
