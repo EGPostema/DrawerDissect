@@ -82,15 +82,11 @@ You can use the ```cd``` and ```ls``` commands to navigate through the directory
 
 <img width="299" alt="Screenshot 2024-06-18 at 12 21 05 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/36ca24fb-6505-4b9e-a399-7e9cc68f8cd1">
 
-Within the ```functions``` folder, there should be 7 scripts for the 7 different image processing steps (2 for cropping, 2 for running inference, 1 for label transcription, and 2 for image resizing):
+Within the ```functions``` folder, there should be 13 scripts for the 13 different image processing steps.
 
-- crop_specimens.py
-- crop_trays.py
-- infer_drawers.py
-- infer_trays.py
-- label_transcription.py
-- resize_drawer.py
-- resize_trays.py
+
+<img width="275" alt="Screenshot 2024-07-23 at 2 02 02 PM" src="https://github.com/user-attachments/assets/b8305a7a-0250-4943-a75f-cb46d4207370">
+
 
 Each of these steps gets called on automatically by the main processing script in step 4.
 
@@ -98,11 +94,17 @@ Each of these steps gets called on automatically by the main processing script i
 
 ## Upload Images
 
-Put all images in the ```fullsize``` folder. Ensure they are .jpgs, though the code could  be modified to handle other file formats if needed. It is helpful to have a consistent naming convention for the drawers. For example, at the Field, we use a drawer name that is consistent with EMu, our museum databasing program. This name corresponds to the physical row, cabinet, and position that the drawer is located in (ex: "63_5_8" refers to a drawer in row 63, cabinet 5, 8 down from the top). Our photos are also timestamped.
+Put all images in the ```fullsize``` folder. Ensure they are .jpgs, though the code could be modified to handle other file formats if needed. It is helpful to have a consistent naming convention for the drawers. For example, at the Field, we use a drawer name that is consistent with EMu, our museum databasing program. This name corresponds to the physical row, cabinet, and position that the drawer is located in (ex: "63_5_8" refers to a drawer in row 63, cabinet 5, 8 down from the top). Our photos are also timestamped. Any standard naming convention can be used, though dashes should generally be avoided ('_'s work better).
+
 
 <img width="461" alt="Screenshot 2024-06-24 at 12 04 05 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/c6526924-908f-4999-af55-8c89962b2518">
 
-**This script is currently only set up to handle filenames with the ```##_##_##_timestamp.jpg``` naming convention, though we plan to update this in future versions.**
+
+As the processing script runs, it will use the names of your fullsize drawer images to organize all output files. So, for example, a tray image cropped from {drawerID_here}.jpg will then be named {drawerID_here}_tray_01.jpg and so on. The script also organizes images into folders and subfolders based on drawer and tray identities. Below is an example of how individual specimen photos are organized once they are cropped out.
+
+
+<img width="262" alt="Screenshot 2024-07-23 at 2 08 42 PM" src="https://github.com/user-attachments/assets/06386a11-efee-445b-a007-8a36e654c0a1">
+
 
 ## Add Your Roboflow Info
 
@@ -111,12 +113,12 @@ Make sure that process_images.py is modified for your own roboflow details. **Th
 You will need to find the following information: 
 - API key
 - Workspace id
-- Model names and versions
+- Model names and versions for ALL 5 MODELS
 - Desired model confidence/overlap
 
 ![Screenshot 2024-06-24 at 12 55 05 PM](https://github.com/EGPostema/coloroptera/assets/142446286/a2181fad-c177-41bc-9ea7-7d46dd75db78)
 
-process_image.py can be edited using the ```nano``` command on both windows and mac, or via applications like notepad and textedit.
+process_image.py can be edited using the ```nano``` command on both windows and mac, or via applications like notepad/textedit.
 
 ### API KEY 
 
