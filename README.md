@@ -108,15 +108,15 @@ As the processing script runs, it will use the names of your fullsize drawer ima
 
 ## Add Your Roboflow Info
 
-Make sure that process_images.py is modified for your own roboflow details. **The script WILL NOT RUN otherwise.** 
+Make sure that process_images.py is modified for your own roboflow details. **ANYTHING OUTLINED IN RED MUST BE FILLED IN WITH USER-SPECIFIC INFO. The script WILL NOT RUN otherwise.** 
 
 You will need to find the following information: 
 - API key
 - Workspace id
 - Model names and versions for ALL 5 MODELS
-- Desired model confidence/overlap
 
-![Screenshot 2024-06-24 at 12 55 05 PM](https://github.com/EGPostema/coloroptera/assets/142446286/a2181fad-c177-41bc-9ea7-7d46dd75db78)
+![fillins](https://github.com/user-attachments/assets/ce11ac34-8726-4136-84bb-da4ac390f4c2)
+
 
 process_image.py can be edited using the ```nano``` command on both windows and mac, or via applications like notepad/textedit.
 
@@ -143,17 +143,16 @@ In the script, for this model, I would input the information like this:
 The model's name will always be uncapitalized and without spaces (or dashes instead of spaces). The version # will be to the right of the model name. This makes it easy to go back and just update the version # as you train better version of the same model! 
 
 **Make sure to fill in both MODEL NAME and VERSION for EACH model used in this script.** 
-- One model should seperate trays from drawers ('DRAWER_MODEL_ENDPOINT')
-- One should seperate specimens from trays ('TRAY_MODEL_ENDPOINT')
-- The third should find the location of label information ('LABEL_MODEL_ENDPOINT')
 
 ### CONFIDENCE / OVERLAP 
 
-You can personalize your desired % confidence and overlap for each model. The default is set to 50% for each - this  works well for most models. 
+You can personalize your desired % confidence and overlap for each model. The default is set to 50% for each - this  works well for most models, but can be changed by changing to 50 to any number between 0 and 100. 
 - "50% confidence" means that only annotations the model is over 50% sure about will be recorded in the coordinates file.
 - "50% overlap" means that the model expects that different objects in the JPG may have bounding boxes around them that overlap by up to 50%.
 
-<img width="1031" alt="Screenshot 2024-05-21 at 1 55 19 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/161ff11d-e05e-428c-b168-e1e306869527">
+
+![Screenshot 2024-07-23 at 2 20 15 PM](https://github.com/user-attachments/assets/aa11408b-096c-4c0b-b21c-fe4652c832e9)
+
 
 ## Running the Script
 
@@ -163,9 +162,11 @@ Once the script has been updated with information from roboflow, you can start t
 python process_images.py
 ```
 
+**This command will run ALL steps for ALL photos in the ```fullsize``` folder that have not yet been processed**
+
 ## Calling Individual Steps
 
-If you only want to run a single function, you can use the following commands:
+If you only want to run a single function at a time, you can use the following commands:
 
 **Resize Drawers**
 
@@ -195,6 +196,8 @@ python process_images.py resize_trays
 
 **Transcribe Labels**
 
+Modify confidence or overlap % by changing 50 to any number 1-100. 50% is default.
+
 ```sh 
 python process_images.py transcribe_labels --label_confidence 50 --drawer_overlap 50
 ```
@@ -213,6 +216,44 @@ python process_images.py infer_trays --tray_confidence 50 --tray_overlap 50
 python process_images.py crop_specimens
 ```
 
-## Outputs and Analysis - WIP
+**Find Specimen Outlines**
+
+Modify confidence or overlap % by changing 50 to any number 1-100. 50% is default.
+
+```sh 
+python process_images.py infer_beetles --beetle_confidence 50 --beetle_overlap 50
+```
+
+**Create Binary Mask CSVs and PNGs from Specimen Outlines**
+
+```sh 
+python process_images.py create_masks
+```
+
+**Classify Specimen Patterns**
+
+```sh 
+python process_images.py infer_patterns
+```
+
+**Write CSV for Specimen-Level Pattern Data**
+
+```sh 
+python process_images.py create_patterncsv
+```
+
+**Measure Pixel Dimensions of Specimens**
+
+```sh 
+python process_images.py write_lengths
+```
+
+**Merge Label, Pattern, and Length Data into Master CSV**
+
+```sh 
+python process_images.py merge_datasets
+```
+
+## Image and Data Outputs
 
 <i>describe outputs here and ways to analyze data here </i>
