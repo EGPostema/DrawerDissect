@@ -21,24 +21,24 @@ from functions.merge_data import merge_datasets
 base_dir = os.path.abspath(os.path.dirname(__file__))
 
 # User inputs for API key and model details **MAKE SURE TO MODIFY THIS!**
-API_KEY = 'API_KEY'
-WORKSPACE = 'field-museum'
+API_KEY = '{YOUR KEY HERE}'
+WORKSPACE = '{YOUR WORKSPACE HERE}'
 
 # Initialize Roboflow
 rf = roboflow.Roboflow(api_key=API_KEY)
 workspace = rf.workspace(WORKSPACE)
 
 # User inputs for roboflow models **MAKE SURE TO MODIFY THESE!**
-DRAWER_MODEL_ENDPOINT = 'trayfinder'
-DRAWER_MODEL_VERSION = 9  # Adjust the version as needed!
-TRAY_MODEL_ENDPOINT = 'beetlefinder'
-TRAY_MODEL_VERSION = 8  # Adjust the version as needed
-LABEL_MODEL_ENDPOINT = 'labelfinder'
-LABEL_MODEL_VERSION = 5  # Adjust the version as needed!
-MASK_MODEL_ENDPOINT = 'beetlemasker'
-MASK_MODEL_VERSION = 9  # Adjust the version as needed!
-PATTERN_MODEL_ENDPOINT = 'maculator'
-PATTERN_MODEL_VERSION = 5  # Adjust the version as needed!
+DRAWER_MODEL_ENDPOINT = '{model_name}'
+DRAWER_MODEL_VERSION = 1  # Adjust the version as needed!
+TRAY_MODEL_ENDPOINT = '{model_name}'
+TRAY_MODEL_VERSION = 1  # Adjust the version as needed
+LABEL_MODEL_ENDPOINT = '{model_name}'
+LABEL_MODEL_VERSION = 1  # Adjust the version as needed!
+MASK_MODEL_ENDPOINT = '{model_name}'
+MASK_MODEL_VERSION = 1  # Adjust the version as needed!
+PATTERN_MODEL_ENDPOINT = '{model_name}'
+PATTERN_MODEL_VERSION = 1  # Adjust the version as needed!
 
 # Define directories
 directories = {
