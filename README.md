@@ -14,7 +14,7 @@ The goal of this python-based pipeline is to get individual-level photographs an
 **Options for Models**
 - [Public FMNH Roboflow Models](#public-fmnh-roboflow-models)
 - [Create Your Own Roboflow Models](#create-your-own-roboflow-models)
-- [DIY Models with Our Training Data)](#diy-models-with-our-training-data)
+- [DIY Models with Our Training Data](#diy-models-with-our-training-data)
 
 # 1. Set up an Image-Processing Environment
 
