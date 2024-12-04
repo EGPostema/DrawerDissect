@@ -1,4 +1,4 @@
-# Test DrawerDissect on FMNH Drawer Image
+# Test DrawerDissect on Example FMNH Drawer
 
 This is a mirror of the main directory with a test image already provided in the drawers/fullsize folder.
 
