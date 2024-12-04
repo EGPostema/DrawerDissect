@@ -7,14 +7,13 @@ The goal of this python-based pipeline is to get individual-level photographs an
 **To get started, follow the steps below:**
 1. Set up Conda Environment
 2. Clone the Repository
-3. Process a Batch of New Images
-4. Transcribe Text from Tray and Specimen Labels
+3. Process Test Image
+4. Process New Images
+5. Transcribe Text from Tray and Specimen Labels
 
 **Options for Models**
 - Use Our Public Models + Your API Key (Roboflow)
 - Train Your Own Models with Our Data (DIY)
-
-**Test on An Example FMNH Drawer**
 
 For a full summary of each processing step (with descriptions of inputs and outputs), [see the README file in the 'functions' folder](https://github.com/EGPostema/DrawerDissect/blob/main/functions/README.md)
 
@@ -70,85 +69,34 @@ Make sure to navigate to the correct project directory before you start adding a
 cd DrawerDissect
 ```
 
-You can use the ```cd``` and ```ls``` commands to navigate through the directory and see what folders and files are present.
+# 3. Process Test Image
 
-**Before you start processing new images,** make sure that you have all of the following folders/files:
+## Navigate to Test Folder
 
-<img width="299" alt="Screenshot 2024-06-18 at 12 21 05 PM" src="https://github.com/EGPostema/DrawerDissect/assets/142446286/36ca24fb-6505-4b9e-a399-7e9cc68f8cd1">
+To try the script on an example FMNH drawer, first navigate to the test folder:
 
-Within the ```functions``` folder, there should be 13 scripts for the 13 different image processing steps.
-
-
-<img width="275" alt="Screenshot 2024-07-23 at 2 02 02 PM" src="https://github.com/user-attachments/assets/b8305a7a-0250-4943-a75f-cb46d4207370">
-
-
-Each of these steps gets called on automatically by the main processing script in step 4.
-
-# 3. Process a Batch of New Images
-
-## Upload Images
-
-Put all images in the ```fullsize``` folder. Ensure they are .jpgs, though the code could be modified to handle other file formats if needed. It is helpful to have a consistent naming convention for the drawers. For example, at the Field, we use a drawer name that is consistent with EMu, our museum databasing program. This name corresponds to the physical row, cabinet, and position that the drawer is located in (ex: "63_5_8" refers to a drawer in row 63, cabinet 5, 8 down from the top). Our photos are also timestamped. Any standard naming convention can be used, though dashes should generally be avoided ('_'s work better).
-
-
-<img width="461" alt="Screenshot 2024-06-24 at 12 04 05 PM" src="https://github.com/EGPostema/DrawerDissect/assets/142446286/c6526924-908f-4999-af55-8c89962b2518">
-
-
-As the processing script runs, it will use the names of your fullsize drawer images to organize all output files. So, for example, a tray image cropped from {drawerID_here}.jpg will then be named {drawerID_here}_tray_01.jpg and so on. The script also organizes images into folders and subfolders based on drawer and tray identities. Below is an example of how individual specimen photos are organized once they are cropped out.
-
-
-<img width="262" alt="Screenshot 2024-07-23 at 2 08 42 PM" src="https://github.com/user-attachments/assets/06386a11-efee-445b-a007-8a36e654c0a1">
-
-
+```sh 
+cd Test
+```
 ## Add Roboflow Information
 
-The full script is designed to work with Roboflow, a paid platform for training and deploying AI models. For alternatives, see LINK TO OTHER OPTION.
+The test script is designed to work with Roboflow, a paid platform for training and deploying AI models. For alternatives, see LINK TO OTHER OPTION.
 
 To run the script as-is, make sure that process_images.py is modified with your own roboflow details. **ANYTHING OUTLINED IN RED MUST BE FILLED IN WITH USER-SPECIFIC INFO. The script WILL NOT RUN otherwise.** 
 
-You will need to find the following information: 
-- API key
-- Workspace id
-- Model names and versions for ALL USED MODELS
+For the test image, you will only need to find the **API KEY.** The rest of the information has been filled out using our public models.
 
-![fillins](https://github.com/user-attachments/assets/ce11ac34-8726-4136-84bb-da4ac390f4c2)
+**Your API key is PRIVATE to your own account.** Make sure not to share this widely. Here's how to find the roboflow API key for your account: https://docs.roboflow.com/api-reference/authentication
 
+[SHOW IMAGE HERE]
 
-process_image.py can be edited using the ```nano``` command on both windows and mac, or via applications like notepad/textedit.
-
-### API KEY 
-
-Your API key is PRIVATE to your own account. Make sure not to share this widely. Here's how to find the roboflow API key for your account: https://docs.roboflow.com/api-reference/authentication
+process_image_test.py can be edited using the ```nano``` command on both windows and mac, or via applications like notepad/textedit.
 
 ### WORKSPACE 
 
 Your workspace id can be found in your roboflow workspace page, under settings:
 
 <img width="807" alt="Screenshot 2024-05-21 at 1 37 39 PM" src="https://github.com/EGPostema/DrawerDissect/assets/142446286/19016e31-2542-48b5-9e51-7372de3e5b90">
-
-### MODEL / VERSION - REVISE WHEN MODEL IS PUBLIC
-
-To find your model's name and version in roboflow, go to your projects > choose your model > versions > click whatever version you want to use. You'll see something like this in the middle of the page:
-
-<img width="782" alt="Screenshot 2024-05-20 at 1 39 37 PM" src="https://github.com/EGPostema/DrawerDissect/assets/142446286/e2918f19-9867-42d1-ae20-53369f2d4018">
-
-In the script, for this model, I would input the information like this:
-
-<img width="486" alt="Screenshot 2024-06-24 at 1 02 10 PM" src="https://github.com/EGPostema/DrawerDissect/assets/142446286/1070e844-ab02-4c6a-a605-bdf781498f62">
-
-The model's name will always be uncapitalized and without spaces (or dashes instead of spaces). The version # will be to the right of the model name. This makes it easy to go back and just update the version # as you train better version of the same model! 
-
-**Make sure to fill in both MODEL NAME and VERSION for EACH model used in this script.** 
-
-### CONFIDENCE / OVERLAP 
-
-You can personalize your desired % confidence and overlap for each model. The default is set to 50% for each - this  works well for most models, but can be changed by changing to 50 to any number between 0 and 100. 
-- "50% confidence" means that only annotations the model is over 50% sure about will be recorded in the coordinates file.
-- "50% overlap" means that the model expects that different objects in the JPG may have bounding boxes around them that overlap by up to 50%.
-
-
-![Screenshot 2024-07-23 at 2 20 15 PM](https://github.com/user-attachments/assets/aa11408b-096c-4c0b-b21c-fe4652c832e9)
-
 
 ## Running the Script
 
@@ -254,18 +202,58 @@ python process_images.py merge_datasets
 
 <i>describe outputs here and ways to analyze data here </i>
 
-# 4. Transcribe Text from Tray and Specimen Labels
+# 4. Process New Images
+
+## Upload Images
+
+Put all images in the ```fullsize``` folder. Ensure they are .jpgs, though the code could be modified to handle other file formats if needed. It is helpful to have a consistent naming convention for the drawers. For example, at the Field, we use a drawer name that is consistent with EMu, our museum databasing program. This name corresponds to the physical row, cabinet, and position that the drawer is located in (ex: "63_5_8" refers to a drawer in row 63, cabinet 5, 8 down from the top). Our photos are also timestamped. Any standard naming convention can be used, though dashes should generally be avoided ('_'s work better).
+
+<img width="461" alt="Screenshot 2024-06-24 at 12 04 05 PM" src="https://github.com/EGPostema/DrawerDissect/assets/142446286/c6526924-908f-4999-af55-8c89962b2518">
+
+As the processing script runs, it will use the names of your fullsize drawer images to organize all output files. So, for example, a tray image cropped from {drawerID_here}.jpg will then be named {drawerID_here}_tray_01.jpg and so on. The script also organizes images into folders and subfolders based on drawer and tray identities. Below is an example of how individual specimen photos are organized once they are cropped out.
+
+<img width="262" alt="Screenshot 2024-07-23 at 2 08 42 PM" src="https://github.com/user-attachments/assets/06386a11-efee-445b-a007-8a36e654c0a1">
+
+# 5. Transcribe Text from Tray and Specimen Labels
 
 # Options for Models
 
-## Use Our Public Models + Your API Key (Roboflow)
+## Public FMNH Models + Your API Key (Roboflow)
 
-## Train Your Own Models with Our Data (DIY)
+This will just involves putting the API key in and potentially changing version number. Nothing else needs to be changed.
 
-# Test on An Example FMNH Drawer
+## Your Roboflow Models + API Key (Roboflow)
 
-## Copy Image in '''test''' Folder to '''drawers/fullsize'''
+### WORKSPACE 
 
-## Process Test Drawer
+Your workspace id can be found in your roboflow workspace page, under settings:
+
+<img width="807" alt="Screenshot 2024-05-21 at 1 37 39 PM" src="https://github.com/EGPostema/DrawerDissect/assets/142446286/19016e31-2542-48b5-9e51-7372de3e5b90">
+
+### MODEL / VERSION - REVISE WHEN MODEL IS PUBLIC
+
+To find your model's name and version in roboflow, go to your projects > choose your model > versions > click whatever version you want to use. You'll see something like this in the middle of the page:
+
+<img width="782" alt="Screenshot 2024-05-20 at 1 39 37 PM" src="https://github.com/EGPostema/DrawerDissect/assets/142446286/e2918f19-9867-42d1-ae20-53369f2d4018">
+
+In the script, for this model, I would input the information like this:
+
+<img width="486" alt="Screenshot 2024-06-24 at 1 02 10 PM" src="https://github.com/EGPostema/DrawerDissect/assets/142446286/1070e844-ab02-4c6a-a605-bdf781498f62">
+
+The model's name will always be uncapitalized and without spaces (or dashes instead of spaces). The version # will be to the right of the model name. This makes it easy to go back and just update the version # as you train better version of the same model! 
+
+**Make sure to fill in both MODEL NAME and VERSION for EACH model used in this script.** 
+
+### CONFIDENCE / OVERLAP 
+
+You can personalize your desired % confidence and overlap for each model. The default is set to 50% for each - this  works well for most models, but can be changed by changing to 50 to any number between 0 and 100. 
+- "50% confidence" means that only annotations the model is over 50% sure about will be recorded in the coordinates file.
+- "50% overlap" means that the model expects that different objects in the JPG may have bounding boxes around them that overlap by up to 50%.
+
+![Screenshot 2024-07-23 at 2 20 15 PM](https://github.com/user-attachments/assets/aa11408b-096c-4c0b-b21c-fe4652c832e9)
+
+## Train Non-Roboflow Models with Our Data (DIY)
+
+Describe suggestions for how to do this here - direct to repository where all my images/annotations are!
 
 
