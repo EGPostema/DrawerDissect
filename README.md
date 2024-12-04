@@ -1,4 +1,4 @@
-# Introduction - WIP
+# Introduction to DrawerDissect
 
 **Welcome to DrawerDissect, an AI-powered method for extracting specimen-level photos and data from whole drawers of insects**
 
