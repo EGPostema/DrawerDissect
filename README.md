@@ -16,11 +16,11 @@ The goal of this python-based pipeline is to get individual-level photographs an
 - Your Roboflow Models + API Key (Roboflow)
 - Train Non-Roboflow Models with Our Data (DIY)
 
-# 1. Set up a Conda Environment
+# 1. Set up an Image-Processing Environment
 
 Make sure that miniconda is installed and updated. [Download the latest version here.](https://docs.anaconda.com/free/miniconda/)
 
-Then, create a new conda environment that includes all the necessary packages for image resizing, cropping, and OCR. 
+Then, create a new conda environment that includes all the necessary packages for image resizing, cropping, running inference etc.
 
 - On a Mac, you can do this in the terminal.
 - For Windows, search for and open the "Anaconda Prompt" to create your conda environment.
