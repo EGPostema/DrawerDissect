@@ -26,6 +26,6 @@ Show screenshot here, the rest of the script will be filled out entirely
 
 Same instructions as in main folder, but with test_process_images.py
 
-## 6. Set-Up and Run OCR
+## 6. Run OCR
 
 Same instructions as in main folder, but with test_drawerOCR.py
