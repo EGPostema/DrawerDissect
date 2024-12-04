@@ -1,8 +1,8 @@
 # Introduction - WIP
 
-**Welcome to COLORoptera, and AI-powered method for processing whole-drawer museum images of insects!**
+**Welcome to DrawerDissect, and AI-powered method for extracting insect specimen-level photos and data from whole-drawer images**
 
-The goal of this python-based pipeline is to get individual-level photographs and data (taxonomic, geographic, phenotypic) from large, high-resolution images that contain many insect specimens. Normally, extracting this information takes an enormous amount of time and effort. With COLORoptera, these outputs and information can be extracted automatically.
+The goal of this python-based pipeline is to get individual-level photographs and data (taxonomic, geographic, phenotypic) from large, high-resolution images that contain many insect specimens. Normally, extracting this information takes an enormous amount of time and effort. With DrawerDissect, these outputs and information can be extracted automatically!
 
 **To get started, follow the steps below:**
 1. Set up Virtual Environments
@@ -18,7 +18,7 @@ The goal of this python-based pipeline is to get individual-level photographs an
 1. Navigate to 'Test' Folder
 2. Process Test Drawer
 
-For a full summary of each processing step (with descriptions of inputs and outputs), [see the README file in the 'functions' folder](https://github.com/EGPostema/coloroptera/blob/main/functions/README.md)
+For a full summary of each processing step (with descriptions of inputs and outputs), [see the README file in the 'functions' folder](https://github.com/EGPostema/DrawerDissect/blob/main/functions/README.md)
 
 # 1. Set up a Conda Environment
 
@@ -63,20 +63,20 @@ conda list git
 To clone this repository, use the following command:
 
 ```sh 
-git clone https://github.com/EGPostema/coloroptera.git
+git clone https://github.com/EGPostema/DrawerDissect.git
 ```
 
 Make sure to navigate to the correct project directory before you start adding and processing images:
 
 ```sh 
-cd coloroptera
+cd DrawerDissect
 ```
 
 You can use the ```cd``` and ```ls``` commands to navigate through the directory and see what folders and files are present.
 
 **Before you start processing new images,** make sure that you have all of the following folders/files:
 
-<img width="299" alt="Screenshot 2024-06-18 at 12 21 05 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/36ca24fb-6505-4b9e-a399-7e9cc68f8cd1">
+<img width="299" alt="Screenshot 2024-06-18 at 12 21 05 PM" src="https://github.com/EGPostema/DrawerDissect/assets/142446286/36ca24fb-6505-4b9e-a399-7e9cc68f8cd1">
 
 Within the ```functions``` folder, there should be 13 scripts for the 13 different image processing steps.
 
@@ -93,7 +93,7 @@ Each of these steps gets called on automatically by the main processing script i
 Put all images in the ```fullsize``` folder. Ensure they are .jpgs, though the code could be modified to handle other file formats if needed. It is helpful to have a consistent naming convention for the drawers. For example, at the Field, we use a drawer name that is consistent with EMu, our museum databasing program. This name corresponds to the physical row, cabinet, and position that the drawer is located in (ex: "63_5_8" refers to a drawer in row 63, cabinet 5, 8 down from the top). Our photos are also timestamped. Any standard naming convention can be used, though dashes should generally be avoided ('_'s work better).
 
 
-<img width="461" alt="Screenshot 2024-06-24 at 12 04 05 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/c6526924-908f-4999-af55-8c89962b2518">
+<img width="461" alt="Screenshot 2024-06-24 at 12 04 05 PM" src="https://github.com/EGPostema/DrawerDissect/assets/142446286/c6526924-908f-4999-af55-8c89962b2518">
 
 
 As the processing script runs, it will use the names of your fullsize drawer images to organize all output files. So, for example, a tray image cropped from {drawerID_here}.jpg will then be named {drawerID_here}_tray_01.jpg and so on. The script also organizes images into folders and subfolders based on drawer and tray identities. Below is an example of how individual specimen photos are organized once they are cropped out.
@@ -126,17 +126,17 @@ Your API key is PRIVATE to your own account. Make sure not to share this widely.
 
 Your workspace id can be found in your roboflow workspace page, under settings:
 
-<img width="807" alt="Screenshot 2024-05-21 at 1 37 39 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/19016e31-2542-48b5-9e51-7372de3e5b90">
+<img width="807" alt="Screenshot 2024-05-21 at 1 37 39 PM" src="https://github.com/EGPostema/DrawerDissect/assets/142446286/19016e31-2542-48b5-9e51-7372de3e5b90">
 
 ### MODEL / VERSION - REVISE WHEN MODEL IS PUBLIC
 
 To find your model's name and version in roboflow, go to your projects > choose your model > versions > click whatever version you want to use. You'll see something like this in the middle of the page:
 
-<img width="782" alt="Screenshot 2024-05-20 at 1 39 37 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/e2918f19-9867-42d1-ae20-53369f2d4018">
+<img width="782" alt="Screenshot 2024-05-20 at 1 39 37 PM" src="https://github.com/EGPostema/DrawerDissect/assets/142446286/e2918f19-9867-42d1-ae20-53369f2d4018">
 
 In the script, for this model, I would input the information like this:
 
-<img width="486" alt="Screenshot 2024-06-24 at 1 02 10 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/1070e844-ab02-4c6a-a605-bdf781498f62">
+<img width="486" alt="Screenshot 2024-06-24 at 1 02 10 PM" src="https://github.com/EGPostema/DrawerDissect/assets/142446286/1070e844-ab02-4c6a-a605-bdf781498f62">
 
 The model's name will always be uncapitalized and without spaces (or dashes instead of spaces). The version # will be to the right of the model name. This makes it easy to go back and just update the version # as you train better version of the same model! 
 
@@ -154,7 +154,7 @@ You can personalize your desired % confidence and overlap for each model. The de
 
 ## Running the Script
 
-Once the script has been updated with information from roboflow, you can start the script within the ```coloroptera``` directory: 
+Once the script has been updated with information from roboflow, you can start the script within the ```DrawerDissect``` directory: 
 
 ```sh
 python process_images.py
