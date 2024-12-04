@@ -1,30 +1,26 @@
 # Introduction - WIP
 
-**Welcome to COLORoptera, and AI-powered method for processing whole-drawer images of insects!**
+**Welcome to COLORoptera, and AI-powered method for processing whole-drawer museum images of insects!**
 
-The goal of this python-based pipeline is to get individual-level photographs and data (taxonomic, geographic, phenotypic) from large, high-resolution images that contain many specimens. Normally, extracting this information takes an enormous amount of time and effort. With COLORoptera, these outputs and information can be extracted in just a few minutes per drawer.
+The goal of this python-based pipeline is to get individual-level photographs and data (taxonomic, geographic, phenotypic) from large, high-resolution images that contain many insect specimens. Normally, extracting this information takes an enormous amount of time and effort. With COLORoptera, these outputs and information can be extracted automatically.
 
 **To get started, follow the steps below:**
-1. Train Roboflow Models 
-2. Set up a Conda Environment
-3. Clone the Repository
-4. Process a Batch of New Images
+1. Set up Virtual Environments
+2. Clone the Repository
+3. Process a Batch of New Images
+4. Transcribe Text from Tray and Specimen Labels
+
+**Options for Models**
+1. Use Our Public Models + Your API Key (Roboflow)
+2. Train Your Own Models with Our Data (DIY)
+
+**Test on An Example FMNH Drawer**
+1. Navigate to 'Test' Folder
+2. Process Test Drawer
 
 For a full summary of each processing step (with descriptions of inputs and outputs), [see the README file in the 'functions' folder](https://github.com/EGPostema/coloroptera/blob/main/functions/README.md)
 
-# 1. Train Roboflow Models - WIP
-
-## Quick-Start: Use Our Data to Train Basic Models
-
-<i> - Provide link to most updated repository where we put our images and annotations</i>
-
-<i> - Describe how to upload and train the two models needed, using either the free or upgraded version of roboflow</i>
-
-## Update Models with your Own Data
-
-<i>Also describe how they can even update the model with their own data if they want, or train models for totally new functions</i>
-
-# 2. Set up a Conda Environment
+# 1. Set up a Conda Environment
 
 Make sure that miniconda is installed and updated. [Download the latest version here.](https://docs.anaconda.com/free/miniconda/)
 
@@ -90,7 +86,7 @@ Within the ```functions``` folder, there should be 13 scripts for the 13 differe
 
 Each of these steps gets called on automatically by the main processing script in step 4.
 
-# 4. Process a Batch of New Images
+# 3. Process a Batch of New Images
 
 ## Upload Images
 
@@ -106,14 +102,16 @@ As the processing script runs, it will use the names of your fullsize drawer ima
 <img width="262" alt="Screenshot 2024-07-23 at 2 08 42 PM" src="https://github.com/user-attachments/assets/06386a11-efee-445b-a007-8a36e654c0a1">
 
 
-## Add Your Roboflow Info
+## Add Roboflow Information
 
-Make sure that process_images.py is modified for your own roboflow details. **ANYTHING OUTLINED IN RED MUST BE FILLED IN WITH USER-SPECIFIC INFO. The script WILL NOT RUN otherwise.** 
+The full script is designed to work with Roboflow, a paid platform for training and deploying AI models. For alternatives, see LINK TO OTHER OPTION.
+
+To run the script as-is, make sure that process_images.py is modified with your own roboflow details. **ANYTHING OUTLINED IN RED MUST BE FILLED IN WITH USER-SPECIFIC INFO. The script WILL NOT RUN otherwise.** 
 
 You will need to find the following information: 
 - API key
 - Workspace id
-- Model names and versions for ALL 5 MODELS
+- Model names and versions for ALL USED MODELS
 
 ![fillins](https://github.com/user-attachments/assets/ce11ac34-8726-4136-84bb-da4ac390f4c2)
 
@@ -130,7 +128,7 @@ Your workspace id can be found in your roboflow workspace page, under settings:
 
 <img width="807" alt="Screenshot 2024-05-21 at 1 37 39 PM" src="https://github.com/EGPostema/coloroptera/assets/142446286/19016e31-2542-48b5-9e51-7372de3e5b90">
 
-### MODEL / VERSION
+### MODEL / VERSION - REVISE WHEN MODEL IS PUBLIC
 
 To find your model's name and version in roboflow, go to your projects > choose your model > versions > click whatever version you want to use. You'll see something like this in the middle of the page:
 
@@ -257,3 +255,19 @@ python process_images.py merge_datasets
 ## Image and Data Outputs
 
 <i>describe outputs here and ways to analyze data here </i>
+
+# 4. Transcribe Text from Tray and Specimen Labels
+
+# Options for Models
+
+# 1. Use Our Public Models + Your API Key (Roboflow)
+
+# 2. Train Your Own Models with Our Data (DIY)
+
+# Test on An Example FMNH Drawer
+
+# 1. Navigate to 'Test' Folder
+
+# 2. Process Test Drawer
+
+
