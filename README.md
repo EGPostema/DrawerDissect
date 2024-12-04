@@ -11,12 +11,10 @@ The goal of this python-based pipeline is to get individual-level photographs an
 4. Transcribe Text from Tray and Specimen Labels
 
 **Options for Models**
-1. Use Our Public Models + Your API Key (Roboflow)
-2. Train Your Own Models with Our Data (DIY)
+- Use Our Public Models + Your API Key (Roboflow)
+- Train Your Own Models with Our Data (DIY)
 
 **Test on An Example FMNH Drawer**
-1. Navigate to 'Test' Folder
-2. Process Test Drawer
 
 For a full summary of each processing step (with descriptions of inputs and outputs), [see the README file in the 'functions' folder](https://github.com/EGPostema/DrawerDissect/blob/main/functions/README.md)
 
@@ -260,14 +258,14 @@ python process_images.py merge_datasets
 
 # Options for Models
 
-# 1. Use Our Public Models + Your API Key (Roboflow)
+## Use Our Public Models + Your API Key (Roboflow)
 
-# 2. Train Your Own Models with Our Data (DIY)
+## Train Your Own Models with Our Data (DIY)
 
 # Test on An Example FMNH Drawer
 
-# 1. Navigate to 'Test' Folder
+## Copy Image in '''test''' Folder to '''drawers/fullsize'''
 
-# 2. Process Test Drawer
+## Process Test Drawer
 
 
