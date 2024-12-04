@@ -12,9 +12,9 @@ The goal of this python-based pipeline is to get individual-level photographs an
 5. Transcribe Text from Tray and Specimen Labels
 
 **Options for Models**
-- Public FMNH Models + Your API Key (Roboflow)
-- Your Roboflow Models + API Key (Roboflow)
-- Train Non-Roboflow Models with Our Data (DIY)
+- [Public FMNH Roboflow Models](#public-fmnh-roboflow-models)
+- [Create Your Own Roboflow Models](#create-your-own-roboflow-models)
+- [DIY Models with Our Training Data)](#diy-models-with-our-training-data)
 
 # 1. Set up an Image-Processing Environment
 
@@ -174,11 +174,11 @@ python test_process_images.py create_masks
 
 ## Decide Model Approach
 
-### Public FMNH Models + Your API Key (Roboflow)
+### Public FMNH Roboflow Models
 
 This will just involves putting the API key in and potentially changing version number. Nothing else needs to be changed.
 
-### Your Roboflow Models + API Key (Roboflow)
+### Create Your Own Roboflow Models
 
 **WORKSPACE** 
 
@@ -206,7 +206,7 @@ You can personalize your desired % confidence and overlap for each model. The de
 
 ![Screenshot 2024-07-23 at 2 20 15 PM](https://github.com/user-attachments/assets/aa11408b-096c-4c0b-b21c-fe4652c832e9)
 
-### Train Non-Roboflow Models with Our Data (DIY)
+### DIY Models with Our Training Data
 
 Describe suggestions for how to do this here - direct to google drive ??? where all my images/annotations are, organized by version
 
