@@ -28,7 +28,7 @@ Install required packages with pip
 
 pip install anthropic pillow pandas numpy roboflow matplotlib jupyterlab
 
-# 3. Clone the Repository
+# 2. Clone the Repository
 
 [First, make sure you have github installed.](https://github.com/git-guides/install-git)
 
