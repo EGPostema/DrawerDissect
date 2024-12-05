@@ -64,7 +64,7 @@ The test script is designed to work with [Roboflow](roboflow.com), a paid platfo
 - To run the script as-is, **you will need a Roboflow account!**
 - For alternatives, see [other model options here](#decide-model-approach)
 
-For the test, you will need to have an **API KEY. Your API key is PRIVATE to your own account.** 
+For the test, you will need to have an **API KEY.** Your API key is **PRIVATE** to your own account.
 - For help finding the roboflow API key for your account, [click here.](https://docs.roboflow.com/api-reference/authentication)
 
 [SHOW IMAGE HERE]
