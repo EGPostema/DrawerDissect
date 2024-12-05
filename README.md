@@ -5,58 +5,34 @@
 The goal of this python-based pipeline is to get individual-level photographs and data (taxonomic, geographic, phenotypic) from large, high-resolution images that contain many insect specimens. Normally, extracting this information takes an enormous amount of time and effort. With DrawerDissect, these outputs and information can be extracted automatically!
 
 **To get started, follow the steps below:**
-1. Set up Conda Environment
+1. Set Up an Image-Processing Environment
 2. Clone the Repository
 3. Process Test Image
 4. Process New Images
 5. Transcribe Text from Tray and Specimen Labels
+
+TIP: We highly recommend that you try the test image first, before moving on to your own whole-drawer images.
 
 **Options for Models**
 - [Public FMNH Roboflow Models](#public-fmnh-roboflow-models)
 - [Create Your Own Roboflow Models](#create-your-own-roboflow-models)
 - [DIY Models with Our Training Data](#diy-models-with-our-training-data)
 
-# 1. Set up an Image-Processing Environment
+# 1. Set Up an Image-Processing Environment
 
-Make sure that miniconda is installed and updated. [Download the latest version here.](https://docs.anaconda.com/free/miniconda/)
+Create a python virtual environment (name can be anything, here we use 'drawerdissect')
 
-Then, create a new conda environment that includes all the necessary packages for image resizing, cropping, running inference etc.
 
-- On a Mac, you can do this in the terminal.
-- For Windows, search for and open the "Anaconda Prompt" to create your conda environment.
 
-To create the environment, use the command below. Make sure to replace ```<your-env-name>``` with the actual name you want for the environment.
+Install required packages with pip
 
-```sh 
-conda create -n <your-env-name> -c conda-forge python=3.9 pillow pandas pytesseract tesseract pip git
-```
-
-Activate your new environment.
-
-```sh 
-conda activate <your-env-name>
-```
-
-Then, pip install roboflow.
-
-```sh
-pip install roboflow
-```
-
-You can double-check that everything is installed properly with the following commands:
-
-```sh
-pip list | grep roboflow
-conda list pillow
-conda list pandas
-conda list pytesseract
-conda list tesseract
-conda list git
-```
+pip install anthropic pillow pandas numpy roboflow matplotlib jupyterlab
 
 # 3. Clone the Repository
 
-To clone this repository, use the following command:
+(Make sure you have github installed.)[https://github.com/git-guides/install-git]
+
+Then, to clone this repository, use the following command:
 
 ```sh 
 git clone https://github.com/EGPostema/DrawerDissect.git
@@ -84,13 +60,16 @@ cd Test
 
 ## Add Roboflow Information
 
-The test script is designed to work with Roboflow, a paid platform for training and deploying AI models. To run the script as-is, you will need a Roboflow account. For alternatives, see LINK TO OTHER OPTION.
+The test script is designed to work with [Roboflow](roboflow.com), a paid platform for training and deploying AI models. 
+- To run the script as-is, **you will need a Roboflow account!**
+- For alternatives, see [other model options here](#decide-model-approach)
 
-For the test, you will only need to have an **API KEY. Your API key is PRIVATE to your own account.** Here's how to find the roboflow API key for your account: https://docs.roboflow.com/api-reference/authentication
+For the test, you will need to have an **API KEY. Your API key is PRIVATE to your own account.** 
+- For help finding the roboflow API key for your account, [click here.](https://docs.roboflow.com/api-reference/authentication)
 
 [SHOW IMAGE HERE]
 
-test_process_images.py can be edited using the ```nano``` command on both windows and mac, or via applications like notepad/textedit.
+To input your API in the script (shown above), find the test_process_images.py script. It can be edited using the ```nano``` command on both windows and mac, or via applications like notepad/textedit. Replace '___' with your API KEY.
 
 ## Running the Script
 
