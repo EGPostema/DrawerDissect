@@ -1,28 +1,41 @@
 import os
+import time
 import argparse
 import roboflow
+import asyncio
+import aiofiles
 from functions.resize_drawer import resize_drawer_images
+from functions.process_metadata import process_files
 from functions.infer_drawers import infer_drawers
 from functions.crop_trays import crop_trays_from_fullsize
 from functions.resize_trays import resize_tray_images
-from functions.infer_labels import infer_labels
-from functions.crop_labelinfo import crop_info_from_trays
+from functions.infer_labels import infer_tray_labels
+from functions.crop_labels import crop_labels
 from functions.infer_trays import infer_tray_images
 from functions.crop_specimens import crop_specimens_from_trays
 from functions.infer_beetles import infer_beetles
 from functions.create_masks import create_masks
-from functions.measure import process_and_measure_images
-from functions.mask_specimens import mask_specimens
-from functions.infer_patterns import infer_patterns
-from functions.pattern_csv import create_patterncsv
-from functions.merge_data import merge_datasets
+from functions.multipolygon_fixer import fix_mask
+from functions.measure import generate_csv_with_visuals_and_measurements
+from functions.censor_background import censor_background
+from functions.infer_pins import infer_pins
+from functions.create_pinmask import create_pinmask
+from functions.create_transparency import create_transparency
+from functions.ocr_label import transcribe_images, ImageProcessor, ProcessingResult
+from functions.ocr_validation import validate_transcriptions
+from functions.ocr_header import process_images, TranscriptionConfig, BARCODE_CONFIG, LABEL_CONFIG
 
 # Set base directory
 base_dir = os.path.abspath(os.path.dirname(__file__))
 
-# User inputs for API key and model details **MAKE SURE TO MODIFY THIS!**
-API_KEY = '{YOUR KEY HERE}'
+# User inputs for API keys and model details **MAKE SURE TO MODIFY THIS!**
+ANTHROPIC_KEY = '{YOUR ANTHROPIC API KEY HERE}'
+API_KEY = '{YOUR ROBOFLOW API KEY HERE}'
 WORKSPACE = '{YOUR WORKSPACE HERE}'
+
+# Transcription toggles
+TRANSCRIBE_BARCODES = 'N'  # Set to 'Y' or 'N', default is N
+TRANSCRIBE_TAXONOMY = 'Y'  # Set to 'Y' or 'N', default is Y
 
 # Initialize Roboflow
 rf = roboflow.Roboflow(api_key=API_KEY)
@@ -37,28 +50,31 @@ LABEL_MODEL_ENDPOINT = '{model_name}'
 LABEL_MODEL_VERSION = 1  # Adjust the version as needed!
 MASK_MODEL_ENDPOINT = '{model_name}'
 MASK_MODEL_VERSION = 1  # Adjust the version as needed!
-PATTERN_MODEL_ENDPOINT = '{model_name}'
-PATTERN_MODEL_VERSION = 1  # Adjust the version as needed!
+PIN_MODEL_ENDPOINT = '{model_name}'
+PIN_MODEL_VERSION = 1  # Adjust the version as needed!
 
 # Define directories
 directories = {
-    'fullsize': 'drawers/fullsize_drawers',
-    'resized': 'drawers/resized_drawers',
+    'fullsize': 'drawers/fullsize',
+    'metadata': 'drawers/fullsize/capture_metadata',
+    'resized': 'drawers/resized',
     'coordinates': 'drawers/resized/coordinates',
     'trays': 'drawers/trays',
     'resized_trays': 'drawers/resized_trays',
     'resized_trays_coordinates': 'drawers/resized_trays/coordinates',
-    'label_coordinates': 'drawers/labels/label_coordinates',
-    'barcodes': 'drawers/labels/barcode_crops',
+    'label_coordinates': 'drawers/resized_trays/label_coordinates',
+    'labels': 'drawers/labels',
     'specimens': 'drawers/specimens',
     'mask_coordinates': 'drawers/masks/mask_coordinates',
-    'mask_csv': 'drawers/masks/mask_csv',
     'mask_png': 'drawers/masks/mask_png',
-    'masked_specs': 'drawers/masked_specs',
-    'lengths': 'drawers/specimens/lengths',
-    'pattern_jsons': 'drawers/patterns/pattern_jsons',
-    'pattern_data': 'drawers/patterns/pattern_data',
-    'merged_data': 'drawers/data'
+    'measurements': 'drawers/measurements',
+    'no_background': 'drawers/masks/no_background',
+    'pin_coordinates': 'drawers/masks/pin_coords',
+    'full_masks': 'drawers/masks/full_masks',
+    'transparencies': 'drawers/transparencies',
+    'specimen_level': 'drawers/transcriptions/specimen_labels',
+    'tray_level': 'drawers/transcriptions/tray_labels',
+    'data': 'drawers/data'
 }
 
 # Create directories if not already there!
@@ -72,9 +88,6 @@ def load_roboflow_workspace_and_project():
     rf = roboflow.Roboflow(api_key=API_KEY)
     workspace = rf.workspace(WORKSPACE)
 
-# Define background color for segmented specimens (white or black); default is white
-background_color = 'white'
-
 # Commands for running individual steps
 def run_step(step, directories, args):
     print(f"Running step: {step}")
@@ -82,6 +95,14 @@ def run_step(step, directories, args):
     if step == 'resize_drawers':
         resize_drawer_images(directories['fullsize'], directories['resized'])
         print(f"Resized drawers saved in {directories['resized']}")
+
+    elif step == 'process_metadata':
+        metadata_dir = directories['metadata']
+        image_dir = directories['fullsize']
+        output_file = os.path.join(metadata_dir, 'sizeratios.csv')
+    
+        process_files(metadata_dir, image_dir, output_file)
+        print(f"Metadata processed and results saved in {output_file}")
 
     elif step == 'infer_drawers':
         infer_drawers(
@@ -94,7 +115,7 @@ def run_step(step, directories, args):
             overlap=args.drawer_overlap
         )
         print(f"Tray bounding boxes saved in {directories['coordinates']}")
-
+    
     elif step == 'crop_trays':
         crop_trays_from_fullsize(
             directories['fullsize'], 
@@ -102,13 +123,13 @@ def run_step(step, directories, args):
             directories['trays']
         )
         print(f"Cropped trays saved in {directories['trays']}")
-
+    
     elif step == 'resize_trays':
         resize_tray_images(directories['trays'], directories['resized_trays'])
         print(f"Resized tray images saved in {directories['resized_trays']}")
 
     elif step == 'infer_labels':
-        infer_labels(
+        infer_tray_labels(
             directories['resized_trays'], 
             directories['label_coordinates'], 
             API_KEY, 
@@ -117,16 +138,18 @@ def run_step(step, directories, args):
             confidence=args.label_confidence, 
             overlap=args.label_overlap
         )
-        print(f"Label bounding boxes saved in {directories['label_coordinates']}")
+        print(f"Label bounding boxes for all trays saved in {directories['label_coordinates']}")
 
-    elif step == 'crop_labelinfo':
-        crop_info_from_trays(
+    elif step == 'crop_labels':
+        crop_labels(
             directories['trays'], 
             directories['resized_trays'], 
-            directories['barcodes']
+            directories['label_coordinates'], 
+            directories['labels']
         )
-        print(f"Cropped barcodes saved in {directories['barcodes']}")
+        print(f"Cropped labels saved in {directories['labels']}")
 
+    
     elif step == 'infer_trays':
         infer_tray_images(
             directories['resized_trays'], 
@@ -138,7 +161,7 @@ def run_step(step, directories, args):
             overlap=args.tray_overlap
         )
         print(f"Specimen bounding boxes for all trays saved in {directories['resized_trays_coordinates']}")
-
+    
     elif step == 'crop_specimens':
         crop_specimens_from_trays(
             directories['trays'], 
@@ -146,7 +169,7 @@ def run_step(step, directories, args):
             directories['specimens']
         )
         print(f"Cropped specimens saved in {directories['specimens']}")
-
+    
     elif step == 'infer_beetles':
         infer_beetles(
             directories['specimens'], 
@@ -157,164 +180,172 @@ def run_step(step, directories, args):
             confidence=args.beetle_confidence
         )
         print(f"Segmentation mask coordinates saved in {directories['mask_coordinates']}")
-
+    
     elif step == 'create_masks':
-        create_masks(directories['mask_coordinates'], directories['mask_csv'], directories['mask_png'])
-        print(f"Mask .csv files saved in {directories['mask_csv']}")
+        create_masks(
+            directories['mask_coordinates'], 
+            directories['mask_png']
+        )
         print(f"Mask .png files saved in {directories['mask_png']}")
 
-    elif step == 'mask_specimens':
-        mask_specimens(
-            directories['specimens'], 
-            directories['mask_png'], 
-            directories['masked_specs'], 
-            background=background_color
+    elif step == 'fix_mask':
+        fix_mask(
+            directories['mask_png']
         )
-        print(f"Masked specimens saved in {directories['masked_specs']}")
-
-    elif step == 'infer_patterns':
-        infer_patterns(
-            directories['specimens'], 
-            directories['pattern_jsons'], 
-            API_KEY, 
-            PATTERN_MODEL_ENDPOINT, 
-            PATTERN_MODEL_VERSION
-        )
-        print(f"Pattern inferences saved in {directories['pattern_jsons']}")
-
-    elif step == 'create_patterncsv':
-        create_patterncsv(
-            directories['pattern_jsons'], 
-            os.path.join(directories['pattern_data'], 'pattern_data.csv')
-        )
-        print(f"Pattern data csv saved in {directories['pattern_data']}")
+        print(f"Mask with duplicate polygons fixed and re-saved to {directories['mask_png']}")
 
     elif step == 'process_and_measure_images':
-        process_and_measure_images(
+        generate_csv_with_visuals_and_measurements(
+            directories['specimens'], 
             directories['mask_png'], 
-            os.path.join(directories['lengths'], 'lengths.csv')
+            os.path.join(directories['metadata'], 'sizeratios.csv'), 
+            directories['measurements']
         )
-        print(f"Mask measurements saved in {os.path.join(directories['lengths'], 'lengths.csv')}")
+        print(f"Measurements and visuals saved in {directories['measurements']}")
 
-    elif step == 'merge_datasets':
-        merge_datasets(
-            directories['merged_data'] + '/coloroptera_data.csv',            
-            directories['lengths'] + '/lengths.csv',               
-            directories['pattern_data'] + '/pattern_data.csv',     
-            directories['merged_data']
+    elif step == 'censor_background':
+        censor_background(
+            directories['specimens'], 
+            directories['mask_png'], 
+            directories['no_background'], 
+            os.path.join(directories['measurements'], 'measurements.csv')
         )
-        print(f"Merged datasets and saved in {directories['merged_data'] + '/coloroptera_data.csv'}")
+        print(f"Images with censored backgrounds saved in {directories['no_background']}")
+        
+    elif step == 'infer_pins':
+        infer_pins(
+            directories['no_background'], 
+            directories['pin_coordinates'],
+            os.path.join(directories['measurements'], 'measurements.csv'),
+            API_KEY, 
+            PIN_MODEL_ENDPOINT, 
+            PIN_MODEL_VERSION, 
+            confidence=args.pin_confidence
+        )
+        print(f"Pin mask coordinates saved in {directories['pin_coordinates']}")
 
+    elif step == 'create_pinmask':
+        create_pinmask(
+            directories['mask_png'], 
+            directories['pin_coordinates'], 
+            directories['full_masks']
+        )
+        print(f"Masks with pins saved in {directories['full_masks']}")
+
+
+    elif step == 'create_transparency':
+        create_transparency(
+            directories['specimens'],
+            directories['full_masks'],
+            directories['transparencies']
+        )
+        print(f"All specimen transparencies saved in {directories['transparencies']}")
+
+    elif step == 'transcribe_images':
+        asyncio.run(transcribe_images(
+            directories['specimens'],
+            os.path.join(directories['specimen_level'], 'location_frags.csv'),
+            ANTHROPIC_KEY
+        ))
+        print(f"Label reconstruction completed. Results saved to {directories['specimen_level']}")
+
+    elif step == 'validate_transcription':
+        asyncio.run(validate_transcriptions(
+            os.path.join(directories['specimen_level'], 'location_frags.csv'),
+            os.path.join(directories['specimen_level'], 'location_checked.csv'),
+            ANTHROPIC_KEY
+        ))
+        print(f"Location validation completed. Results saved to {directories['specimen_level']}/location_checked.csv")
+
+    elif step == 'process_barcodes':
+        if TRANSCRIBE_BARCODES == 'Y':
+            asyncio.run(process_images(
+                directories['labels'],
+                os.path.join(directories['tray_level'], 'unit_barcodes.csv'),
+                ANTHROPIC_KEY,
+                BARCODE_CONFIG
+            ))
+            print(f"Barcode processing completed. Results saved to {directories['tray_level']}")
+        else:
+            print("Skipping barcode transcription as per configuration")
+    
+    elif step == 'transcribe_taxonomy':
+        if TRANSCRIBE_TAXONOMY == 'Y':
+            asyncio.run(process_images(
+                directories['labels'],
+                os.path.join(directories['tray_level'], 'taxonomy.csv'),
+                ANTHROPIC_KEY,
+                LABEL_CONFIG
+            ))
+            print(f"Taxonomic label transcription completed. Results saved to {directories['tray_level']}")
+        else:
+            print("Skipping taxonomy transcription as per configuration")
+    
     else:
         print(f"Unknown step: {step}")
 
-# Use argparse to allow individual steps to be called (see README for commands)
 def main():
-    parser = argparse.ArgumentParser(
-        description="Process images with specified confidence and overlap."
-    )
+    start_time = time.time()
+    
+    all_steps = [
+        'resize_drawers', 'process_metadata', 'infer_drawers', 'crop_trays',
+        'resize_trays', 'infer_labels', 'crop_labels', 'infer_trays',
+        'crop_specimens', 'infer_beetles', 'create_masks', 'fix_mask',
+        'process_and_measure_images', 'censor_background', 'infer_pins',
+        'create_pinmask', 'create_transparency', 'transcribe_images', 'validate_transcription', 'process_barcodes', 
+        'transcribe_taxonomy'
+    ]
+    
+    parser = argparse.ArgumentParser(description="Process images with specified steps and parameters.")
     
     parser.add_argument(
-        'step', 
-        nargs='?', 
-        choices=[
-            'all', 
-            'resize_drawers', 
-            'infer_drawers', 
-            'crop_trays', 
-            'resize_trays', 
-            'infer_labels', 
-            'crop_labelinfo', 
-            'infer_trays', 
-            'crop_specimens', 
-            'infer_beetles', 
-            'create_masks', 
-            'mask_specimens', 
-            'infer_patterns', 
-            'create_patterncsv', 
-            'process_and_measure_images', 
-            'merge_datasets'
-        ],
-        default='all', 
-        help="Step to execute"
+        'steps',
+        nargs='+',  # Changed from '?' to '+' to accept multiple steps
+        choices=all_steps + ['all'],
+        help="Steps to execute"
     )
     
-    parser.add_argument(
-        '--drawer_confidence', 
-        type=int, 
-        default=50, 
-        help="Confidence level for finding trays in drawers. Default is 50."
-    )
-    parser.add_argument(
-        '--drawer_overlap', 
-        type=int, 
-        default=50, 
-        help="Overlap level of trays in drawers. Default is 50."
-    )
-    parser.add_argument(
-        '--tray_confidence', 
-        type=int, 
-        default=50, 
-        help="Confidence level for finding specimens in trays. Default is 50."
-    )
-    parser.add_argument(
-        '--tray_overlap', 
-        type=int, 
-        default=50, 
-        help="Overlap level for specimens in trays. Default is 50."
-    )
-    parser.add_argument(
-        '--label_confidence', 
-        type=int, 
-        default=50, 
-        help="Confidence level for finding tray labels. Default is 50."
-    )
-    parser.add_argument(
-        '--label_overlap', 
-        type=int, 
-        default=50, 
-        help="Overlap level for tray labels. Default is 50."
-    )
-    parser.add_argument(
-        '--beetle_confidence', 
-        type=int, 
-        default=50, 
-        help="Confidence level for specimen masks. Default is 50."
-    )
+    for step in all_steps:
+        parser.add_argument(
+            f'--skip_{step}',
+            action='store_true',
+            help=f"Skip the {step} step"
+        )
+    
+    parser.add_argument('--drawer_confidence', type=int, default=50)
+    parser.add_argument('--drawer_overlap', type=int, default=50)
+    parser.add_argument('--tray_confidence', type=int, default=50)
+    parser.add_argument('--tray_overlap', type=int, default=50)
+    parser.add_argument('--label_confidence', type=int, default=50)
+    parser.add_argument('--label_overlap', type=int, default=50)
+    parser.add_argument('--beetle_confidence', type=int, default=50)
+    parser.add_argument('--pin_confidence', type=int, default=50)
     
     args = parser.parse_args()
-
-    # Let's process some images!
     print("Starting the image processing pipeline...")
-
     load_roboflow_workspace_and_project()
 
-    if args.step == 'all':
-        steps = [
-            'resize_drawers', 
-            'infer_drawers', 
-            'crop_trays', 
-            'resize_trays', 
-            'infer_labels', 
-            'crop_labelinfo', 
-            'infer_trays', 
-            'crop_specimens', 
-            'infer_beetles', 
-            'create_masks', 
-            'mask_specimens', 
-            'infer_patterns', 
-            'create_patterncsv', 
-            'process_and_measure_images', 
-            'merge_datasets'
-        ]
-        
-        for step in steps:
-            run_step(step, directories, args)
+    if 'all' in args.steps:
+        # Run all steps
+        for step in all_steps:
+            if not getattr(args, f'skip_{step}'):
+                step_start = time.time()
+                run_step(step, directories, args)
+                step_time = time.time() - step_start
+                print(f"{step} completed in {step_time:.2f} seconds")
     else:
-        run_step(args.step, directories, args)
+        # Run specified steps in order
+        for step in args.steps:
+            step_start = time.time()
+            run_step(step, directories, args)
+            step_time = time.time() - step_start
+            print(f"{step} completed in {step_time:.2f} seconds")
 
-    print("Image processing pipeline completed.")
+    total_time = time.time() - start_time
+    hours = int(total_time // 3600)
+    minutes = int((total_time % 3600) // 60)
+    seconds = total_time % 60
+    print(f"\nTotal processing time: {hours}h {minutes}m {seconds:.2f}s")
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
