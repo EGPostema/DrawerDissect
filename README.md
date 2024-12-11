@@ -13,7 +13,7 @@ For more information on this project, [SEE THE FULL ARTICLE PRE-PRINT HERE](http
 4. Process New Images
 5. Transcribe Text from Tray and Specimen Labels
 
-TIP: We highly recommend that you try the test image first, before moving on to your own whole-drawer images.
+**TIP:** We highly recommend that you try the test image first, before moving on to your own whole-drawer images.
 
 **Options for Models**
 - [Public FMNH Roboflow Models](#public-fmnh-roboflow-models)
@@ -24,11 +24,29 @@ TIP: We highly recommend that you try the test image first, before moving on to 
 
 Create a python virtual environment (name can be anything, here we use 'drawerdissect')
 
+```sh 
+python3 -m venv drawerdissect
+```
 
+Activate the virtual environment
 
-Install required packages with pip
+```sh
+source drawerdissect/bin/activate
+```
 
-pip install anthropic pillow pandas numpy roboflow matplotlib jupyterlab
+Install all required packages with pip
+
+```sh
+pip install
+pandas
+numpy
+Pillow
+opencv-python
+matplotlib
+roboflow
+anthropic
+aiofiles
+```
 
 # 2. Clone the Repository
 
