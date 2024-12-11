@@ -22,19 +22,19 @@ For more information on this project, [SEE THE FULL ARTICLE PRE-PRINT HERE](http
 
 # 1. Set Up an Image-Processing Environment
 
-Create a python virtual environment (name can be anything, here we use 'drawerdissect')
+Create a python virtual environment (name can be anything, here we use 'drawerdissect'):
 
 ```sh 
 python3 -m venv drawerdissect
 ```
 
-Activate the virtual environment
+Activate the virtual environment:
 
 ```sh
 source drawerdissect/bin/activate
 ```
 
-Install all required packages with pip
+Install all required packages with pip:
 
 ```sh
 pip install
