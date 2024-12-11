@@ -1,8 +1,6 @@
 # Introduction to DrawerDissect
 
-<center> **Welcome to DrawerDissect, an AI-powered method for extracting specimen-level photos and data from whole drawers of insects!**
-
-<img width="640" alt="Screenshot 2024-12-11 at 3 59 06 PM" src="https://github.com/user-attachments/assets/34c3de45-0a5a-4bd5-9d1d-0f3a676ac9f1" /> </center>
+**Welcome to DrawerDissect, an AI-powered method for extracting specimen-level photos and data from whole drawers of insects!**
 
 The goal of this python-based pipeline is to get individual-level photographs and data (taxonomic, geographic, phenotypic) from large, high-resolution images that contain many insect specimens. Normally, extracting this information takes an enormous amount of time and effort. With DrawerDissect, these outputs can be extracted automatically!
 
