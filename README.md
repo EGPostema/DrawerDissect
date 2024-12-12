@@ -10,8 +10,7 @@ DrawerDissect is an AI-powered pipeline that automatically processes whole-drawe
 
 <img width="1451" alt="DrawerDissect Pipeline Overview" src="https://github.com/user-attachments/assets/385ecb70-589a-4903-9027-ae876ca2decf" />
 
-
-📄 [Read our full article pre-print here!](https://www.authorea.com/)
+📄 [COMING SOON: Read our full article pre-print here!](https://www.authorea.com/)
 
 ## 🚀 Quick Start Guide
 
@@ -22,7 +21,7 @@ DrawerDissect is an AI-powered pipeline that automatically processes whole-drawe
 - [Anthropic](https://console.anthropic.com) account
   
 **Options for Models**
-- [Public FMNH Roboflow Models](#public-fmnh-roboflow-models) ⚠️ This is the default
+- [Public FMNH Roboflow Models](#public-fmnh-roboflow-models) ⚠️ This is the default!
 - [Create Your Own Roboflow Models](#create-your-own-roboflow-models)
 - [DIY Models with Our Training Data](#diy-models-with-our-training-data)
 
@@ -80,162 +79,11 @@ The script will:
 2. Create organized output directories
 3. Generate individual specimen images, masks, transparencies, and data
 
-### 4. Call Individual Steps
-
-Any of the steps can be called individually.
-
-🟣 <span style="color: #800080">Purple steps use **Roboflow Models**.</span>
-- You can personalize your desired % confidence and overlap for each model.
-- The default is set to 50% for each - this  works well for most models, but can be changed by changing to 50 to any number between 0 and 100. 
-- "50% confidence": only annotations the model is over 50% sure about will be recorded in the coordinates file.
-- "50% overlap":the model expects that different objects in the JPG image have bounding boxes around them that overlap by up to 50%.
-
-🟧 <span style="color: #FF8C00">Orange steps use **Claude Anthropic for OCR**.</span>
-
-1. **Resize Drawer Images**
-
-```sh 
-python test_process_images.py resize_drawers
-```
-
-2. **Calculate Pixel:MM Ratios from Metadata**
-
-```sh 
-python test_process_images.py process_metadata
-```
-
-3. 🟣 <span style="color: #800080">**Find Tray Coordinates**</span>
-
-
-```sh 
-python test_process_images.py infer_drawers --drawer_confidence 50 --drawer_overlap 50
-```
-
-Modify confidence or overlap % by changing 50 to any number 1-100.
-
-4. **Crop Trays from Drawers**
-
-```sh 
-python test_process_images.py crop_trays
-```
-
-5. **Resize Trays**
-
-```sh 
-python test_process_images.py resize_trays
-```
-
-6. 🟣 <span style="color: #800080">**Find Tray Label Coordinates**</span>
-
-```sh 
-python test_process_images.py infer_labels --label_confidence 50 --label_overlap 50
-```
-
-Modify confidence or overlap % by changing 50 to any number 1-100.
-
-7. **Crop Tray Label Components**
-
-```sh 
-python test_process_images.py crop_labels
-```
-
-8. 🟣 <span style="color: #800080">**Find Specimen Coordinates**</span>
-
-```sh 
-python test_process_images.py infer_trays --tray_confidence 50 --tray_overlap 50
-```
-
-Modify confidence or overlap % by changing 50 to any number 1-100. 50% is default.
-
-9. **Crop Specimens from Trays**
-
-```sh 
-python test_process_images.py crop_specimens
-```
-
-10. 🟣 <span style="color: #800080">**Find Specimen Body Outlines**</span>
-
-```sh 
-python test_process_images.py infer_beetles --beetle_confidence 50
-```
-
-Modify confidence % by changing 50 to any number 1-100. 50% is default.
-
-11. **Create Binary Mask PNGs from Outlines**
-
-```sh 
-python test_process_images.py create_masks
-```
-
-12. **Fix Masks with Multiple Polygons**
-
-```sh 
-python test_process_images.py fix_mask
-```
-
-13. **Measure Specimen Length and Area**
-
-```sh 
-python test_process_images.py process_and_measure_images
-```
-
-14. **Apply Initial Mask to Specimens (Removes Background)**
-
-```sh 
-python test_process_images.py censor_background
-```
-
-16. 🟣 <span style="color: #800080">**Find Pin Outlines**</span>
-
-```sh 
-python test_process_images.py infer_pins
-```
-
-17. **Create Binary Mask PNG with Pin Censored**
-
-```sh 
-python test_process_images.py create_pinmask
-```
-
-18. **Create Fully Masked Specimen Transparencies**
-
-```sh 
-python test_process_images.py create_transparency
-```
-
-19. 🟧 <span style="color: #FF8C00">**Reconstruct Locations from Specimen Labels**</span>
-
-```sh 
-python test_process_images.py transcribe_images
-```
-
-20. 🟧 <span style="color: #FF8C00">**Cross-Check Location Validity**</span>
-
-```sh 
-python test_process_images.py validate_transcription
-```
-
-21. 🟧 <span style="color: #FF8C00">**Transcribe Tray Barcode Numbers**</span>
-
-```sh 
-python test_process_images.py process_barcodes
-```
-
-22. 🟧 <span style="color: #FF8C00">**Transcribe Tray Taxonomic Names**</span>
-
-```sh 
-python test_process_images.py transcribe_taxonomy
-```
-
-23. **Merge All Datasets**
-
-```sh 
-python test_process_images.py merge_data
-```
+To call individual steps, <i>link here</i>
 
 ## ⚡ Processing Your Own Images
 
-<i>WIP!</i>
+Some short summary here?
 
 ### 1. Choose Your Model Approach
 
@@ -246,7 +94,7 @@ The simplest approach - just add your API keys and update the version number if 
 
 <i>show image here of all user inputs and what needs to be changed</i>
 
-#### B. Create Your Own Roboflow Models 🟣
+#### B. Create Your Own Roboflow Models + Anthropic
 To use your own models, you'll need to configure:
 
 **Workspace ID**
@@ -265,8 +113,8 @@ Configure your model in the script:
 
 **Note:** Model names should be lowercase, using underscores or no spaces. Version numbers can be easily updated as you train better models.
 
-#### C. Build Custom Models Using Our Training Data 🟣
-[Coming Soon] Access our training data and annotations through Google Drive to build your own models.
+#### C. Build Custom Models Using Our Training Data 
+[Coming Soon] Access our training data and annotations through Google Drive to build your own models. Can also recommend other open-source methods for OCR!
 
 ### 3. Prepare Your Images
 
@@ -284,11 +132,11 @@ At FMNH, we use: `[row]_[cabinet]_[position]` (e.g., "63_5_8" for row 63, cabine
 The script organizes outputs based on your image names:
 - For a drawer image named `DRAWERID.jpg`:
   - Tray images: `DRAWERID_tray_01.jpg`
-  - Specimens: `DRAWERID_tray_01_001.jpg`
+    - Specimens: `DRAWERID_tray_01_001.jpg`
 
 ### 4. Run the Processing Script 
 
-**Make sure you are in the `DrawerDissect` directory before running the script!**
+⚠️ **Make sure that you have cloned the repository, created a virtual environment with the require packages, and are in the `DrawerDissect` directory before running the script!**
 
 ```sh
 python process_images.py
@@ -297,7 +145,240 @@ python process_images.py
 The script will:
 1. Process all unprocessed images in the `fullsize` folder
 2. Create organized output directories
-3. Generate individual specimen images and data
+3. Generate individual specimen images, masks, transparencies, and data
 
+## 🛠️ Calling Individual Steps
 
+Each step can be run individually using either the test script or the full processing script. Choose your command based on whether you're testing (`test_process_images.py`) or processing your own images (`process_images.py`).
 
+### Model Configuration Notes
+
+🟣 **Roboflow Model Steps:**
+- Customize confidence and overlap percentages (0-100) when applicable
+- Default is 50% for both settings
+- Confidence = only annotations the model is over [X]% sure about will be recorded.
+- Overlap (obj. detection only) = the model expects object bounding boxes to overlap by up to [X]%.
+
+🟧 **Anthropic OCR Steps:**
+- Uses Claude API for text recognition
+- Prompts can be edited as-needed in `ocr_header.py`, `ocr_label.py`, and `ocr_validation.py`
+
+### 1. Resize Drawer Images
+Test:
+```sh
+python test_process_images.py resize_drawers
+```
+Full:
+```sh
+python process_images.py resize_drawers
+```
+
+### 2. Calculate Pixel:MM Ratios
+Test:
+```sh
+python test_process_images.py process_metadata
+```
+Full:
+```sh
+python process_images.py process_metadata
+```
+
+### 3. 🟣 Find Tray Coordinates
+Test:
+```sh
+python test_process_images.py infer_drawers --drawer_confidence 50 --drawer_overlap 50
+```
+Full:
+```sh
+python process_images.py infer_drawers --drawer_confidence 50 --drawer_overlap 50
+```
+
+### 4. Crop Trays from Drawers
+Test:
+```sh
+python test_process_images.py crop_trays
+```
+Full:
+```sh
+python process_images.py crop_trays
+```
+
+### 5. Resize Trays
+Test:
+```sh
+python test_process_images.py resize_trays
+```
+Full:
+```sh
+python process_images.py resize_trays
+```
+
+### 6. 🟣 Find Tray Label Coordinates
+Test:
+```sh
+python test_process_images.py infer_labels --label_confidence 50 --label_overlap 50
+```
+Full:
+```sh
+python process_images.py infer_labels --label_confidence 50 --label_overlap 50
+```
+
+### 7. Crop Tray Label Components
+Test:
+```sh
+python test_process_images.py crop_labels
+```
+Full:
+```sh
+python process_images.py crop_labels
+```
+
+### 8. 🟣 Find Specimen Coordinates
+Test:
+```sh
+python test_process_images.py infer_trays --tray_confidence 50 --tray_overlap 50
+```
+Full:
+```sh
+python process_images.py infer_trays --tray_confidence 50 --tray_overlap 50
+```
+
+### 9. Crop Specimens from Trays
+Test:
+```sh
+python test_process_images.py crop_specimens
+```
+Full:
+```sh
+python process_images.py crop_specimens
+```
+
+### 10. 🟣 Find Specimen Body Outlines
+Test:
+```sh
+python test_process_images.py infer_beetles --beetle_confidence 50
+```
+Full:
+```sh
+python process_images.py infer_beetles --beetle_confidence 50
+```
+
+### 11. Create Binary Mask PNGs
+Test:
+```sh
+python test_process_images.py create_masks
+```
+Full:
+```sh
+python process_images.py create_masks
+```
+
+### 12. Fix Multi-Polygon Masks
+Test:
+```sh
+python test_process_images.py fix_mask
+```
+Full:
+```sh
+python process_images.py fix_mask
+```
+
+### 13. Measure Specimens
+Test:
+```sh
+python test_process_images.py process_and_measure_images
+```
+Full:
+```sh
+python process_images.py process_and_measure_images
+```
+
+### 14. Apply Initial Background Mask
+Test:
+```sh
+python test_process_images.py censor_background
+```
+Full:
+```sh
+python process_images.py censor_background
+```
+
+### 15. 🟣 Find Pin Outlines
+Test:
+```sh
+python test_process_images.py infer_pins
+```
+Full:
+```sh
+python process_images.py infer_pins
+```
+
+### 16. Create Pin-Censored Mask
+Test:
+```sh
+python test_process_images.py create_pinmask
+```
+Full:
+```sh
+python process_images.py create_pinmask
+```
+
+### 17. Create Full Transparencies
+Test:
+```sh
+python test_process_images.py create_transparency
+```
+Full:
+```sh
+python process_images.py create_transparency
+```
+
+### 18. 🟧 Process Specimen Labels
+Test:
+```sh
+python test_process_images.py transcribe_images
+```
+Full:
+```sh
+python process_images.py transcribe_images
+```
+
+### 19. 🟧 Validate Locations
+Test:
+```sh
+python test_process_images.py validate_transcription
+```
+Full:
+```sh
+python process_images.py validate_transcription
+```
+
+### 20. 🟧 Process Tray Barcodes
+Test:
+```sh
+python test_process_images.py process_barcodes
+```
+Full:
+```sh
+python process_images.py process_barcodes
+```
+
+### 21. 🟧 Process Taxonomic Names
+Test:
+```sh
+python test_process_images.py transcribe_taxonomy
+```
+Full:
+```sh
+python process_images.py transcribe_taxonomy
+```
+
+### 22. Merge All Data
+Test:
+```sh
+python test_process_images.py merge_data
+```
+Full:
+```sh
+python process_images.py merge_data
+```
