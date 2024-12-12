@@ -4,6 +4,9 @@
 
 The goal of this python-based pipeline is to get individual-level photographs and data (taxonomic, geographic, phenotypic) from large, high-resolution images that contain many insect specimens. Normally, extracting this information takes an enormous amount of time and effort. With DrawerDissect, these outputs can be extracted automatically!
 
+![Uploading Screenshot 2024-12-12 at 9.51.46 AM.png…]()
+
+
 For more information on this project, [SEE THE FULL ARTICLE PRE-PRINT HERE](https://www.authorea.com/)
 
 **To get started, follow the steps below:**
