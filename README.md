@@ -75,7 +75,7 @@ instructions here
 To try the script on an example FMNH drawer, first navigate to the test folder:
 
 ```sh 
-cd Test
+cd est
 ```
 
 ## Add Roboflow Information
