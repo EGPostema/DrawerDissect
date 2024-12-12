@@ -88,15 +88,15 @@ cd test
 
 ## Add Roboflow and Anthropic Information
 
-The test script is designed to work with [Roboflow](roboflow.com), a paid platform for training and deploying AI models, and Claude Anthropic, an LLM. 
-- To run the script as-is, **you will need both accounts!**
+The test script is designed to work with [Roboflow](roboflow.com), a paid platform for training and deploying AI models, and [Anthropic Console](https://console.anthropic.com/), which houses the (LLM Claude)[https://claude.ai/).
+- To run the script as-is, **you will need accounts for both!**
 - For alternatives, see [other model options here](#decide-model-approach)
 
 For the test, you will need to have **TWO API KEYS.** Your API keys are **PRIVATE** to your own accounts.
 - For help finding the roboflow API key for your account, [click here.](https://docs.roboflow.com/api-reference/authentication)
 - For help finding the anthropic API key for your account, [click here.](https://docs.anthropic.com/en/api/getting-started)
 
-<img width="317" alt="Screenshot 2024-12-12 at 10 30 57 AM" src="https://github.com/user-attachments/assets/144db6be-76e1-438d-8b97-56292c7a6b43" />
+<img width="317" style="border: 1px solid black" alt="Screenshot 2024-12-12 at 10 30 57 AM" src="https://github.com/user-attachments/assets/144db6be-76e1-438d-8b97-56292c7a6b43" />
 
 To input your APIs in the script (shown above), find ```test_process_images.py```. It can be edited using the ```nano``` command on both windows and mac, or via applications like notepad/textedit. 
 
