@@ -12,7 +12,7 @@ It can extract:
 
 📏 Specimen size data
 
-🌎 Taxonomic information and broad geolocation
+🌎 Taxonomic ID and broad geolocation
 
 :beetle: Reconstructed specimen-level locations, when visible
 
