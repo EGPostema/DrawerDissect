@@ -1,6 +1,6 @@
 # Introduction to DrawerDissect
 
-## :beetle: :scissors:  Overview
+## :beetle: Overview :scissors:  
 
 DrawerDissect is an AI-powered pipeline that automatically processes whole-drawer images of insect specimens.
 
