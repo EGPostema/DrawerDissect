@@ -10,7 +10,7 @@ It can extract:
 
 🌈 "Masked" specimens for downstream color analysis
 
-📏 Specimen length and area, in metric
+📏 Specimen size data
 
 🌎 Taxonomic information and broad geolocation
 
