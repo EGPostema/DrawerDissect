@@ -5,6 +5,7 @@
 DrawerDissect is an AI-powered pipeline that automatically processes whole-drawer images of insect specimens.
 
 It can extract:
+
 📷 Individual specimen photographs
 
 🌈 "Masked" specimens for downstream color analysis
