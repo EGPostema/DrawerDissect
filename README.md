@@ -54,13 +54,13 @@ cd DrawerDissect
 - ⚠️ Note: The image is 1.3GB and may take time to download
 
 ### 2. Configure API Keys
-1. Navigate to the test directory:
+Navigate to the test directory:
 
 ```sh
 cd test
 ```
 
-2. Open `test_process_images.py` and add your API keys:
+Open `test_process_images.py` and add your API keys:
 
 <img width="317" alt="Screenshot 2024-12-12 at 10 30 57 AM" src="https://github.com/user-attachments/assets/e1c03cc3-3948-4cba-bc3f-2d3a466ab27b" />
 
