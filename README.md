@@ -6,13 +6,13 @@ DrawerDissect is an AI-powered pipeline that automatically processes whole-drawe
 
 It can extract:
 
-📷 Individual specimen photographs
+📷 Individual specimen photos
 
-🌈 "Masked" specimens for downstream color analysis
+📏 Specimen size data (length, area)
 
-📏 Specimen size data
+:beetle: Taxonomic information
 
-:beetle: Taxonomic identity
+🌈 "Masked" specimens for downstream color analysis (ImageJ compatable)
 
  🌎 Broad geolocation & reconstructed specimen-level location, when visible
 
