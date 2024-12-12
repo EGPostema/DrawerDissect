@@ -153,7 +153,7 @@ PIN_MODEL_VERSION = 5
 [Coming Soon] Access our training data and annotations through Google Drive to build your own models. 
 - Can also recommend other open-source methods for OCR!
 
-### 3. Prepare Your Images
+### 2. Prepare Your Images
 
 - Place all images in the `fullsize` folder
 - Use .jpg format (code could be modified to accept other formats)
@@ -168,7 +168,7 @@ The script organizes outputs based on your image names:
   - Tray images: `DRAWERID_tray_01.jpg`...
     - Specimens: `DRAWERID_tray_01_001.jpg`...
 
-### 4. Run the Processing Script 
+### 3. Run the Processing Script 
 
 ⚠️ **Before running the script, make sure that you have:** ⚠️
 - Cloned the repository
