@@ -74,7 +74,9 @@ cd DrawerDissect
 
 [CLICK HERE](), then download the image 'FMNH_cicindelidae_34_5_7.jpg'
 
-Add this image to ```DrawerDissect/test/drawers/fullsize```. The image is very large (1.3GB!) so it may take a little while to download and move.
+Add this image to ```DrawerDissect/test/drawers/fullsize```. 
+
+<i>The image is very large (1.3GB!) so it may take a little while to download and move.</i>
 
 ## Navigate to Test Folder
 
