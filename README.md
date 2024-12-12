@@ -5,10 +5,10 @@
 DrawerDissect is an AI-powered pipeline that automatically processes whole-drawer images of insect specimens.
 
 It extracts:
-- Individual specimen photographs
-- Specimen "masks" for phenotypic analysis
-- Taxonomic information and broad geolocation
-- Reconstructed specimen-level locations (when visible)
+- Individual specimen photographs 📷
+- Specimen "masks" for downstream phenotypic analysis (size, color) 🌈
+- Taxonomic information and broad geolocation 🌎
+- Reconstructed specimen-level locations, when visible :beetle:
 
 <img width="1451" alt="DrawerDissect Pipeline Overview" src="https://github.com/user-attachments/assets/385ecb70-589a-4903-9027-ae876ca2decf" />
 
@@ -52,7 +52,7 @@ cd DrawerDissect
 
 - [Download our test image](https://drive.google.com/drive/folders/1NHV9MSR-sjmAW43KlyPfSB9Xr5ZTvJFt?usp=drive_link)
 - Place it in `DrawerDissect/test/drawers/fullsize`
-- ⚠️ Note: The image is 1.3GB and may take time to download
+- Note: The image is LARGE (1.3GB) and may take some time to download
 
 ### 2. Configure API Keys
 Navigate to the test directory:
@@ -64,9 +64,8 @@ cd test
 Open `test_process_images.py` and add your API keys:
 
 ```sh
-ANTHROPIC_KEY = 'YOUR_API_HERE'
-API_KEY = 'YOUR_ROBOFLOW_API_HERE'
-WORKSPACE = 'field-museum' # the workspace is filled out correctly already!
+ANTHROPIC_KEY = 'YOUR_API_HERE' # replace with your API
+API_KEY = 'YOUR_ROBOFLOW_API_HERE' # replace with your API
 ```
 
 [How to find your Roboflow API key](https://docs.roboflow.com/api-reference/authentication)
