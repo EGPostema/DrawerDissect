@@ -422,10 +422,10 @@ Full:
 python process_images.py merge_data
 ```
 
-## Summary and Outputs
+## 📝 Summary and Outputs
 
 [Coming Soon]
 
-## Tips & Troubleshooting
+## ❗ Tips & Troubleshooting
 
 [Coming Soon]
