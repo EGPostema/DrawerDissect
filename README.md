@@ -1,118 +1,81 @@
 # Introduction to DrawerDissect
 
-**Welcome to DrawerDissect, an AI-powered method for processing whole drawers of insects!**
+## 🪲 🔍 Overview
 
-Using a combination of object detection, segmentation, and large-language models, this pipeline extracts individual-level photographs and data (taxonomic, geographic, phenotypic) from large, high-resolution images that contain many insect specimens. 
+DrawerDissect is an AI-powered pipeline that automatically processes whole-drawer images of insect specimens. It extracts:
+- Individual specimen photographs
+- Specimen "masks" for phenotypic analysis
+- Taxonomic information
+- Partial or full geographic location
 
-Normally, extracting this information takes an enormous amount of time and effort. With DrawerDissect, these outputs can be extracted (mostly) automatically.
+<img width="1451" alt="DrawerDissect Pipeline Overview" src="https://github.com/user-attachments/assets/385ecb70-589a-4903-9027-ae876ca2decf" />
 
-<img width="1451" alt="Screenshot 2024-12-12 at 9 51 46 AM" src="https://github.com/user-attachments/assets/385ecb70-589a-4903-9027-ae876ca2decf" />
+📄 [Read our full article pre-print here!](https://www.authorea.com/)
 
-For more information on this project, [SEE THE FULL ARTICLE PRE-PRINT HERE](https://www.authorea.com/)
+## 🚀 Quick Start Guide
 
-**To get started, follow the steps below:**
-1. Set Up an Image-Processing Environment
-2. Clone the Repository
-3. Process Test Image
-4. Process New Images
-5. Transcribe Text from Tray and Specimen Labels
-
-**TIP:** We highly recommend that you try the test image first, before moving on to your own whole-drawer images.
-
+### Prerequisites
+- Python 3.x
+- Git
+- [Roboflow](https://roboflow.com) account
+- [Anthropic](https://console.anthropic.com) account
+  
 **Options for Models**
 - [Public FMNH Roboflow Models](#public-fmnh-roboflow-models)
 - [Create Your Own Roboflow Models](#create-your-own-roboflow-models)
 - [DIY Models with Our Training Data](#diy-models-with-our-training-data)
 
-# 1. Set Up an Image-Processing Environment
+### Installation
 
-Create a python virtual environment (name can be anything, here we use 'drawerdissect'):
-
-```sh 
-python3 -m venv drawerdissect
-```
-
-Activate the virtual environment:
-
+1. Create and activate a virtual environment:
 ```sh
+python3 -m venv drawerdissect
 source drawerdissect/bin/activate
 ```
 
-Install all required packages with pip:
-
+2. Install required packages:
 ```sh
-pip install
-pandas
-numpy
-Pillow
-opencv-python
-matplotlib
-roboflow
-anthropic
-aiofiles
+pip install pandas numpy Pillow opencv-python matplotlib roboflow anthropic aiofiles
 ```
 
-# 2. Clone the Repository
-
-[First, make sure you have github installed.](https://github.com/git-guides/install-git)
-
-Then, to clone this repository, use the following command:
-
-```sh 
+3. Clone the repository:
+```sh
 git clone https://github.com/EGPostema/DrawerDissect.git
-```
-
-Make sure to navigate to the correct project directory before you start adding and processing images:
-
-```sh 
 cd DrawerDissect
 ```
 
-# 3. Process the Test Image
+## Start with Our Test Image
 
-## Download Test Image
+### 1. Download Test Image
 
-[CLICK HERE](https://drive.google.com/drive/folders/1NHV9MSR-sjmAW43KlyPfSB9Xr5ZTvJFt?usp=drive_link), then download the image 'FMNH_cicindelidae_34_5_7.jpg'
-
-Add this image directly to ```DrawerDissect/test/drawers/fullsize```. 
+- [Download our test image](https://drive.google.com/drive/folders/1NHV9MSR-sjmAW43KlyPfSB9Xr5ZTvJFt?usp=drive_link)
+- Place it in `DrawerDissect/test/drawers/fullsize`
+- ⚠️ Note: The image is 1.3GB and may take time to download
 
 <i>The image is very large (1.3GB!) so it may take a little while to download and move.</i>
 
-## Navigate to Test Folder
-
-To try the script on an example FMNH drawer, in your command-line terminal, navigate to the test folder:
-
-```sh 
+### 2. Configure API Keys
+1. Navigate to the test directory:
+```sh
 cd test
 ```
 
-## Add Roboflow and Anthropic Information
-
-The test script is designed to work with [Roboflow](roboflow.com), a paid platform for training and deploying AI models, and [Anthropic Console](https://console.anthropic.com/), which houses the (LLM Claude)[https://claude.ai/).
-- To run the script as-is, **you will need accounts for both!**
-- For alternatives, see [other model options here](#decide-model-approach)
-
-For the test, you will need to have **TWO API KEYS.** Your API keys are **PRIVATE** to your own accounts.
-- For help finding the roboflow API key for your account, [click here.](https://docs.roboflow.com/api-reference/authentication)
-- For help finding the anthropic API key for your account, [click here.](https://docs.anthropic.com/en/api/getting-started)
+2. Open `test_process_images.py` and add your API keys:
 
 <img width="317" alt="Screenshot 2024-12-12 at 10 30 57 AM" src="https://github.com/user-attachments/assets/e1c03cc3-3948-4cba-bc3f-2d3a466ab27b" />
 
-To input your APIs in the script (shown above), find ```test_process_images.py```. It can be edited using the ```nano``` command on both windows and mac, or via applications like notepad/textedit. 
+- **Replace YOUR_API_HERE with your Anthropic API KEY**
+- **Replace YOUR_ROBOFLOW_API_HERE with your Roboflow API key**
 
-**Replace YOUR_API_HERE with your Anthropic API KEY, and YOUR_ROBOFLOW_API_HERE with your Roboflow API key**
+[How to find your Roboflow API key](https://docs.roboflow.com/api-reference/authentication)
+[How to find your Anthropic API key](https://docs.anthropic.com/en/api/getting-started)
 
-Note that, for the test run, **the workspace are model names are already filled out for you.**
-
-## Running the Script
-
-Once the script has been updated with information from roboflow, you can start the script within the ```DrawerDissect``` directory: 
-
+### 3. Run the Test
 ```sh
 python test_process_images.py
 ```
 
-**This command will run ALL steps for ALL photos in the ```fullsize``` folder that have not yet been processed**
+**This command will run ALL steps for ALL photos in the ```fullsize``` folder that have not yet been processed!**
 
 ## Calling Individual Steps
 
