@@ -81,7 +81,7 @@ The script will:
 2. Create organized output directories
 3. Generate individual specimen images, masks, transparencies, and data
 
-[To call individual steps, see section below.](Calling-Individual-Steps)
+[How to call individual steps](#calling-individual-steps)
 
 ## ⚡ Processing Your Own Images
 
