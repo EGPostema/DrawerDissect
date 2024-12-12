@@ -18,7 +18,9 @@ It can extract:
 
 <img width="1451" alt="DrawerDissect Pipeline Overview" src="https://github.com/user-attachments/assets/385ecb70-589a-4903-9027-ae876ca2decf" />
 
+
 📄 [COMING SOON: Read our full article pre-print here!](https://www.authorea.com/)
+
 
 ## 🚀 Quick Start Guide
 
@@ -28,7 +30,7 @@ It can extract:
 - [Roboflow](https://roboflow.com) account
 - [Anthropic](https://console.anthropic.com) account
   
-**Options for Models**
+### Options for Models
 - [Public FMNH Roboflow Models](#public-fmnh-roboflow-models) ⚠️ This is the default!
 - [Create Your Own Roboflow Models](#create-your-own-roboflow-models)
 - [DIY Models with Our Training Data](#diy-models-with-our-training-data)
