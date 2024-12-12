@@ -107,12 +107,11 @@ You have three options for processing images:
 
 #### A. Use Public FMNH Roboflow Models
 
-The simplest approach - just add your API keys and run!
+The simplest approach - just add your API keys and go!
 - Requires Roboflow & Anthropic APIs
-- Transcribes tray-level labels (barcodes, taxonomy, or both) when transcription toggles are set to 'Y'
+- Modify these parts of `process_images.py` for your use-case:
 
-⚠️ **Modify `process_images.py` to Add/Edit the Following:**
-
+**API Inputs**
 ```sh
 # Replace YOUR_API_HERE, YOUR_ROBOFLOW_API_HERE, and YOUR_WORKSPACE_HERE!
 
@@ -121,12 +120,14 @@ API_KEY = 'YOUR_ROBOFLOW_API_HERE'
 WORKSPACE = 'YOUR_WORKSPACE_HERE'
 ```
 
+**Tray Label Transcipriton Toggles**
 ```sh
 # Transcription toggles, adjust to your drawer imaging set-up
 TRANSCRIBE_BARCODES = 'N'  # Default is N; set to Y if your drawer images have trays with barcoded labels
 TRANSCRIBE_TAXONOMY = 'Y'  # Default is Y; set to N if your drawer images do NOT have tray labels with species information
 ```
 
+**Use Our Model Inputs**
 ```sh
 # User inputs filled in with our public model names. Version numbers up-to-date as of DEC-12-2024
 
