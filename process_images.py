@@ -29,9 +29,9 @@ from functions.ocr_header import process_images, TranscriptionConfig, BARCODE_CO
 base_dir = os.path.abspath(os.path.dirname(__file__))
 
 # User inputs for API keys and model details **MAKE SURE TO MODIFY THIS!**
-ANTHROPIC_KEY = '{YOUR ANTHROPIC API KEY HERE}'
-API_KEY = '{YOUR ROBOFLOW API KEY HERE}'
-WORKSPACE = '{YOUR WORKSPACE HERE}'
+ANTHROPIC_KEY = 'YOUR_API_HERE'
+API_KEY = 'YOUR_ROBOFLOW_API_HERE'
+WORKSPACE = 'YOUR_WORKSPACE_HERE'
 
 # Transcription toggles
 TRANSCRIBE_BARCODES = 'N'  # Set to 'Y' or 'N', default is N
