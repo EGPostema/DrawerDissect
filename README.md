@@ -119,7 +119,7 @@ MASK_MODEL_ENDPOINT = '{model_name}'
 MASK_MODEL_VERSION = 1  # Adjust the version as needed!
 PIN_MODEL_ENDPOINT = '{model_name}'
 PIN_MODEL_VERSION = 1  # Adjust the version as needed!
-``
+```
 
 #### B. Create Your Own Roboflow Models
 
