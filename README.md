@@ -94,10 +94,12 @@ The script will:
 
 ## 📷 Processing Your Own Images
 
-<i>- Some short summary here, pay particular attention to how drawers/trays are set-up. 
--Tray labels of some kind are important. 
+<i>
+- Some short summary here, pay particular attention to how drawers/trays are set-up. 
+- Tray labels of some kind are important. 
 - Note possible performance differences depending on image quality, specimen size, and specimen type
-- All current models are trained mainly on mid/large Coleoptera</i>
+- All current models are trained mainly on mid/large Coleoptera
+</i>
 
 ### 1. Choose Your Model Approach
 
