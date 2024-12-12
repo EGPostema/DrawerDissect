@@ -53,10 +53,9 @@ cd DrawerDissect
 - Place it in `DrawerDissect/test/drawers/fullsize`
 - ⚠️ Note: The image is 1.3GB and may take time to download
 
-<i>The image is very large (1.3GB!) so it may take a little while to download and move.</i>
-
 ### 2. Configure API Keys
 1. Navigate to the test directory:
+
 ```sh
 cd test
 ```
