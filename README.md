@@ -45,7 +45,7 @@ git clone https://github.com/EGPostema/DrawerDissect.git
 cd DrawerDissect
 ```
 
-## Start with Our Test Image
+## 🧪 Processing Our Test Image
 
 ### 1. Download Test Image
 
@@ -64,145 +64,240 @@ cd test
 
 <img width="317" alt="Screenshot 2024-12-12 at 10 30 57 AM" src="https://github.com/user-attachments/assets/e1c03cc3-3948-4cba-bc3f-2d3a466ab27b" />
 
-- **Replace YOUR_API_HERE with your Anthropic API KEY**
-- **Replace YOUR_ROBOFLOW_API_HERE with your Roboflow API key**
+- **Replace YOUR_API_HERE with <u>your Anthropic API KEY</u>**
+- **Replace YOUR_ROBOFLOW_API_HERE with <u>your Roboflow API key</u>**
 
 [How to find your Roboflow API key](https://docs.roboflow.com/api-reference/authentication)
 [How to find your Anthropic API key](https://docs.anthropic.com/en/api/getting-started)
 
-### 3. Run the Test
+### 3. Run the Full Test Script
 ```sh
 python test_process_images.py
 ```
 
-**This command will run ALL steps for ALL photos in the ```fullsize``` folder that have not yet been processed!**
+The script will:
+1. Process all unprocessed images in the `fullsize` folder
+2. Create organized output directories
+3. Generate individual specimen images, masks, transparencies, and data
 
-## Calling Individual Steps
+### 4. Call Individual Steps
 
-If you only want to run a single function at a time, you can use the following commands:
+Any of the steps can be called individually.
 
-**Resize Drawers**
+🟣 <span style="color: #800080">Purple steps use **Roboflow Models**.</span>
+- You can personalize your desired % confidence and overlap for each model.
+- The default is set to 50% for each - this  works well for most models, but can be changed by changing to 50 to any number between 0 and 100. 
+- "50% confidence": only annotations the model is over 50% sure about will be recorded in the coordinates file.
+- "50% overlap":the model expects that different objects in the JPG image have bounding boxes around them that overlap by up to 50%.
+
+🟧 <span style="color: #FF8C00">Orange steps use **Claude Anthropic for OCR**.</span>
+
+1. **Resize Drawer Images**
 
 ```sh 
 python test_process_images.py resize_drawers
 ```
 
-**Find Tray Coordinates**
+2. **Calculate Pixel:MM Ratios from Metadata**
 
-Modify confidence or overlap % by changing 50 to any number 1-100. 50% is default.
+```sh 
+python test_process_images.py process_metadata
+```
+
+3. 🟣 <span style="color: #800080">**Find Tray Coordinates**</span>
+
 
 ```sh 
 python test_process_images.py infer_drawers --drawer_confidence 50 --drawer_overlap 50
 ```
 
-**Crop Trays from Drawers**
+Modify confidence or overlap % by changing 50 to any number 1-100.
+
+4. **Crop Trays from Drawers**
 
 ```sh 
 python test_process_images.py crop_trays
 ```
 
-**Resize Trays**
+5. **Resize Trays**
 
 ```sh 
 python test_process_images.py resize_trays
 ```
 
-**Find Label Coordinates**
+6. 🟣 <span style="color: #800080">**Find Tray Label Coordinates**</span>
 
-UPDATE
+```sh 
+python test_process_images.py infer_labels --label_confidence 50 --label_overlap 50
+```
 
-**Find Specimen Coordinates**
+Modify confidence or overlap % by changing 50 to any number 1-100.
 
-Modify confidence or overlap % by changing 50 to any number 1-100. 50% is default.
+7. **Crop Tray Label Components**
+
+```sh 
+python test_process_images.py crop_labels
+```
+
+8. 🟣 <span style="color: #800080">**Find Specimen Coordinates**</span>
 
 ```sh 
 python test_process_images.py infer_trays --tray_confidence 50 --tray_overlap 50
 ```
 
-**Crop Specimens from Trays**
+Modify confidence or overlap % by changing 50 to any number 1-100. 50% is default.
+
+9. **Crop Specimens from Trays**
 
 ```sh 
 python test_process_images.py crop_specimens
 ```
 
-**Find Specimen Outlines**
-
-Modify confidence or overlap % by changing 50 to any number 1-100. 50% is default.
+10. 🟣 <span style="color: #800080">**Find Specimen Body Outlines**</span>
 
 ```sh 
-python test_process_images.py infer_beetles --beetle_confidence 50 --beetle_overlap 50
+python test_process_images.py infer_beetles --beetle_confidence 50
 ```
 
-**Create Binary Mask PNGs from Specimen Outlines**
+Modify confidence % by changing 50 to any number 1-100. 50% is default.
+
+11. **Create Binary Mask PNGs from Outlines**
 
 ```sh 
 python test_process_images.py create_masks
 ```
 
-**NEED UPDATES FOR OTHER STEPS HERE**
+12. **Fix Masks with Multiple Polygons**
 
-## Image and Data Outputs
+```sh 
+python test_process_images.py fix_mask
+```
 
-<i>describe outputs here and ways to analyze data here </i>
+13. **Measure Specimen Length and Area**
 
-# 4. Process New Images
+```sh 
+python test_process_images.py process_and_measure_images
+```
 
-## Decide Model Approach
+14. **Apply Initial Mask to Specimens (Removes Background)**
 
-### Public FMNH Roboflow Models
+```sh 
+python test_process_images.py censor_background
+```
 
-This will just involves putting the API key in and potentially changing version number. Nothing else needs to be changed.
+16. 🟣 <span style="color: #800080">**Find Pin Outlines**</span>
 
-### Create Your Own Roboflow Models
+```sh 
+python test_process_images.py infer_pins
+```
 
-**WORKSPACE** 
+17. **Create Binary Mask PNG with Pin Censored**
 
-Your workspace id can be found in your roboflow workspace page, under settings:
+```sh 
+python test_process_images.py create_pinmask
+```
 
-<img width="807" alt="Screenshot 2024-05-21 at 1 37 39 PM" src="https://github.com/EGPostema/DrawerDissect/assets/142446286/19016e31-2542-48b5-9e51-7372de3e5b90">
+18. **Create Fully Masked Specimen Transparencies**
 
-**MODEL / VERSION - REVISE WHEN MODEL IS PUBLIC**
+```sh 
+python test_process_images.py create_transparency
+```
 
-To find your model's name and version in roboflow, go to your projects > choose your model > versions > click whatever version you want to use. You'll see something like this in the middle of the page:
+19. 🟧 <span style="color: #FF8C00">**Reconstruct Locations from Specimen Labels**</span>
 
-<img width="782" alt="Screenshot 2024-05-20 at 1 39 37 PM" src="https://github.com/EGPostema/DrawerDissect/assets/142446286/e2918f19-9867-42d1-ae20-53369f2d4018">
+```sh 
+python test_process_images.py transcribe_images
+```
 
-In the script, for this model, I would input the information like this:
+20. 🟧 <span style="color: #FF8C00">**Cross-Check Location Validity**</span>
 
-<img width="486" alt="Screenshot 2024-06-24 at 1 02 10 PM" src="https://github.com/EGPostema/DrawerDissect/assets/142446286/1070e844-ab02-4c6a-a605-bdf781498f62">
+```sh 
+python test_process_images.py validate_transcription
+```
 
-The model's name will always be uncapitalized and without spaces (or dashes instead of spaces). The version # will be to the right of the model name. This makes it easy to go back and just update the version # as you train better version of the same model! 
+21. 🟧 <span style="color: #FF8C00">**Transcribe Tray Barcode Numbers**</span>
 
-**CONFIDENCE / OVERLAP** 
+```sh 
+python test_process_images.py process_barcodes
+```
 
-You can personalize your desired % confidence and overlap for each model. The default is set to 50% for each - this  works well for most models, but can be changed by changing to 50 to any number between 0 and 100. 
-- "50% confidence" means that only annotations the model is over 50% sure about will be recorded in the coordinates file.
-- "50% overlap" means that the model expects that different objects in the JPG may have bounding boxes around them that overlap by up to 50%.
+22. 🟧 <span style="color: #FF8C00">**Transcribe Tray Taxonomic Names**</span>
 
-![Screenshot 2024-07-23 at 2 20 15 PM](https://github.com/user-attachments/assets/aa11408b-096c-4c0b-b21c-fe4652c832e9)
+```sh 
+python test_process_images.py transcribe_taxonomy
+```
 
-### DIY Models with Our Training Data
+23. **Merge All Datasets**
 
-Describe suggestions for how to do this here - direct to google drive ??? where all my images/annotations are, organized by version
+```sh 
+python test_process_images.py merge_data
+```
 
-## Upload Your Images
+## ⚡ Processing Your Own Images
 
-Put all images in the ```fullsize``` folder. Ensure they are .jpgs, though the code could be modified to handle other file formats if needed. It is helpful to have a consistent naming convention for the drawers. For example, at the Field, we use a drawer name that is consistent with EMu, our museum databasing program. This name corresponds to the physical row, cabinet, and position that the drawer is located in (ex: "63_5_8" refers to a drawer in row 63, cabinet 5, 8 down from the top). Our photos are also timestamped. Any standard naming convention can be used, though dashes should generally be avoided ('_'s work better).
+<i>WIP!</i>
 
-<img width="461" alt="Screenshot 2024-06-24 at 12 04 05 PM" src="https://github.com/EGPostema/DrawerDissect/assets/142446286/c6526924-908f-4999-af55-8c89962b2518">
+### 1. Choose Your Model Approach
 
-As the processing script runs, it will use the names of your fullsize drawer images to organize all output files. So, for example, a tray image cropped from {drawerID_here}.jpg will then be named {drawerID_here}_tray_01.jpg and so on. The script also organizes images into folders and subfolders based on drawer and tray identities. Below is an example of how individual specimen photos are organized once they are cropped out.
+You have three options for processing your images:
 
-<img width="262" alt="Screenshot 2024-07-23 at 2 08 42 PM" src="https://github.com/user-attachments/assets/06386a11-efee-445b-a007-8a36e654c0a1">
+#### A. Use Public FMNH Roboflow Models + Anthropic
+The simplest approach - just add your API keys and update the version number if needed.
 
-# 5. Transcribing Text from Tray and Specimen Labels
+<i>show image here of all user inputs and what needs to be changed</i>
 
-## For Test Image
+#### B. Create Your Own Roboflow Models 🟣
+To use your own models, you'll need to configure:
 
-## For New Images
+**Workspace ID**
+Find this in your Roboflow workspace settings:
+<img width="807" alt="Roboflow Workspace Settings" src="https://github.com/EGPostema/DrawerDissect/assets/142446286/19016e31-2542-48b5-9e51-7372de3e5b90">
 
-# Use of AI Disclaimer
+**Model Name and Version**
+Locate these in your Roboflow project:
+1. Go to Projects > Select your model > Versions
+2. Select your desired version
+3. Find the model info as shown:
+<img width="782" alt="Roboflow Model Version" src="https://github.com/EGPostema/DrawerDissect/assets/142446286/e2918f19-9867-42d1-ae20-53369f2d4018">
 
+Configure your model in the script:
+<img width="486" alt="Model Configuration Example" src="https://github.com/EGPostema/DrawerDissect/assets/142446286/1070e844-ab02-4c6a-a605-bdf781498f62">
+
+**Note:** Model names should be lowercase, using underscores or no spaces. Version numbers can be easily updated as you train better models.
+
+#### C. Build Custom Models Using Our Training Data 🟣
+[Coming Soon] Access our training data and annotations through Google Drive to build your own models.
+
+### 3. Prepare Your Images
+
+1. Place all images in the `fullsize` folder
+2. Requirements:
+   - Use .jpg format (code can be modified for other formats)
+   - Use a consistent naming convention
+   - Avoid dashes in filenames (use underscores instead)
+
+**Example Naming Convention:**
+At FMNH, we use: `[row]_[cabinet]_[position]` (e.g., "63_5_8" for row 63, cabinet 5, position 8)
+
+<img width="461" alt="Folder Structure Example" src="https://github.com/EGPostema/DrawerDissect/assets/142446286/c6526924-908f-4999-af55-8c89962b2518">
+
+The script organizes outputs based on your image names:
+- For a drawer image named `DRAWERID.jpg`:
+  - Tray images: `DRAWERID_tray_01.jpg`
+  - Specimens: `DRAWERID_tray_01_001.jpg`
+
+### 4. Run the Processing Script 
+
+**Make sure you are in the `DrawerDissect` directory before running the script!**
+
+```sh
+python process_images.py
+```
+
+The script will:
+1. Process all unprocessed images in the `fullsize` folder
+2. Create organized output directories
+3. Generate individual specimen images and data
 
 
 
