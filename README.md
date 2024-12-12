@@ -85,42 +85,45 @@ The script will:
 
 ## ⚡ Processing Your Own Images
 
-Some short summary here?
+<i>Some short summary here</i>
 
 ### 1. Choose Your Model Approach
 
-You have three options for processing your images:
+You have three options for processing images:
 
 #### A. Use Public FMNH Roboflow Models
 
-The simplest approach - just add your API keys.
+The simplest approach - just add your API keys and run!
 - Requires Roboflow & Anthropic APIs
-- Update model version numbers if needed
+- Transcribe tray-level labels (barcodes, taxonomy, or both) if applicable
+
+**Modify process_images.py to add or edit the following:**
 
 ```sh
 ANTHROPIC_KEY = 'YOUR_API_HERE'
 API_KEY = 'YOUR_ROBOFLOW_API_HERE'
 WORKSPACE = 'YOUR_WORKSPACE_HERE'
+```
 
+```sh
 # Transcription toggles
-TRANSCRIBE_BARCODES = 'N'  # Set to 'Y' or 'N', default is N
-TRANSCRIBE_TAXONOMY = 'Y'  # Set to 'Y' or 'N', default is Y
+TRANSCRIBE_BARCODES = 'N'  # Default is N; set to Y if your drawer images have trays with barcoded labels
+TRANSCRIBE_TAXONOMY = 'Y'  # Default is Y; set to N if your drawer images do NOT have tray labels with species information
+```
 
-# Initialize Roboflow
-rf = roboflow.Roboflow(api_key=API_KEY)
-workspace = rf.workspace(WORKSPACE)
+```sh
+# User inputs filled in with our public model names. Version numbers up-to-date as of DEC-12-2024
 
-# User inputs for roboflow models **MAKE SURE TO MODIFY THESE!**
-DRAWER_MODEL_ENDPOINT = '{model_name}'
-DRAWER_MODEL_VERSION = 1  # Adjust the version as needed!
-TRAY_MODEL_ENDPOINT = '{model_name}'
-TRAY_MODEL_VERSION = 1  # Adjust the version as needed
-LABEL_MODEL_ENDPOINT = '{model_name}'
-LABEL_MODEL_VERSION = 1  # Adjust the version as needed!
-MASK_MODEL_ENDPOINT = '{model_name}'
-MASK_MODEL_VERSION = 1  # Adjust the version as needed!
-PIN_MODEL_ENDPOINT = '{model_name}'
-PIN_MODEL_VERSION = 1  # Adjust the version as needed!
+DRAWER_MODEL_ENDPOINT = 'trayfinder'
+DRAWER_MODEL_VERSION = 9
+TRAY_MODEL_ENDPOINT = 'beetlefinder'
+TRAY_MODEL_VERSION = 8
+LABEL_MODEL_ENDPOINT = 'labelfinder'
+LABEL_MODEL_VERSION = 4
+MASK_MODEL_ENDPOINT = 'bugmasker-base'
+MASK_MODEL_VERSION = 1
+PIN_MODEL_ENDPOINT = 'pinmasker'
+PIN_MODEL_VERSION = 5
 ```
 
 #### B. Create Your Own Roboflow Models
