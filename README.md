@@ -5,10 +5,11 @@
 DrawerDissect is an AI-powered pipeline that automatically processes whole-drawer images of insect specimens.
 
 It extracts:
-- Individual specimen photographs 📷
-- Specimen "masks" for downstream phenotypic analysis (size, color) 🌈
-- Taxonomic information and broad geolocation 🌎
-- Reconstructed specimen-level locations, when visible :beetle:
+- 📷 Individual specimen photographs
+- 🌈 "Masked" specimens for downstream color analysis
+- 📏 Specimen length and area, in metric
+- 🌎 Taxonomic information and broad geolocation
+- :beetle: Reconstructed specimen-level locations, when visible
 
 <img width="1451" alt="DrawerDissect Pipeline Overview" src="https://github.com/user-attachments/assets/385ecb70-589a-4903-9027-ae876ca2decf" />
 
