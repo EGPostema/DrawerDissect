@@ -12,9 +12,9 @@ It can extract:
 
 📏 Specimen size data
 
-🌎 Taxonomic ID and broad geolocation
+:beetle: Taxonomic identity
 
-:beetle: Reconstructed specimen-level locations, when visible
+ 🌎 Broad geolocation & reconstructed specimen-level location, when visible
 
 <img width="1451" alt="DrawerDissect Pipeline Overview" src="https://github.com/user-attachments/assets/385ecb70-589a-4903-9027-ae876ca2decf" />
 
