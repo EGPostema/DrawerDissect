@@ -87,7 +87,10 @@ The script will:
 
 ## 📷 Processing Your Own Images
 
-<i>Some short summary here</i>
+<i>- Some short summary here, pay particular attention to how drawers/trays are set-up. 
+-Tray labels of some kind are important. 
+- Note possible performance differences depending on image quality, specimen size, and specimen type
+- All current models are trained mainly on mid/large Coleoptera</i>
 
 ### 1. Choose Your Model Approach
 
@@ -97,18 +100,20 @@ You have three options for processing images:
 
 The simplest approach - just add your API keys and run!
 - Requires Roboflow & Anthropic APIs
-- Transcribe tray-level labels (barcodes, taxonomy, or both) if applicable
+- Transcribes tray-level labels (barcodes, taxonomy, or both) when transcription toggles are set to 'Y'
 
 ⚠️ **Modify `process_images.py` to Add/Edit the Following:**
 
 ```sh
+# Replace YOUR_API_HERE, YOUR_ROBOFLOW_API_HERE, and YOUR_WORKSPACE_HERE!
+
 ANTHROPIC_KEY = 'YOUR_API_HERE'
 API_KEY = 'YOUR_ROBOFLOW_API_HERE'
 WORKSPACE = 'YOUR_WORKSPACE_HERE'
 ```
 
 ```sh
-# Transcription toggles
+# Transcription toggles, adjust to your drawer imaging set-up
 TRANSCRIBE_BARCODES = 'N'  # Default is N; set to Y if your drawer images have trays with barcoded labels
 TRANSCRIBE_TAXONOMY = 'Y'  # Default is Y; set to N if your drawer images do NOT have tray labels with species information
 ```
