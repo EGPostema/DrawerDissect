@@ -83,7 +83,7 @@ The script will:
 
 [How to call individual steps](#calling-individual-steps)
 
-## ⚡ Processing Your Own Images
+## 📷 Processing Your Own Images
 
 <i>Some short summary here</i>
 
@@ -97,7 +97,7 @@ The simplest approach - just add your API keys and run!
 - Requires Roboflow & Anthropic APIs
 - Transcribe tray-level labels (barcodes, taxonomy, or both) if applicable
 
-⚠️ **Modify `process_images.py` to Add/Edit the Following:** ⚠️
+⚠️ **Modify `process_images.py` to Add/Edit the Following:**
 
 ```sh
 ANTHROPIC_KEY = 'YOUR_API_HERE'
@@ -154,10 +154,11 @@ The script organizes outputs based on your image names:
 
 ### 4. Run the Processing Script 
 
-⚠️ **Before running the script, make sure that you have:** ⚠️
+⚠️ **Before running the script, make sure that you have:**
 - Cloned the repository
 - Created a virtual environment with the required packages
 - Navigated to the `DrawerDissect` directory
+- Decided on a model approach
 - Modified `process_images.py` with ALL required user inputs
 
 ```sh
