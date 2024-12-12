@@ -155,23 +155,22 @@ PIN_MODEL_VERSION = 5
 
 ### 3. Prepare Your Images
 
-1. Place all images in the `fullsize` folder
-2. Requirements:
-   - Use .jpg format (code can be modified for other formats)
-   - Use a consistent naming convention
-   - Avoid dashes in filenames (use underscores instead)
+- Place all images in the `fullsize` folder
+- Use .jpg format (code could be modified to accept other formats)
+- Avoid dashes in filenames (use underscores instead)
+- - Use a consistent naming convention!
 
 **Example Naming Convention:**
 At FMNH, we use: `[row]_[cabinet]_[position]` (e.g., "63_5_8" for row 63, cabinet 5, position 8)
 
 The script organizes outputs based on your image names:
 - For a drawer image named `DRAWERID.jpg`:
-  - Tray images: `DRAWERID_tray_01.jpg`
-    - Specimens: `DRAWERID_tray_01_001.jpg`
+  - Tray images: `DRAWERID_tray_01.jpg`...
+    - Specimens: `DRAWERID_tray_01_001.jpg`...
 
 ### 4. Run the Processing Script 
 
-⚠️ **Before running the script, make sure that you have:**
+⚠️ **Before running the script, make sure that you have:** ⚠️
 - Cloned the repository
 - Created a virtual environment with the required packages
 - Navigated to the `DrawerDissect` directory
