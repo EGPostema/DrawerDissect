@@ -99,6 +99,7 @@ For the test, you will need to have **TWO API KEYS.** Your API keys are **PRIVAT
 <img width="317" alt="Screenshot 2024-12-12 at 10 30 57 AM" src="https://github.com/user-attachments/assets/144db6be-76e1-438d-8b97-56292c7a6b43" />
 
 To input your APIs in the script (shown above), find ```test_process_images.py```. It can be edited using the ```nano``` command on both windows and mac, or via applications like notepad/textedit. 
+
 **Replace YOUR_API_HERE with your Anthropic API KEY, and YOUR_ROBOFLOW_API_HERE with your Roboflow API key**
 
 Note that, for the test run, **the workspace are model names are already filled out for you.**
