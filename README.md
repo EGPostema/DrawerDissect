@@ -202,6 +202,8 @@ Each step can be run individually using either the test script or the full proce
 - Uses Claude API for text recognition
 - Prompts can be edited as-needed in `ocr_header.py`, `ocr_label.py`, and `ocr_validation.py`
 
+**For a more detailed summary of EACH STEP, click here! [will link to other readme file]**
+
 ### 1. Resize Drawer Images
 Test:
 ```sh
