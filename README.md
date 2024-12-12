@@ -72,9 +72,9 @@ cd DrawerDissect
 
 ## Download Test Image
 
-[CLICK HERE](), then download the image 'FMNH_cicindelidae_34_5_7.jpg'
+[CLICK HERE](https://drive.google.com/drive/folders/1NHV9MSR-sjmAW43KlyPfSB9Xr5ZTvJFt?usp=drive_link), then download the image 'FMNH_cicindelidae_34_5_7.jpg'
 
-Add this image to ```DrawerDissect/test/drawers/fullsize```. 
+Add this image directly to ```DrawerDissect/test/drawers/fullsize```. 
 
 <i>The image is very large (1.3GB!) so it may take a little while to download and move.</i>
 
@@ -96,7 +96,7 @@ For the test, you will need to have **TWO API KEYS.** Your API keys are **PRIVAT
 - For help finding the roboflow API key for your account, [click here.](https://docs.roboflow.com/api-reference/authentication)
 - For help finding the anthropic API key for your account, [click here.](https://docs.anthropic.com/en/api/getting-started)
 
-<img width="317" style="border: 1px solid black" alt="Screenshot 2024-12-12 at 10 30 57 AM" src="https://github.com/user-attachments/assets/144db6be-76e1-438d-8b97-56292c7a6b43" />
+<img width="317" style="border: 1px solid black" alt="Screenshot 2024-12-12 at 10 30 57 AM" src="https://github.com/user-attachments/assets/144db6be-76e1-438d-8b97-56292c7a6b43">
 
 To input your APIs in the script (shown above), find ```test_process_images.py```. It can be edited using the ```nano``` command on both windows and mac, or via applications like notepad/textedit. 
 
