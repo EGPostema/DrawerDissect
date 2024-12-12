@@ -61,10 +61,11 @@ cd test
 
 Open `test_process_images.py` and add your API keys:
 
-<img width="317" alt="Screenshot 2024-12-12 at 10 30 57 AM" src="https://github.com/user-attachments/assets/e1c03cc3-3948-4cba-bc3f-2d3a466ab27b" />
-
-- **Replace YOUR_API_HERE with <u>your Anthropic API KEY</u>**
-- **Replace YOUR_ROBOFLOW_API_HERE with <u>your Roboflow API key</u>**
+```sh
+ANTHROPIC_KEY = 'YOUR_API_HERE'
+API_KEY = 'YOUR_ROBOFLOW_API_HERE'
+WORKSPACE = 'field-museum' # the workspace is filled out correctly already!
+```
 
 [How to find your Roboflow API key](https://docs.roboflow.com/api-reference/authentication)
 [How to find your Anthropic API key](https://docs.anthropic.com/en/api/getting-started)
