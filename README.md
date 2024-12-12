@@ -97,7 +97,7 @@ The simplest approach - just add your API keys and run!
 - Requires Roboflow & Anthropic APIs
 - Transcribe tray-level labels (barcodes, taxonomy, or both) if applicable
 
-**Modify process_images.py to add or edit the following:**
+⚠️ **Modify `process_images.py` to Add/Edit the Following:** ⚠️
 
 ```sh
 ANTHROPIC_KEY = 'YOUR_API_HERE'
@@ -147,8 +147,6 @@ PIN_MODEL_VERSION = 5
 **Example Naming Convention:**
 At FMNH, we use: `[row]_[cabinet]_[position]` (e.g., "63_5_8" for row 63, cabinet 5, position 8)
 
-<img width="461" alt="Folder Structure Example" src="https://github.com/EGPostema/DrawerDissect/assets/142446286/c6526924-908f-4999-af55-8c89962b2518">
-
 The script organizes outputs based on your image names:
 - For a drawer image named `DRAWERID.jpg`:
   - Tray images: `DRAWERID_tray_01.jpg`
@@ -156,7 +154,11 @@ The script organizes outputs based on your image names:
 
 ### 4. Run the Processing Script 
 
-⚠️ **Make sure that you have cloned the repository, created a virtual environment with the require packages, and are in the `DrawerDissect` directory before running the script!**
+⚠️ **Before running the script, make sure that you have:** ⚠️
+- Cloned the repository
+- Created a virtual environment with the required packages
+- Navigated to the `DrawerDissect` directory
+- Modified `process_images.py` with ALL required user inputs
 
 ```sh
 python process_images.py
