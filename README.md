@@ -96,7 +96,7 @@ For the test, you will need to have **TWO API KEYS.** Your API keys are **PRIVAT
 - For help finding the roboflow API key for your account, [click here.](https://docs.roboflow.com/api-reference/authentication)
 - For help finding the anthropic API key for your account, [click here.](https://docs.anthropic.com/en/api/getting-started)
 
-<img width="317" style="border: 1px solid black" alt="Screenshot 2024-12-12 at 10 30 57 AM" src="https://github.com/user-attachments/assets/144db6be-76e1-438d-8b97-56292c7a6b43">
+<img width="317" alt="Screenshot 2024-12-12 at 10 30 57 AM" src="https://github.com/user-attachments/assets/e1c03cc3-3948-4cba-bc3f-2d3a466ab27b" />
 
 To input your APIs in the script (shown above), find ```test_process_images.py```. It can be edited using the ```nano``` command on both windows and mac, or via applications like notepad/textedit. 
 
