@@ -68,32 +68,38 @@ Make sure to navigate to the correct project directory before you start adding a
 cd DrawerDissect
 ```
 
-# 3. Process Test Image
+# 3. Process the Test Image
 
 ## Download Test Image
 
-instructions here
+[CLICK HERE](), then download the image 'FMNH_cicindelidae_34_5_7.jpg'
+
+Add this image to ```DrawerDissect/test/drawers/fullsize```. The image is very large (1.3GB!) so it may take a little while to download and move.
 
 ## Navigate to Test Folder
 
-To try the script on an example FMNH drawer, first navigate to the test folder:
+To try the script on an example FMNH drawer, in your command-line terminal, navigate to the test folder:
 
 ```sh 
-cd est
+cd test
 ```
 
-## Add Roboflow Information
+## Add Roboflow and Anthropic Information
 
-The test script is designed to work with [Roboflow](roboflow.com), a paid platform for training and deploying AI models. 
-- To run the script as-is, **you will need a Roboflow account!**
+The test script is designed to work with [Roboflow](roboflow.com), a paid platform for training and deploying AI models, and Claude Anthropic, an LLM. 
+- To run the script as-is, **you will need both accounts!**
 - For alternatives, see [other model options here](#decide-model-approach)
 
-For the test, you will need to have an **API KEY.** Your API key is **PRIVATE** to your own account.
+For the test, you will need to have **TWO API KEYS.** Your API keys are **PRIVATE** to your own accounts.
 - For help finding the roboflow API key for your account, [click here.](https://docs.roboflow.com/api-reference/authentication)
+- For help finding the anthropic API key for your account, [click here.](https://docs.anthropic.com/en/api/getting-started)
 
-[SHOW IMAGE HERE]
+<img width="317" alt="Screenshot 2024-12-12 at 10 30 57 AM" src="https://github.com/user-attachments/assets/144db6be-76e1-438d-8b97-56292c7a6b43" />
 
-To input your API in the script (shown above), find the test_process_images.py script. It can be edited using the ```nano``` command on both windows and mac, or via applications like notepad/textedit. Replace '___' with your API KEY.
+To input your APIs in the script (shown above), find ```test_process_images.py```. It can be edited using the ```nano``` command on both windows and mac, or via applications like notepad/textedit. 
+**Replace YOUR_API_HERE with your Anthropic API KEY, and YOUR_ROBOFLOW_API_HERE with your Roboflow API key**
+
+Note that, for the test run, **the workspace are model names are already filled out for you.**
 
 ## Running the Script
 
