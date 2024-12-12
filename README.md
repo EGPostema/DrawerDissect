@@ -10,6 +10,7 @@ DrawerDissect is an AI-powered pipeline that automatically processes whole-drawe
 
 <img width="1451" alt="DrawerDissect Pipeline Overview" src="https://github.com/user-attachments/assets/385ecb70-589a-4903-9027-ae876ca2decf" />
 
+
 📄 [Read our full article pre-print here!](https://www.authorea.com/)
 
 ## 🚀 Quick Start Guide
