@@ -89,32 +89,47 @@ Some short summary here?
 
 You have three options for processing your images:
 
-#### A. Use Public FMNH Roboflow Models + Anthropic
-The simplest approach - just add your API keys and update the version number if needed.
+#### A. Use Public FMNH Roboflow Models
 
-<i>show image here of all user inputs and what needs to be changed</i>
+The simplest approach - just add your API keys.
+- Requires Roboflow & Anthropic APIs
+- Update model version numbers if needed
 
-#### B. Create Your Own Roboflow Models + Anthropic
-To use your own models, you'll need to configure:
+```sh
+ANTHROPIC_KEY = 'YOUR_API_HERE'
+API_KEY = 'YOUR_ROBOFLOW_API_HERE'
+WORKSPACE = 'YOUR_WORKSPACE_HERE'
 
-**Workspace ID**
-Find this in your Roboflow workspace settings:
-<img width="807" alt="Roboflow Workspace Settings" src="https://github.com/EGPostema/DrawerDissect/assets/142446286/19016e31-2542-48b5-9e51-7372de3e5b90">
+# Transcription toggles
+TRANSCRIBE_BARCODES = 'N'  # Set to 'Y' or 'N', default is N
+TRANSCRIBE_TAXONOMY = 'Y'  # Set to 'Y' or 'N', default is Y
 
-**Model Name and Version**
-Locate these in your Roboflow project:
-1. Go to Projects > Select your model > Versions
-2. Select your desired version
-3. Find the model info as shown:
-<img width="782" alt="Roboflow Model Version" src="https://github.com/EGPostema/DrawerDissect/assets/142446286/e2918f19-9867-42d1-ae20-53369f2d4018">
+# Initialize Roboflow
+rf = roboflow.Roboflow(api_key=API_KEY)
+workspace = rf.workspace(WORKSPACE)
 
-Configure your model in the script:
-<img width="486" alt="Model Configuration Example" src="https://github.com/EGPostema/DrawerDissect/assets/142446286/1070e844-ab02-4c6a-a605-bdf781498f62">
+# User inputs for roboflow models **MAKE SURE TO MODIFY THESE!**
+DRAWER_MODEL_ENDPOINT = '{model_name}'
+DRAWER_MODEL_VERSION = 1  # Adjust the version as needed!
+TRAY_MODEL_ENDPOINT = '{model_name}'
+TRAY_MODEL_VERSION = 1  # Adjust the version as needed
+LABEL_MODEL_ENDPOINT = '{model_name}'
+LABEL_MODEL_VERSION = 1  # Adjust the version as needed!
+MASK_MODEL_ENDPOINT = '{model_name}'
+MASK_MODEL_VERSION = 1  # Adjust the version as needed!
+PIN_MODEL_ENDPOINT = '{model_name}'
+PIN_MODEL_VERSION = 1  # Adjust the version as needed!
+``
 
-**Note:** Model names should be lowercase, using underscores or no spaces. Version numbers can be easily updated as you train better models.
+#### B. Create Your Own Roboflow Models
+
+[coming soon] Link to roboflow documentation. 
+- Make sure that 5 key models are present (3 obj detection, 2 segmentation) and there is some OCR method.
+- Requires Roboflow & Anthropic APIs as-is
 
 #### C. Build Custom Models Using Our Training Data 
-[Coming Soon] Access our training data and annotations through Google Drive to build your own models. Can also recommend other open-source methods for OCR!
+[Coming Soon] Access our training data and annotations through Google Drive to build your own models. 
+- Can also recommend other open-source methods for OCR!
 
 ### 3. Prepare Your Images
 
@@ -382,3 +397,11 @@ Full:
 ```sh
 python process_images.py merge_data
 ```
+
+## Summary
+
+[Coming Soon]
+
+## Tips & Troubleshooting
+
+[Coming Soon]
