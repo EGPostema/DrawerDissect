@@ -34,8 +34,8 @@ API_KEY = 'YOUR_ROBOFLOW_API_HERE'
 WORKSPACE = 'YOUR_WORKSPACE_HERE'
 
 # Transcription toggles
-TRANSCRIBE_BARCODES = 'N'  # Set to 'Y' or 'N', default is N
-TRANSCRIBE_TAXONOMY = 'Y'  # Set to 'Y' or 'N', default is Y
+TRANSCRIBE_BARCODES = 'Y'  # Default is Y; set to N if your drawer images DON'T have trays with barcoded labels
+TRANSCRIBE_TAXONOMY = 'Y'  # Default is Y; set to N if your drawer images DON'T have trays seperated by taxon
 
 # Initialize Roboflow
 rf = roboflow.Roboflow(api_key=API_KEY)
