@@ -175,7 +175,7 @@ The script organizes outputs based on your image names:
 - Created a virtual environment with the required packages
 - Navigated to the `DrawerDissect` directory
 - Decided on a model approach
-- Modified `process_images.py` with ALL required user inputs
+- Modified `process_images.py` according to your approach
 
 ```sh
 python process_images.py
