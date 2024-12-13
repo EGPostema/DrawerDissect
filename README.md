@@ -99,9 +99,9 @@ The script will:
 **Field Museum Drawers**
 - FMNH drawers contain **unit trays**.
 - All specimens within a given unit tray have the same:
-  - <u>taxonomic identity</u>
-  - <u>barcode</u> (QR + 5-digit number for databasing)
-  - <u>broad geographic location</u> (3-letter code, e.g. NEA = nearctic)
+  - taxonomic identity
+  - barcode (QR + 5-digit number for databasing)
+  - broad geographic location (3-letter code, e.g. NEA = nearctic)
 - Tray labels are **top-down visible** for proper detection / transcription.
 
 <div>
