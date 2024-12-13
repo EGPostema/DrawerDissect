@@ -454,9 +454,11 @@ python process_images.py merge_data
 
 You can call unique combinations of steps by simply adding steps to the basic processing command.
 
-Below, we list a few examples of where this might be useful - but this is not exhaustive, and steps can be excluded / included as needed.
+```sh
+python test_process_images.py step_1 step_2 step_3...
+```
 
-You can choose steps from this list:
+Pick steps from this list:
 
 ```sh
 resize_drawers
