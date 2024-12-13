@@ -24,6 +24,7 @@ Below, we list all steps used in the processing script, with the following infor
 ### 1. Resize Drawer Images
 
 **Description**
+
 Resizes full-size drawer images to create 1000px-wide versions ready for inference.
 
 **Command**
@@ -52,6 +53,7 @@ python process_images.py resize_drawers
 
 ### 2. Calculate Size Ratios from Metadata
 **Description**
+
 Calculates pixel-to-millimeter conversion ratios from drawer metadata for accurate measurements.
 
 **Command**
@@ -80,7 +82,9 @@ python process_images.py process_metadata
 - No prior steps required
 
 ### 3. 🟣 Find Tray Coordinates
+
 **Description**
+
 Uses Roboflow object detection to locate drawer unit trays in resized images.
 
 **Command**
@@ -106,7 +110,9 @@ python process_images.py infer_drawers --drawer_confidence 50 --drawer_overlap 5
 - Resized Drawer Images (from Step 1)
 
 ### 4. Crop Trays from Drawers
+
 **Description**
+
 Crops individual unit trays from full-size drawer images using coordinate predictions.
 
 **Command**
@@ -135,7 +141,9 @@ python process_images.py crop_trays
 - Find Tray Coordinates (Step 3)
 
 ### 5. Resize Trays
+
 **Description**
+
 Creates 1000px-wide versions of cropped tray images for processing.
 
 **Command**
@@ -161,7 +169,9 @@ python process_images.py resize_trays
 - Crop Trays from Drawers (Step 4)
 
 ### 6. 🟣 Find Tray Label Coordinates
+
 **Description**
+
 Uses Roboflow object detection to locate barcodes, geocodes, and labels within tray images.
 
 **Command**
@@ -187,7 +197,9 @@ python process_images.py infer_labels --label_confidence 50 --label_overlap 50
 - Resize Trays (Step 5)
 
 ### 7. Crop Tray Label Components
+
 **Description**
+
 Extracts individual label components (barcodes, geocodes, text labels) from full-size tray images.
 
 **Command**
@@ -216,7 +228,9 @@ python process_images.py crop_labels
 - Find Tray Label Coordinates (Step 6)
 
 ### 8. 🟣 Find Specimen Coordinates
+
 **Description**
+
 Uses Roboflow object detection to locate individual specimens within tray images.
 
 **Command**
@@ -242,7 +256,9 @@ python process_images.py infer_trays --tray_confidence 50 --tray_overlap 50
 - Resize Trays (Step 5)
 
 ### 9. Crop Specimens from Trays
+
 **Description**
+
 Extracts individual specimens from full-size tray images in a top-to-bottom, left-to-right order.
 
 **Command**
@@ -271,7 +287,9 @@ python process_images.py crop_specimens
 - Find Specimen Coordinates (Step 8)
 
 ### 10. 🟣 Find Specimen Body Outlines
+
 **Description**
+
 Uses Roboflow instance segmentation to create precise outlines of specimen bodies.
 
 **Command**
@@ -297,7 +315,9 @@ python process_images.py infer_beetles --beetle_confidence 50
 - Crop Specimens from Trays (Step 9)
 
 ### 11. Create Binary Mask PNGs
+
 **Description**
+
 Converts specimen segmentation predictions into binary mask images.
 
 
@@ -324,8 +344,10 @@ python process_images.py create_masks
 - Find Specimen Body Outlines (Step 10)
 
 ### 12. Fix Multi-Polygon Masks
+
 **Description**
-Ensures each mask contains only one connected component by keeping the largest polygon.
+
+Ensures each mask contains a single body mask by keeping the largest polygon.
 
 **Command**
 ```sh
@@ -350,7 +372,9 @@ python process_images.py fix_mask
 - Create Binary Mask PNGs (Step 11)
 
 ### 13. Measure Specimens
+
 **Description**
+
 Calculates specimen dimensions using binary masks and pixel-to-mm ratios.
 
 **Command**
@@ -383,7 +407,9 @@ python process_images.py process_and_measure_images
 - Calculate Pixel:MM Ratios (Step 2)
 
 ### 14. Apply Initial Background Mask
+
 **Description**
+
 Creates initial masked specimens by applying body segmentation masks to remove backgrounds.
 
 **Command**
@@ -415,7 +441,9 @@ python process_images.py censor_background
 - Measure Specimens (Step 13)
 
 ### 15. 🟣 Find Pin Outlines 
+
 **Description**
+
 Uses Roboflow instance segmentation to detect mounting pins in masked specimens.
 
 **Command**
@@ -444,7 +472,9 @@ python process_images.py infer_pins
 - Apply Initial Background Mask (Step 14)
 
 ### 16. Create Pin-Censored Mask
+
 **Description**
+
 Creates final masks by merging specimen body masks with detected pin locations.
 
 **Command**
@@ -473,7 +503,9 @@ python process_images.py create_pinmask
 - Find Pin Outlines (Step 15)
 
 ### 17. Create Full Transparencies
+
 **Description**
+
 Creates final specimen images with transparent backgrounds using completed masks.
 
 **Command**
@@ -502,7 +534,9 @@ python process_images.py create_transparency
 - Create Pin-Censored Mask (Step 16)
 
 ### 18. 🟧 Process Specimen Labels
+
 **Description**
+
 Uses Claude to transcribe text from specimen images and extract location information.
 
 **Command**
@@ -528,7 +562,9 @@ python process_images.py transcribe_images
 - Crop Specimens from Trays (Step 9)
 
 ### 19. 🟧 Validate Locations
+
 **Description**
+
 Validates and standardizes location data extracted from specimen labels using Claude.
 
 **Command**
@@ -554,7 +590,9 @@ python process_images.py validate_transcription
 
 
 ### 20. 🟧 Process Tray Barcodes
+
 **Description**
+
 Uses Claude to read and validate 5-digit barcodes from tray label images.
 
 **Command**
@@ -580,7 +618,9 @@ python process_images.py process_barcodes
 - Crop Tray Label Components (Step 7)
 
 ### 21. 🟧 Process Taxonomic Names
+
 **Description**
+
 Uses Claude to extract taxonomic information from tray label images.
 
 **Command**
@@ -606,7 +646,9 @@ python process_images.py transcribe_taxonomy
 - Crop Tray Label Components (Step 7)
 
 ### 22. Merge All Data
+
 **Description**
+
 Combines all extracted data (measurements, locations, taxonomy, barcodes) into a single dataset.
 
 **Command**
