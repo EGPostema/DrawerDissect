@@ -92,7 +92,7 @@ The script will:
 
 [How to call individual steps](#calling-individual-steps)
 
-[Expected outputs](#summary-and-outputs)
+[Expected outputs](#-summary-and-outputs)
 
 ## 📷 Processing Your Own Images
 
@@ -140,9 +140,10 @@ WORKSPACE = 'YOUR_WORKSPACE_HERE'
 
 **Tray Label Transcipriton Toggles**
 ```sh
-# Transcription toggles, adjust to your drawer imaging set-up
-TRANSCRIBE_BARCODES = 'N'  # Default is N; set to Y if your drawer images have trays with barcoded labels
-TRANSCRIBE_TAXONOMY = 'Y'  # Default is Y; set to N if your drawer images do NOT have tray labels with species information
+# Transcription toggles, adjust to your drawer configuration
+
+TRANSCRIBE_BARCODES = 'Y'  # Default is Y; set to N if your drawer images DON'T have trays with barcoded labels
+TRANSCRIBE_TAXONOMY = 'Y'  # Default is Y; set to N if your drawer images DON'T have trays seperated by taxon
 ```
 
 **Use Our Model Inputs**
