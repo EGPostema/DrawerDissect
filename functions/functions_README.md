@@ -1,38 +1,23 @@
-## Summary of Processing Steps
+## ⚙️ Summary of Processing Steps
 
-<i>summary here</i>
-
-### Format
-
-**[Num]. Step Name**
-
-Description
-
-#### Inputs
-
-#### Outputs
-
-#### Command
-
-<ins>Test:</ins>
-```sh
-python test_process_images.py resize_drawers
-```
-
-<ins>Full:</ins>
-```sh
-python process_images.py resize_drawers
-```
+Below, we list all steps used in the processing script, with the following information:
+- A short description
+- Inputs and outputs
+- Single-step command
+- Visual aids
+- Model type, if applicable
+  - 🟣 = roboflow
+  - 🟧 = anthropic
 
 ### Model Configuration Notes
 
-🟣 **Roboflow Model Steps:**
+🟣 **Roboflow Model Steps**
 - Customize confidence and overlap percentages (0-100) when applicable
 - Default is 50% for both settings
 - Confidence = only annotations the model is over [X]% sure about will be recorded.
 - Overlap (obj. detection only) = the model expects object bounding boxes to overlap by up to [X]%.
 
-🟧 **Anthropic OCR Steps:**
+🟧 **Anthropic OCR Steps**
 - Uses Claude API for text recognition
 - Prompts can be edited as-needed in `ocr_header.py`, `ocr_label.py`, and `ocr_validation.py`
 
