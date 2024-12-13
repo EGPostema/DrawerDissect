@@ -50,6 +50,7 @@ python process_images.py resize_drawers
 **Dependencies**
 - No prior steps required (this is typically the first step)
 
+### 2. Calculate Size Ratios from Metadata
 **Description**
 Calculates pixel-to-millimeter conversion ratios from drawer metadata for accurate measurements.
 
