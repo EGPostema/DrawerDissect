@@ -99,9 +99,9 @@ The script will:
 **Field Museum Drawers**
 - FMNH drawers contain **unit trays**.
 - All specimens within a given unit tray have the same:
-  - barcode (for databasing)
-  - taxonomic identity
-  - broad geographic location (3-letter code, e.g. NEA = nearctic)
+  - <u>taxonomic identity</u>
+  - <u>barcode</u> (QR + 5-digit number for databasing)
+  - <u>broad geographic location</u> (3-letter code, e.g. NEA = nearctic)
 - Tray labels are **top-down visible** for proper detection / transcription.
 
 <div>
@@ -110,10 +110,12 @@ The script will:
   <img src="https://github.com/user-attachments/assets/6ae70348-f612-48e2-bc27-1353f11941ec" width="300">
 </div>
 
+
 **Recommendation for Other Users** 
-- At the VERY LEAST, drawers should have some way to **organize specimens into taxonomic units**.
-- Those taxonomic units should also be **labeled in a top-down visible way**.
-- Other organizational methods that may require different models / sets of models.
+- At the VERY LEAST, drawers should have some **visually distinct** way to **organize specimens into taxonomic units**.
+- Those taxonomic units should also be **labeled** in a top-down visible way.
+- Other organizational methods that may require different models.
+- Drawers with non-organized specimens should **skip all tray-related steps** in the pipeline.
   
 ### 1. Choose Your Model Approach
 
@@ -172,7 +174,7 @@ PIN_MODEL_VERSION = 5
 - Place all images in the `fullsize` folder
 - Use .jpg format (code could be modified to accept other formats)
 - Avoid dashes in filenames (use underscores instead)
-- - Use a consistent naming convention!
+- Use a consistent naming convention!
 
 **Example Naming Convention:**
 At FMNH, we use: `[row]_[cabinet]_[position]` (e.g., "63_5_8" for row 63, cabinet 5, position 8)
