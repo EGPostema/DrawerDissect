@@ -31,7 +31,7 @@ It can extract:
 - [Anthropic](https://console.anthropic.com) account
   
 ### Options for Models
-- [Public FMNH Roboflow Models](#public-fmnh-roboflow-models) ⚠️ This is the default!
+- [Public FMNH Roboflow Models](#public-fmnh-roboflow-models) ⚠️ DEFAULT
 - [Create Your Own Roboflow Models](#create-your-own-roboflow-models)
 - [DIY Models with Our Training Data](#diy-models-with-our-training-data)
 
