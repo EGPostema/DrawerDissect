@@ -91,6 +91,7 @@ The script will:
 3. Generate individual specimen images, masks, transparencies, and data
 
 [How to call individual steps](#calling-individual-steps)
+[Expected outputs](#summary-and-outputs)
 
 ## 📷 Processing Your Own Images
 
