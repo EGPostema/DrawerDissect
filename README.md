@@ -506,7 +506,7 @@ In this case, you might already have existing metadata for your specimens, so th
 To run the script without label reconstruction:
 
 1. Add your whole-drawer image(s) to `drawers/fullsize` as usual
-2. (Modify process_images.py with your API keys)[#2-choose-your-model-approach]
+2. [Modify process_images.py with your API keys](#2-choose-your-model-approach)
 3. Run the command below
 
 ```sh
