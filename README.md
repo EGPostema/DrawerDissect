@@ -124,7 +124,7 @@ You have three options for processing images:
 
 #### A. Use Public FMNH Roboflow Models
 
-The simplest approach - just add your API keys and go!
+The simplest approach - just add your API keys & our pre-trained models!
 - Requires Roboflow & Anthropic APIs
 - Drawers organized by unit tray
 - Modify these parts of `process_images.py`:
