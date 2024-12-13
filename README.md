@@ -513,8 +513,6 @@ To run the script without label reconstruction:
 python process_images.py resize_drawers process_metadata infer_drawers crop_trays resize_trays infer_labels crop_labels infer_trays crop_specimens infer_beetles create_masks fix_mask process_and_measure_images censor_background infer_pins create_pinmask create_transparency process_barcodes transcribe_taxonomy merge_data
 ```
 
-### 3. Example: 
-
 ## 📝 Summary and Outputs
 
 [Coming Soon]
