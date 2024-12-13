@@ -227,7 +227,7 @@ Each step can be run individually using either the test script or the full proce
 - Uses Claude API for text recognition
 - Prompts can be edited as-needed in `ocr_header.py`, `ocr_label.py`, and `ocr_validation.py`
 
-**For a more detailed summary of EACH STEP, click here! [will link to other readme file]**
+**[For a more detailed summary of EACH STEP, click here!](https://github.com/EGPostema/DrawerDissect/blob/main/functions/functions_README.md)**
 
 ### 1. Resize Drawer Images
 Test:
@@ -450,6 +450,69 @@ python process_images.py merge_data
 ```
 
 ## 🛠 Calling Combinations of Steps
+
+You can call unique combinations of steps by simply adding steps to the basic processing command.
+
+Below, we list a few examples of where this might be useful - but this is not exhaustive, and steps can be excluded / included as needed.
+
+You can choose steps from this list:
+
+```sh
+resize_drawers
+process_metadata
+infer_drawers
+crop_trays
+resize_trays
+infer_labels
+crop_labels
+infer_trays
+crop_specimens
+infer_beetles
+create_masks
+fix_mask
+process_and_measure_images
+censor_background
+infer_pins
+create_pinmask
+create_transparency
+transcribe_images
+validate_transcription
+process_barcodes
+transcribe_taxonomy
+merge_data
+```
+
+⚠️ **NOTE**: Many steps hinge on the output of previous steps. Make sure you know the [required inputs/outputs to combine them properly.](https://github.com/EGPostema/DrawerDissect/blob/main/functions/functions_README.md)
+
+### 1. Example: Specimens-only Pipeline
+
+Maybe you have a full set of **individual specimen photos** you want masked, measured, and turned into transparent PNGs.
+
+To do this:
+
+1. Add all specimen images to `drawers/specimens`
+2. (Modify process_images.py with your API keys)[#2-choose-your-model-approach]
+3. Run the command below
+   
+```sh
+python process_images.py infer_beetles create_masks fix_mask process_and_measure_images censor_background infer_pins create_pinmask create_transparency transcribe_images
+```
+
+### 2. Example: No Label Reconstruction
+
+In this case, you might already have existing metadata for your specimens, so the label reconstruction step is unnecessary.
+
+To run the script without label reconstruction:
+
+1. Add your whole-drawer image(s) to `drawers/fullsize` as usual
+2. (Modify process_images.py with your API keys)[#2-choose-your-model-approach]
+3. Run the command below
+
+```sh
+python process_images.py resize_drawers process_metadata infer_drawers crop_trays resize_trays infer_labels crop_labels infer_trays crop_specimens infer_beetles create_masks fix_mask process_and_measure_images censor_background infer_pins create_pinmask create_transparency process_barcodes transcribe_taxonomy merge_data
+```
+
+### 3. Example: 
 
 ## 📝 Summary and Outputs
 
