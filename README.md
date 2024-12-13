@@ -200,9 +200,9 @@ python process_images.py
 ```
 
 The script will:
-1. Process all unprocessed images in the `fullsize` folder
-2. Create organized output directories
-3. Generate individual specimen images, masks, transparencies, and data
+- Process all unprocessed images in the `fullsize` folder
+- Create organized output directories
+- Generate individual specimen images, masks, transparencies, and data
 
 ## 🛠️ Calling Individual Steps
 
