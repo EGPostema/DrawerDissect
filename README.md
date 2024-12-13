@@ -88,7 +88,9 @@ The script will:
 2. Create organized output directories
 3. Generate individual specimen images, masks, transparencies, and data
 
-[How to call individual steps](#calling-individual-steps)
+[How to call individual steps](#-calling-individual-steps)
+
+[Calling combinations of steps](#-calling-combinations-of-steps)
 
 [Expected outputs](#-summary-and-outputs)
 
@@ -203,7 +205,13 @@ The script will:
 - Create organized output directories
 - Generate individual specimen images, masks, transparencies, and data
 
-## 🛠️ Calling Individual Steps
+[How to call individual steps](#-calling-individual-steps)
+
+[Calling combinations of steps](#-calling-combinations-of-steps)
+
+[Expected outputs](#-summary-and-outputs)
+
+## 🔧 Calling Individual Steps
 
 Each step can be run individually using either the test script or the full processing script. Choose your command based on whether you're testing (`test_process_images.py`) or processing your own images (`process_images.py`).
 
@@ -440,6 +448,8 @@ Full:
 ```sh
 python process_images.py merge_data
 ```
+
+## 🛠 Calling Combinations of Steps
 
 ## 📝 Summary and Outputs
 
