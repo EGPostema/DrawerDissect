@@ -4,7 +4,7 @@
 
 **DrawerDissect is an AI-driven pipeline that automatically processes whole-drawer images of insect specimens.**
 
-It can extract:
+<u>It can extract:</u>
 
 📷 Individual specimen photos
 
@@ -14,13 +14,11 @@ It can extract:
 
 🌈 "Masked" specimens for downstream analysis (ImageJ compatable)
 
-🌎 Broad geolocation + reconstructed specimen-level location, when visible
+🌎 Broad geolocation + reconstructed specimen-level location (when visible)
+
+We created this tool to assist any researcher that works with large volumes of preserved insects (particularly in a Museum setting).
 
 <img width="1451" alt="DrawerDissect Pipeline Overview" src="https://github.com/user-attachments/assets/385ecb70-589a-4903-9027-ae876ca2decf" />
-
-
-📄 [COMING SOON: Read our full article pre-print here!](https://www.authorea.com/)
-
 
 ## 🚀 Quick Start Guide
 
