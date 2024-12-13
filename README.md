@@ -180,6 +180,7 @@ PIN_MODEL_VERSION = 5
 - Use a consistent naming convention!
 
 **Example Naming Convention:**
+
 At FMNH, we use: `[row]_[cabinet]_[position]` (e.g., "63_5_8" for row 63, cabinet 5, position 8)
 
 The script organizes outputs based on your image names:
