@@ -96,7 +96,7 @@ The script will:
 
 ## 📷 Processing Your Own Images
 
-### Whole-Drawer Image Configuration
+### 1. Whole-Drawer Image Configuration
 
 **Field Museum Drawers**
 - FMNH drawers contain **unit trays**.
@@ -118,7 +118,7 @@ The script will:
 - Other organizational methods that may require different models.
 - Drawers with non-organized specimens should **skip all tray-related steps** in the pipeline.
   
-### 1. Choose Your Model Approach
+### 2. Choose Your Model Approach
 
 You have three options for processing images:
 
@@ -126,7 +126,8 @@ You have three options for processing images:
 
 The simplest approach - just add your API keys and go!
 - Requires Roboflow & Anthropic APIs
-- Modify these parts of `process_images.py` for your use-case:
+- Drawers organized by unit tray
+- Modify these parts of `process_images.py`:
 
 **API Inputs**
 ```sh
