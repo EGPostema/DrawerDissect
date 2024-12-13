@@ -22,20 +22,42 @@ Below, we list all steps used in the processing script, with the following infor
 - Prompts can be edited as-needed in `ocr_header.py`, `ocr_label.py`, and `ocr_validation.py`
 
 ### 1. Resize Drawer Images
-Test:
+
+**Description**
+Resizes full-size drawer images to create 1000px-wide versions ready for inference.
+
+**Command**
+
 ```sh
+# Test environment
 python test_process_images.py resize_drawers
-```
-Full:
-```sh
+
+# Full processing
 python process_images.py resize_drawers
 ```
+
+**Inputs**
+- Whole-size drawer images
+  - Location: drawers/fullsize/
+  - Format: JPG
+
+**Outputs**
+
+- Resized drawer images
+  - Location: drawers/resized/
+  - Format: JPG files
+  - Naming: drawer filename with '_1000' suffix
+  - Example: drawer1.jpg → drawer1_1000.jpg
+
+**Dependencies**
+- No prior steps required (this is typically the first step)
 
 ### 2. Calculate Pixel:MM Ratios
 Test:
 ```sh
 python test_process_images.py process_metadata
 ```
+
 Full:
 ```sh
 python process_images.py process_metadata
