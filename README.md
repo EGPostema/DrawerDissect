@@ -94,13 +94,20 @@ The script will:
 
 ## 📷 Processing Your Own Images
 
-<i>
-- Some short summary here, pay particular attention to how drawers/trays are set-up. 
-- Tray labels of some kind are important. 
-- Note possible performance differences depending on image quality, specimen size, and specimen type
-- All current models are trained mainly on mid/large Coleoptera
-</i>
+### Whole-Drawer Image Configuration
 
+**Field Museum Drawers**
+- FMNH drawers contain **unit trays**.
+- All specimens within a given unit tray have the same taxonomy, barcode, and broad geographic location (see examples below)
+- Tray-level info must be **top-down visible** for the script to locate and transcribe it properly.
+
+![34_5_7_tray_08](https://github.com/user-attachments/assets/66393033-3481-4a5a-ac9e-28565fd8b55d)![34_6_8_tray_03](https://github.com/user-attachments/assets/6ae70348-f612-48e2-bc27-1353f11941ec)
+
+**Recommendation for Other Users** 
+- At the VERY LEAST, drawers should have some way to **organize specimens into taxonomic units**.
+- Those taxonomic units should also be **labeled in a top-down visible way**.
+- Other organizational methods that may require different models / sets of models.
+  
 ### 1. Choose Your Model Approach
 
 You have three options for processing images:
