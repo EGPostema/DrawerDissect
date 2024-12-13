@@ -1,6 +1,6 @@
 ## ⚙️ Summary of Processing Steps
 
-Below, we list all steps used in the processing script, with additional helpful information and visuals.
+Below, we list all steps used in the processing script, with additional helpful inFiletypeion and visuals.
 
 ### Model Configuration Notes
 
@@ -34,15 +34,15 @@ python process_images.py resize_drawers
 **Inputs**
 - Whole-size drawer images
   - Location: drawers/fullsize/
-  - Format: JPG
+  - Filetype: JPG
+  - Format: [drawer_id].jpg
 
 **Outputs**
 
 - Resized drawer images
   - Location: drawers/resized/
-  - Format: JPG files
-  - Naming: drawer filename with '_1000' suffix
-  - Example: drawer1.jpg → drawer1_1000.jpg
+  - Filetype: JPG
+  - Format: [drawer_id]_1000.jpg
 
 **Dependencies**
 - No prior steps required (this is typically the first step)
@@ -50,7 +50,7 @@ python process_images.py resize_drawers
 ### 2. Calculate Size Ratios from Metadata
 **Description**
 
-Calculates pixel-to-millimeter conversion ratios from drawer metadata for accurate measurements.
+Calculates pixel-to-millimeter conversion ratios for each drawer.
 
 **Command**
 ```sh
@@ -62,17 +62,19 @@ python process_images.py process_metadata
 
 **Inputs**
 - Metadata text files
-  - Location: drawers/metadata/
-  - Format: TXT files with GIGAMacro system specifications
+  - Location: drawers/capture_metadata/
+  - Filetype: TXT
+  - Format: [drawer_id].txt
 - Original drawer images
   - Location: drawers/fullsize/
-  - Format: JPG
-
+  - Filetype: JPG
+  - Format: [drawer_id].jpg
+    
 **Outputs**
-- Measurement conversion data
-  - Location: drawers/data/drawer_measurements.csv
-  - Format: CSV with drawer dimensions and conversion ratios
-  - Fields: drawer_id, image dimensions (px/mm), px_mm_ratio
+- CSV files with px-to-mm ratios for each [drawer_id].jpg
+  - Location: drawers/fullsize/capture_metadata/sizeratios.csv
+  - Filetype: CSV
+  - Fields: [drawer_id], image dimensions (px/mm), px_mm_ratio
 
 **Dependencies**
 - No prior steps required
@@ -94,16 +96,17 @@ python process_images.py infer_drawers --drawer_confidence 50 --drawer_overlap 5
 **Inputs**
 - Resized drawer images
  - Location: drawers/resized/
- - Format: JPG files with '_1000' suffix
+ - Filetype: JPG
+ - Format: [drawer_id]_1000.jpg
 
 **Outputs**
 - Tray coordinate predictions
  - Location: drawers/drawer_predictions/
- - Format: JSON files with coordinate data
- - Fields: predictions, image info, time_taken
+ - Filetype: JSON
+ - Format: [drawer_id]_1000.json
 
 **Dependencies**
-- Resized Drawer Images (from Step 1)
+- Resized Drawer Images (Step 1)
 
 ### 4. Crop Trays from Drawers
 
@@ -122,19 +125,26 @@ python process_images.py crop_trays
 **Inputs**
 - Full-size drawer images
  - Location: drawers/fullsize/
- - Format: JPG
+ - Filetype: JPG
+- Resized drawer images
+ - Location: drawers/resized/
+ - Filetype: _1000.jpg
 - Tray coordinate predictions
- - Location: drawers/drawer_predictions/
- - Format: JSON files
+ - Location: drawers/resized/coordinates
+ - Filetype: JSON
+ - Format: [drawer_id]_1000.json
 
 **Outputs**
 - Individual tray images
  - Location: drawers/trays/[drawer_id]/
- - Format: JPG files
- - Naming: drawer_id_tray_##.jpg
+ - Filetype: JPG files
+ - Format: [drawer_id]_[tray_##].jpg
 
 **Dependencies**
+- Resized Drawer Images (Step 1)
 - Find Tray Coordinates (Step 3)
+
+❗❗❗❗❗❗❗❗❗ CHECK AND REVISE ALL STEPS STARTING HERE ❗❗❗❗❗❗❗❗❗ 
 
 ### 5. Resize Trays
 
@@ -153,22 +163,22 @@ python process_images.py resize_trays
 **Inputs**
 - Original tray images
  - Location: drawers/trays/[drawer_id]/
- - Format: JPG files
+ - Filetype: JPG files
 
 **Outputs**
 - Resized tray images
  - Location: drawers/trays_resized/[drawer_id]/
- - Format: JPG files
- - Naming: original filename with '_1000' suffix
+ - Filetype: JPG files
+ - Format: original filename with '_1000' suffix
 
 **Dependencies**
-- Crop Trays from Drawers (Step 4)
+- Cropped Trays (Step 4)
 
 ### 6. 🟣 Find Tray Label Coordinates
 
 **Description**
 
-Uses Roboflow object detection to locate barcodes, geocodes, and labels within tray images.
+Uses Roboflow object detection to locate barcodes, geocodes, and taxonomic text within tray images.
 
 **Command**
 ```sh
@@ -181,16 +191,17 @@ python process_images.py infer_labels --label_confidence 50 --label_overlap 50
 **Inputs**
 - Resized tray images
  - Location: drawers/trays_resized/[drawer_id]/
- - Format: JPG files with '_1000' suffix
+ - Filetype: JPG files with '_1000' suffix
 
 **Outputs**
 - Label coordinate predictions
  - Location: drawers/label_predictions/
- - Format: JSON files with '_label' suffix
- - Fields: predictions for barcode, geocode, label, qr classes
+ - Filetype: JSON files with '_label' suffix
+ - Classes: predictions for barcode, geocode, label, qr
 
 **Dependencies**
-- Resize Trays (Step 5)
+- Cropped Trays (Step 4)
+- Resized Trays (Step 5)
 
 ### 7. Crop Tray Label Components
 
@@ -209,16 +220,17 @@ python process_images.py crop_labels
 **Inputs**
 - Original tray images
  - Location: drawers/trays/[drawer_id]/
- - Format: JPG files
+ - Filetype: JPG
+ - 
 - Label coordinate predictions
  - Location: drawers/label_predictions/
- - Format: JSON files
+ - Filetype: JSON files
 
 **Outputs**
 - Cropped label components
- - Location: drawers/labels/[drawer_id]/[tray_num]/
- - Format: JPG files
- - Naming: [drawer_id]_tray_[##]_[component].jpg
+ - Location: drawers/labels/[drawer_id]/[tray_##]/
+ - Filetype: JPG files
+ - Format: [drawer_id]_tray_[##]_label.jpg
 
 **Dependencies**
 - Find Tray Label Coordinates (Step 6)
@@ -240,12 +252,12 @@ python process_images.py infer_trays --tray_confidence 50 --tray_overlap 50
 **Inputs**
 - Resized tray images
  - Location: drawers/trays_resized/[drawer_id]/
- - Format: JPG files with '_1000' suffix
+ - Filetype: JPG files with '_1000' suffix
 
 **Outputs**
 - Specimen coordinate predictions
  - Location: drawers/specimen_predictions/
- - Format: JSON files
+ - Filetype: JSON files
  - Fields: predictions for each specimen location
 
 **Dependencies**
@@ -268,16 +280,16 @@ python process_images.py crop_specimens
 **Inputs**
 - Original tray images
  - Location: drawers/trays/[drawer_id]/
- - Format: JPG files
+ - Filetype: JPG files
 - Specimen coordinate predictions
  - Location: drawers/specimen_predictions/
- - Format: JSON files
+ - Filetype: JSON files
 
 **Outputs**
 - Individual specimen images
- - Location: drawers/specimens/[drawer_id]/[tray_num]/
- - Format: JPG files
- - Naming: [drawer_id]_tray_[##]_spec_[###].jpg
+ - Location: drawers/specimens/[drawer_id]/[tray_##]/
+ - Filetype: JPG files
+ - Format: [drawer_id]_tray_[##]_spec_[###].jpg
 
 **Dependencies**
 - Find Specimen Coordinates (Step 8)
@@ -298,13 +310,13 @@ python process_images.py infer_beetles --beetle_confidence 50
 
 **Inputs**
 - Individual specimen images
- - Location: drawers/specimens/[drawer_id]/[tray_num]/
- - Format: JPG files
+ - Location: drawers/specimens/[drawer_id]/[tray_##]/
+ - Filetype: JPG files
 
 **Outputs**
 - Specimen segmentation predictions
- - Location: drawers/beetle_predictions/[drawer_id]/[tray_num]/
- - Format: JSON files
+ - Location: drawers/beetle_predictions/[drawer_id]/[tray_##]/
+ - Filetype: JSON files
  - Fields: segmentation mask coordinates
 
 **Dependencies**
@@ -327,14 +339,14 @@ python process_images.py create_masks
 
 **Inputs**
 - Specimen segmentation predictions
- - Location: drawers/beetle_predictions/[drawer_id]/[tray_num]/
- - Format: JSON files with segmentation coordinates
+ - Location: drawers/beetle_predictions/[drawer_id]/[tray_##]/
+ - Filetype: JSON files with segmentation coordinates
 
 **Outputs**
 - Binary masks
- - Location: drawers/masks/[drawer_id]/[tray_num]/
- - Format: PNG files (black and white)
- - Naming: Same as specimen filename with .png extension
+ - Location: drawers/masks/[drawer_id]/[tray_##]/
+ - Filetype: PNG files (black and white)
+ - Format: Same as specimen filename with .png extension
 
 **Dependencies**
 - Find Specimen Body Outlines (Step 10)
@@ -355,13 +367,13 @@ python process_images.py fix_mask
 
 **Inputs**
 - Binary masks
- - Location: drawers/masks/[drawer_id]/[tray_num]/
- - Format: PNG files
+ - Location: drawers/masks/[drawer_id]/[tray_##]/
+ - Filetype: PNG files
 
 **Outputs**
 - Fixed binary masks
  - Location: Same as input
- - Format: PNG files
+ - Filetype: PNG files
  - Modification: Only largest connected component retained
 
 **Dependencies**
@@ -383,20 +395,20 @@ python process_images.py process_and_measure_images
 
 **Inputs**
 - Binary masks
- - Location: drawers/masks/[drawer_id]/[tray_num]/
- - Format: PNG files
+ - Location: drawers/masks/[drawer_id]/[tray_##]/
+ - Filetype: PNG files
 - Drawer measurement data
  - Location: drawers/data/drawer_measurements.csv
- - Format: CSV with px_mm_ratio
+ - Filetype: CSV with px_mm_ratio
 
 **Outputs**
 - Measurement data
  - Location: drawers/data/measurements.csv
- - Format: CSV with length and area measurements
+ - Filetype: CSV with length and area measurements
  - Fields: specimen ID, dimensions in px and mm
 - Measurement visualizations
  - Location: drawers/measurements/visuals/
- - Format: PNG files showing contours and measurements
+ - Filetype: PNG files showing contours and measurements
 
 **Dependencies**
 - Fix Multi-Polygon Masks (Step 12)
@@ -418,20 +430,20 @@ python process_images.py censor_background
 
 **Inputs**
 - Individual specimen images 
- - Location: drawers/specimens/[drawer_id]/[tray_num]/
- - Format: JPG files
+ - Location: drawers/specimens/[drawer_id]/[tray_##]/
+ - Filetype: JPG files
 - Binary masks
- - Location: drawers/masks/[drawer_id]/[tray_num]/
- - Format: PNG files
+ - Location: drawers/masks/[drawer_id]/[tray_##]/
+ - Filetype: PNG files
 - Measurement data
  - Location: drawers/data/measurements.csv
- - Format: CSV with validation flags
+ - Filetype: CSV with validation flags
 
 **Outputs**
 - Masked specimens
- - Location: drawers/masked_specimens/[drawer_id]/[tray_num]/
- - Format: PNG files
- - Naming: Original filename with '_masked' suffix
+ - Location: drawers/masked_specimens/[drawer_id]/[tray_##]/
+ - Filetype: PNG files
+ - Format: Original filename with '_masked' suffix
 
 **Dependencies**
 - Measure Specimens (Step 13)
@@ -452,16 +464,16 @@ python process_images.py infer_pins
 
 **Inputs**
 - Masked specimens
- - Location: drawers/masked_specimens/[drawer_id]/[tray_num]/
- - Format: PNG files with '_masked' suffix
+ - Location: drawers/masked_specimens/[drawer_id]/[tray_##]/
+ - Filetype: PNG files with '_masked' suffix
 - Measurement data
  - Location: drawers/data/measurements.csv
- - Format: CSV with validation flags
+ - Filetype: CSV with validation flags
 
 **Outputs**
 - Pin segmentation predictions
- - Location: drawers/pin_predictions/[drawer_id]/[tray_num]/
- - Format: JSON files
+ - Location: drawers/pin_predictions/[drawer_id]/[tray_##]/
+ - Filetype: JSON files
  - Fields: pin segmentation coordinates
 
 **Dependencies**
@@ -483,17 +495,17 @@ python process_images.py create_pinmask
 
 **Inputs**
 - Masked specimens
- - Location: drawers/masked_specimens/[drawer_id]/[tray_num]/
- - Format: PNG files with '_masked' suffix
+ - Location: drawers/masked_specimens/[drawer_id]/[tray_##]/
+ - Filetype: PNG files with '_masked' suffix
 - Pin segmentation predictions
- - Location: drawers/pin_predictions/[drawer_id]/[tray_num]/
- - Format: JSON files
+ - Location: drawers/pin_predictions/[drawer_id]/[tray_##]/
+ - Filetype: JSON files
 
 **Outputs**
 - Final masks with pins
- - Location: drawers/final_masks/[drawer_id]/[tray_num]/
- - Format: PNG files
- - Naming: Original filename with '_fullmask' suffix
+ - Location: drawers/final_masks/[drawer_id]/[tray_##]/
+ - Filetype: PNG files
+ - Format: Original filename with '_fullmask' suffix
 
 **Dependencies**
 - Find Pin Outlines (Step 15)
@@ -514,17 +526,17 @@ python process_images.py create_transparency
 
 **Inputs**
 - Individual specimen images
- - Location: drawers/specimens/[drawer_id]/[tray_num]/
- - Format: JPG files
+ - Location: drawers/specimens/[drawer_id]/[tray_##]/
+ - Filetype: JPG files
 - Final masks with pins
- - Location: drawers/final_masks/[drawer_id]/[tray_num]/
- - Format: PNG files with '_fullmask' suffix
+ - Location: drawers/final_masks/[drawer_id]/[tray_##]/
+ - Filetype: PNG files with '_fullmask' suffix
 
 **Outputs**
 - Transparent specimens
- - Location: drawers/transparent/[drawer_id]/[tray_num]/
- - Format: PNG files
- - Naming: Original filename with '_finalmask' suffix
+ - Location: drawers/transparent/[drawer_id]/[tray_##]/
+ - Filetype: PNG files
+ - Format: Original filename with '_finalmask' suffix
 
 **Dependencies**
 - Create Pin-Censored Mask (Step 16)
@@ -533,7 +545,7 @@ python process_images.py create_transparency
 
 **Description**
 
-Uses Claude to transcribe text from specimen images and extract location information.
+Uses Claude to transcribe text from specimen images and extract location inFiletypeion.
 
 **Command**
 ```sh
@@ -545,13 +557,13 @@ python process_images.py transcribe_images
 
 **Inputs**
 - Individual specimen images
-  - Location: drawers/specimens/[drawer_id]/[tray_num]/
-  - Format: JPG files
+  - Location: drawers/specimens/[drawer_id]/[tray_##]/
+  - Filetype: JPG files
 
 **Outputs**
 - Label transcription data
   - Location: drawers/data/transcribed_labels.csv
-  - Format: CSV with transcription and location data
+  - Filetype: CSV with transcription and location data
   - Fields: filename, transcription, location, transcription metadata
 
 **Dependencies**
@@ -573,12 +585,12 @@ python process_images.py validate_transcription
 **Inputs**
 - Location transcription CSV file
   - Location: drawers/data/transcribed_locations.csv
-  - Format: CSV with filename, transcription, and location columns
+  - Filetype: CSV with filename, transcription, and location columns
 
 **Outputs**
 - Validated location data
   - Location: drawers/data/validated_locations.csv
-  - Format: CSV with validation results
+  - Filetype: CSV with validation results
   - Fields: filename, validation status, final location, confidence notes
 
 **Dependencies**
@@ -601,13 +613,13 @@ python process_images.py process_barcodes
 
 **Inputs**
 - Cropped barcode images
- - Location: drawers/labels/[drawer_id]/[tray_num]/
- - Format: JPG files with '_barcode' suffix
+ - Location: drawers/labels/[drawer_id]/[tray_##]/
+ - Filetype: JPG files with '_barcode' suffix
 
 **Outputs**
 - Barcode data
  - Location: drawers/data/tray_barcodes.csv
- - Format: CSV with barcode data
+ - Filetype: CSV with barcode data
  - Fields: tray_id, unit_barcode
 
 **Dependencies**
@@ -617,7 +629,7 @@ python process_images.py process_barcodes
 
 **Description**
 
-Uses Claude to extract taxonomic information from tray label images.
+Uses Claude to extract taxonomic inFiletypeion from tray label images.
 
 **Command**
 ```sh
@@ -629,13 +641,13 @@ python process_images.py transcribe_taxonomy
 
 **Inputs**
 - Cropped label images
- - Location: drawers/labels/[drawer_id]/[tray_num]/
- - Format: JPG files with '_label' suffix
+ - Location: drawers/labels/[drawer_id]/[tray_##]/
+ - Filetype: JPG files with '_label' suffix
 
 **Outputs**
 - Taxonomic data
  - Location: drawers/data/tray_taxonomy.csv
- - Format: CSV with taxonomic data
+ - Filetype: CSV with taxonomic data
  - Fields: tray_id, full_transcription, taxonomy, authority
 
 **Dependencies**
@@ -658,24 +670,24 @@ python process_images.py merge_data
 **Inputs**
 - Measurement data
  - Location: drawers/data/measurements.csv
- - Format: CSV with specimen measurements
+ - Filetype: CSV with specimen measurements
 - Location data
  - Location: drawers/data/validated_locations.csv
- - Format: CSV with validated locations
+ - Filetype: CSV with validated locations
 - Taxonomic data
  - Location: drawers/data/tray_taxonomy.csv
- - Format: CSV with taxonomic information
+ - Filetype: CSV with taxonomic inFiletypeion
 - Barcode data
  - Location: drawers/data/tray_barcodes.csv
- - Format: CSV with unit barcodes
+ - Filetype: CSV with unit barcodes
 - EMU geocodes
  - Location: drawers/data/emu_geocodes.csv
- - Format: CSV with institution geocodes
+ - Filetype: CSV with institution geocodes
 
 **Outputs**
 - Merged dataset
- - Location: drawers/data/merged_data_[timestamp].csv
- - Format: CSV with all combined data
+ - Location: drawers/data/merged_data_timestamp.csv
+ - Filetype: CSV with all combined data
  - Fields: specimen ID, measurements, taxonomy, location, validation flags
 
 **Dependencies**
