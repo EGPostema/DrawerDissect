@@ -492,7 +492,7 @@ Maybe you have a full set of **individual specimen photos** you want masked, mea
 To do this:
 
 1. Add all specimen images to `drawers/specimens`
-2. (Modify process_images.py with your API keys)[#2-choose-your-model-approach]
+2. [Modify process_images.py with your API keys](#2-choose-your-model-approach)
 3. Run the command below
    
 ```sh
