@@ -6,7 +6,7 @@
 
 <i>We created this tool to assist anyone that works with large volumes of preserved insects, particularly in Museums.</I>
 
-<u>It can extract:</u>
+<ins>It can extract:</ins>
 
 📷 Individual specimen photos
 
