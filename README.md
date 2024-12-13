@@ -98,10 +98,14 @@ The script will:
 
 **Field Museum Drawers**
 - FMNH drawers contain **unit trays**.
-- All specimens within a given unit tray have the same taxonomy, barcode, and broad geographic location (see examples below)
-- Tray-level info must be **top-down visible** for the script to locate and transcribe it properly.
+- All specimens within a given unit tray have the same:
+  - barcode (for databasing)
+  - taxonomic identity
+  - broad geographic location (3-letter code, e.g. NEA = nearctic)
+- Tray labels are **top-down visible** for proper detection / transcription.
 
 <div>
+  <img src ="https://github.com/user-attachments/assets/c2e59780-d261-437a-b582-e06b9bca4a78" width = "300">
   <img src="https://github.com/user-attachments/assets/66393033-3481-4a5a-ac9e-28565fd8b55d" width="300">
   <img src="https://github.com/user-attachments/assets/6ae70348-f612-48e2-bc27-1353f11941ec" width="300">
 </div>
