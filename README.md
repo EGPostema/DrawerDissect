@@ -100,7 +100,7 @@ The script will:
 
 **Field Museum Drawers**
 - FMNH drawers contain **unit trays**.
-- All specimens within a given unit tray have the same:
+- All specimens within a given unit tray have the same **barcode** and **taxonomic unit**.
 - Tray labels are **top-down visible** for proper detection / transcription.
 
 <div>
@@ -114,8 +114,8 @@ The script will:
 
 
 **Recommendation for Other Users** 
-- Ideally, drawers should have a **visually distinct** way of **organizing specimens into taxonomic units**.
-- Other organizational methods **may require one of these modified approaches:**
+- Ideally, drawers should have a **visually distinct** way of organizing specimens into **taxonomic units**.
+- Other organizational methods may require one of these modified approaches:
 
 #### I. If drawers have **unit trays with taxon labels**, but **no barcodes...**
 
