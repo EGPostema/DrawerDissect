@@ -1,6 +1,6 @@
 ## ⚙️ Summary of Processing Steps
 
-Below, we list all steps used in the processing script, with additional helpful inFiletypeion and visuals.
+Below, we list and describe all steps used in the processing script.
 
 ### Model Configuration Notes
 
