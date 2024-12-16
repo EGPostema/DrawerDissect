@@ -184,15 +184,7 @@ WORKSPACE = 'YOUR_WORKSPACE_HERE'
 You can run specific steps of the pipeline individually:
 
 ```bash
-python test_process_images.py step_1 step_2 step_3...
-```
-
-## 🛠 Calling Combinations of Steps
-
-You can call unique combinations of steps by simply adding steps to the basic processing command.
-
-```sh
-python test_process_images.py step_1 step_2 step_3...
+python test_process_images.py step_1
 ```
 
 **Steps Available:**
@@ -226,13 +218,11 @@ merge_data
 
 #### Example 1: Specimen-Only Pipeline
 
-You may have a full set of **individual specimen photos** you want masked, measured, and turned into transparent PNGs.
-
-To do this:
+If you have a set of **individual specimen photos** you want masked, measured, and turned into transparent PNGs:
 
 1. Add all specimen images to `drawers/specimens`
-2. [Modify process_images.py with your API keys](#2-choose-your-model-approach)
-3. Run the command below
+2. [Modify process_images.py with your API keys](#step-2-choose-your-model-approach)
+3. Run the command:
    
 ```sh
 python process_images.py infer_beetles create_masks fix_mask process_and_measure_images censor_background infer_pins create_pinmask create_transparency transcribe_images
@@ -240,13 +230,11 @@ python process_images.py infer_beetles create_masks fix_mask process_and_measure
 
 #### Example 2: No Label Reconstruction
 
-You may already have existing metadata for your specimens, making the label reconstruction step is unnecessary.
-
-To run the script without label reconstruction:
+If you have existing metadata for your specimens or simply don't want to reconstruct labels:
 
 1. Add your whole-drawer image(s) to `drawers/fullsize` as usual
-2. [Modify process_images.py with your API keys](#2-choose-your-model-approach)
-3. Run the command below
+2. [Modify process_images.py with your API keys](#step-2-choose-your-model-approach)
+3. Run the command:
 
 ```sh
 python process_images.py resize_drawers process_metadata infer_drawers crop_trays resize_trays infer_labels crop_labels infer_trays crop_specimens infer_beetles create_masks fix_mask process_and_measure_images censor_background infer_pins create_pinmask create_transparency process_barcodes transcribe_taxonomy
@@ -254,13 +242,11 @@ python process_images.py resize_drawers process_metadata infer_drawers crop_tray
 
 #### Example 3: No Unit Tray Labels
 
-If your unit trays do not have **visible labels**, you can run the script without label detection/transcription.
-
-To run the script on drawers without unit tray labels:
+If your unit trays do not have **visible labels**:
 
 1. Add your whole-drawer image(s) to `drawers/fullsize` as usual
-2. [Modify process_images.py with your API keys](#2-choose-your-model-approach)
-3. Run the command below
+2. [Modify process_images.py with your API keys](#step-2-choose-your-model-approach)
+3. Run the command:
 
 ```sh
 python process_images.py resize_drawers process_metadata infer_drawers crop_trays resize_trays infer_trays crop_specimens infer_beetles create_masks fix_mask process_and_measure_images censor_background infer_pins create_pinmask create_transparency
