@@ -119,9 +119,8 @@ This will:
    TRANSCRIBE_TAXONOMY = 'Y'
    ```
 
-  **Trays with <ins>no label</ins>:**
-
-  See [Example: No Unit Tray Labels](#3-example-no-unit-tray-labels)
+    **Trays with <ins>no label</ins>:**
+    See [Example: No Unit Tray Labels](#3-example-no-unit-tray-labels)
 
 
 ### Step 2. Choose Your Model Approach
