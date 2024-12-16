@@ -97,18 +97,17 @@ This will:
 
    **FMNH Example:** `row_cabinet_position` (e.g., `63_5_8.jpg`).
 
-2. **Adjust Unit Tray Settings (if needed):**
-  - Standard FMNH drawers contain **unit trays** with labels
-  - All specimens in a tray share a **barcode** and **taxonomic unit** (see below)
-
 <div>
   <img src="https://github.com/user-attachments/assets/66393033-3481-4a5a-ac9e-28565fd8b55d" width="300">
   <img src="https://github.com/user-attachments/assets/6ae70348-f612-48e2-bc27-1353f11941ec" width="300">
 </div>
 
-   If your drawer setup differs, open `process_images.py` and modify the transcription toggles:
+2. **Adjust Unit Tray Settings (if needed):**
+    - Standard FMNH drawers contain **unit trays** with labels (see above)
+    - All specimens in a tray share a **barcode** and **taxonomic unit**
+    - For different setups, adjust toggles:
 
-   **Trays with <ins>barcodes only</ins>:**
+   **For Trays with <ins>barcodes only</ins>:**
    ```python
    TRANSCRIBE_BARCODES = 'Y'
    TRANSCRIBE_TAXONOMY = 'N'
