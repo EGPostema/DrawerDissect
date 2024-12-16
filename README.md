@@ -144,16 +144,16 @@ You have three options for processing images:
 
 2. **Create Your Own Roboflow Models**
 
-[coming soon] Link to roboflow documentation. 
-- Make sure that key models are present (3 obj detection, 2 segmentation) + an OCR method.
-- Requires Roboflow & Anthropic APIs as-is
+    [coming soon] Link to roboflow documentation. 
+    - Make sure that key models are present (3 obj detection, 2 segmentation) + an OCR method.
+    - Requires Roboflow & Anthropic APIs as-is
 
 3. **Build Custom Models Using Our Training Data**
 
-[coming Soon] Access our training data and annotations through Google Drive to build your own models. 
-- Can also recommend other open-source methods for OCR
-- Note that processing script would have to be substantially modified
-- List specific function scripts that would also need to be modified
+    [coming Soon] Access our training data and annotations through Google Drive to build your own models. 
+    - Can also recommend other open-source methods for OCR
+    - Note that processing script would have to be substantially modified
+    - List specific function scripts that would also need to be modified
 
 ### Step 3. Run the Processing Script 
 
