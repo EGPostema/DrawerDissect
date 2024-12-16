@@ -33,6 +33,10 @@ ANTHROPIC_KEY = 'YOUR_API_HERE'
 API_KEY = 'YOUR_ROBOFLOW_API_HERE'
 WORKSPACE = 'YOUR_WORKSPACE_HERE'
 
+# Metadata toggle
+
+PROCESS_METADATA = 'N'  # Default is N; set to Y for FMNH users with Gigamacro TXT files
+
 # Transcription toggles
 TRANSCRIBE_BARCODES = 'Y'  # Default is Y; set to N if your drawer images DON'T have trays with barcoded labels
 TRANSCRIBE_TAXONOMY = 'Y'  # Default is Y; set to N if your drawer images DON'T have trays seperated by taxon
@@ -97,12 +101,15 @@ def run_step(step, directories, args):
         print(f"Resized drawers saved in {directories['resized']}")
 
     elif step == 'process_metadata':
-        metadata_dir = directories['metadata']
-        image_dir = directories['fullsize']
-        output_file = os.path.join(metadata_dir, 'sizeratios.csv')
-    
-        process_files(metadata_dir, image_dir, output_file)
-        print(f"Metadata processed and results saved in {output_file}")
+        if PROCESS_METADATA == 'Y':
+            metadata_dir = directories['metadata']
+            image_dir = directories['fullsize']
+            output_file = os.path.join(metadata_dir, 'sizeratios.csv')
+        
+            process_files(metadata_dir, image_dir, output_file)
+            print(f"Metadata processed and results saved in {output_file}")
+        else:
+            print("Skipping metadata processing")
 
     elif step == 'infer_drawers':
         infer_drawers(
@@ -195,10 +202,15 @@ def run_step(step, directories, args):
         print(f"Mask with duplicate polygons fixed and re-saved to {directories['mask_png']}")
 
     elif step == 'process_and_measure_images':
+        sizeratios_path = os.path.join(directories['metadata'], 'sizeratios.csv')
+        
+        # If PROCESS_METADATA is 'N', pass None instead of the sizeratios.csv path
+        metadata_file = sizeratios_path if PROCESS_METADATA == 'Y' else None
+        
         generate_csv_with_visuals_and_measurements(
-            directories['specimens'], 
-            directories['mask_png'], 
-            os.path.join(directories['metadata'], 'sizeratios.csv'), 
+            directories['specimens'],
+            directories['mask_png'],
+            metadata_file,
             directories['measurements']
         )
         print(f"Measurements and visuals saved in {directories['measurements']}")
