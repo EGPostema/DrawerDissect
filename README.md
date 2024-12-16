@@ -164,11 +164,11 @@ You have three options for processing images:
    - Generate specimen images, masks, and data
 
   ❗ **Script not working? Check that you have...**
-  [x] Cloned the repository
-  [x] Created a virtual environment with the required packages
-  [x] Navigated to the `DrawerDissect` directory
-  [x] Decided on a model approach 
-  [x] Modified `process_images.py` accordingly
+    [x] Cloned the repository
+    [x] Created a virtual environment with the required packages
+    [x] Navigated to the `DrawerDissect` directory
+    [x] Decided on a model approach 
+    [x] Modified `process_images.py` accordingly
 
 ---
 
