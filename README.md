@@ -27,9 +27,8 @@ This tool is ideal for those handling large volumes of preserved insects, partic
 - [Anthropic](https://console.anthropic.com) account
   
 ### Options for Models
-- [Public FMNH Roboflow Models](#public-fmnh-roboflow-models) ⚠️ DEFAULT
-- [Create Your Own Roboflow Models](#create-your-own-roboflow-models)
-- [DIY Models with Our Training Data](#diy-models-with-our-training-data)
+
+See [all options here.](#step-2-choose-your-model-approach)
 
 ### Installation
 
