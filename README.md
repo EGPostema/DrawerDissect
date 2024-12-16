@@ -1,24 +1,22 @@
-# Introduction to DrawerDissect  :beetle: :scissors: 
+# DrawerDissect :beetle: :scissors:
 
-## 📖 Overview  
+**DrawerDissect** is an AI-driven pipeline that automates the processing of whole-drawer images of insect specimens. It extracts individual specimen photos, measures specimen size, retrieves taxonomic information, and creates "masked" specimens for downstream analysis.
 
-**DrawerDissect is an AI-driven pipeline that automatically processes whole-drawer images of insect specimens.**
+---
 
-<i>This tool is for anyone who works with large volumes of preserved insects, particularly in Museums.</I>
+## 📖 Overview
 
-<ins>It can extract:</ins>
+This tool is ideal for those handling large volumes of preserved insects, particularly in museums. DrawerDissect provides:
 
-📷 Individual specimen photos
+- 📷 Individual specimen photos
+- 📏 Specimen size data
+- 🐞 Taxonomic information
+- 🌈 Masked specimens (ImageJ compatible)
+- 🌎 Broad geolocation + specimen-level location (when visible)
 
-📏 Specimen size data
+<img width="1451" alt="Pipeline Overview" src="https://github.com/user-attachments/assets/385ecb70-589a-4903-9027-ae876ca2decf" />
 
-:beetle: Taxonomic information
-
-🌈 "Masked" specimens for downstream analysis (ImageJ compatable)
-
-🌎 Broad geolocation + reconstructed specimen-level location (when visible)
-
-<img width="1451" alt="DrawerDissect Pipeline Overview" src="https://github.com/user-attachments/assets/385ecb70-589a-4903-9027-ae876ca2decf" />
+---
 
 ## 🚀 Quick Start Guide
 
@@ -35,122 +33,100 @@
 
 ### Installation
 
-1. Create and activate a virtual environment:
-```sh
-python3 -m venv drawerdissect
-source drawerdissect/bin/activate
-```
+1. **Set up a virtual environment:**
+   ```bash
+   python3 -m venv drawerdissect
+   source drawerdissect/bin/activate
+   ```
 
-2. Install required packages:
-```sh
-pip install pandas numpy Pillow opencv-python matplotlib roboflow anthropic aiofiles
-```
+2. **Install required packages:**
+   ```bash
+   pip install pandas numpy Pillow opencv-python matplotlib roboflow anthropic aiofiles
+   ```
 
-3. Clone the repository:
-```sh
-git clone https://github.com/EGPostema/DrawerDissect.git
-cd DrawerDissect
-```
+3. **Clone the repository:**
+   ```bash
+   git clone https://github.com/EGPostema/DrawerDissect.git
+   cd DrawerDissect
+   ```
 
-## 🧪 Processing Our Test Image
+---
 
-### 1. Download Test Image
+## 🧪 Processing Test Images
 
-- [Download our test image](https://drive.google.com/drive/folders/1NHV9MSR-sjmAW43KlyPfSB9Xr5ZTvJFt?usp=drive_link)
+### Step 1: Download the Test Image
+- [Download test image](https://drive.google.com/drive/folders/1NHV9MSR-sjmAW43KlyPfSB9Xr5ZTvJFt?usp=drive_link)
 - Place it in `DrawerDissect/test/drawers/fullsize`
-- Note: The image is LARGE (1.3GB) and may take some time to download
+  
+**Note:** The test image is large and may take some time to download.
 
-### 2. Configure API Keys
-Navigate to the test directory:
+### Step 2: Configure API Keys
 
-```sh
-cd test
+Edit `test_process_images.py` and replace placeholders with your API keys:
+
+```python
+ANTHROPIC_KEY = 'YOUR_API_HERE'
+API_KEY = 'YOUR_ROBOFLOW_API_HERE'
 ```
 
-Open `test_process_images.py` and add your API keys:
+- [Get Roboflow API key](https://docs.roboflow.com/api-reference/authentication)
+- [Get Anthropic API key](https://docs.anthropic.com/en/api/getting-started)
 
-```sh
-ANTHROPIC_KEY = 'YOUR_API_HERE' # replace with your API
-API_KEY = 'YOUR_ROBOFLOW_API_HERE' # replace with your API
-```
+### Step 3: Run the Test Script
 
-[How to find your Roboflow API key](https://docs.roboflow.com/api-reference/authentication)
+Execute the script:
 
-[How to find your Anthropic API key](https://docs.anthropic.com/en/api/getting-started)
-
-### 3. Run the Full Test Script
-```sh
+```bash
 python test_process_images.py
 ```
 
-The script will:
-- Process all unprocessed images in the `fullsize` folder
-- Create organized output directories
-- Generate individual specimen images, masks, transparencies, and data
+This will:
+- Process the image in `fullsize`
+- Generate output directories
+- Create specimen images, masks, and data
 
-[How to call individual steps](#-calling-individual-steps)
+---
 
-[Calling combinations of steps](#-calling-combinations-of-steps)
+## 📷 Processing Your Images
 
-[Expected outputs](#-summary-and-outputs)
+### Step 1: Image Preparation
 
-## 📷 Processing Your Own Images
+1. **Organize images:**
+   - Place drawer images in the `fullsize` folder.
+   - Use `.jpg` format with a consistent naming convention.
 
-### 1. Whole-Drawer Image Configuration
+   **FMNH Example:** `row_cabinet_position` (e.g., `63_5_8.jpg`).
 
-**Field Museum Drawers**
-- FMNH drawers contain **unit trays**.
-- All specimens within a given unit tray have the same **barcode** and **taxonomic unit**.
-- Tray labels are **top-down visible** for proper detection / transcription.
+2. **Adjust Unit Tray Settings (if needed):**
 
+  Standard FMNH drawers contain **unit trays** with labels
+  - All specimens in a tray share a **barcode** and **taxonomic unit** (see examples below)
 
 <div>
   <img src="https://github.com/user-attachments/assets/66393033-3481-4a5a-ac9e-28565fd8b55d" width="300">
   <img src="https://github.com/user-attachments/assets/6ae70348-f612-48e2-bc27-1353f11941ec" width="300">
 </div>
 
+   If your drawer setup differs, open `process_images.py` and modify the transcription toggles:
 
-**Recommendation for Other Users** 
-- Ideally, drawers should have a **visually distinct** way of organizing specimens into **taxonomic units**.
-- Other organizational methods may require one of these modified approaches:
+   **Trays with <ins>barcodes only</ins>:**
+   ```python
+   TRANSCRIBE_BARCODES = 'Y'
+   TRANSCRIBE_TAXONOMY = 'N'
+   ```
 
-#### I. If drawers have **unit trays with taxon labels**, but **no barcodes...**
+   **Trays with <ins>taxonomy only</ins>:**
+   ```python
+   TRANSCRIBE_BARCODES = 'N'
+   TRANSCRIBE_TAXONOMY = 'Y'
+   ```
 
-- Open process_images.py
-- Adjust the Transcription Toggles:
+  **Trays with <ins>no label</ins>:**
 
-```sh
-# Copy and paste these transcription settings!
+  See [Example: No Unit Tray Labels](#3-example-no-unit-tray-labels)
 
-TRANSCRIBE_BARCODES = 'N'  
-TRANSCRIBE_TAXONOMY = 'Y'  
-```
 
-Proceed to [Step 2, Choose Your Model Approach](#2-choose-your-model-approach)
-
-#### II. If drawers have **unit trays with barcoded labels**, but **no taxonomic information...**
-
-- Open process_images.py
-- Adjust the Transcription Toggles:
-
-```sh
-# Copy and paste these transcription settings!
-
-TRANSCRIBE_BARCODES = 'Y'  
-TRANSCRIBE_TAXONOMY = 'N'  
-```
-
-Proceed to [Step 2, Choose Your Model Approach](#2-choose-your-model-approach)
-
-#### III. If drawers have **unit trays** but **no labels...**
-
-See [Example: No Unit Tray Labels](#3-example-no-unit-tray-labels)
-
-#### IV. If drawers have **no unit trays or subdivisions of any kind...**
-
-[coming soon - use modified version of beetlefinder & script that looks at whole images?]
-  
-### 2. Choose Your Model Approach
+### Step 2. Choose Your Model Approach
 
 You have three options for processing images:
 
@@ -182,52 +158,34 @@ WORKSPACE = 'YOUR_WORKSPACE_HERE'
 - Note that processing script would have to be substantially modified
 - List specific function scripts that would also need to be modified
 
-### 2. Prepare Your Images
+### Step 3. Run the Processing Script 
 
-- Place all whole-drawer images in the `fullsize` folder
-- Use .jpg format (though code could be modified to accept other formats)
-- Use a consistent naming convention!
+   ```bash
+   python process_images.py
+   ```
 
-**Example Naming Convention:**
+   The script will:
+   - Process images in `fullsize`
+   - Create organized output directories
+   - Generate specimen images, masks, and data
 
-At FMNH, we use: `[row]_[cabinet]_[position]` (e.g., "63_5_8" for row 63, cabinet 5, position 8)
+  **Script not working? Check that you have...**
+  - Cloned the repository
+  - Created a virtual environment with the required packages
+  - Navigated to the `DrawerDissect` directory
+  - Decided on a model approach & modified `process_images.py` accordingly
 
-The script organizes outputs based on your image names:
-- For a drawer image named `DRAWERID.jpg`:
-  - Tray images: `DRAWERID_tray_01.jpg`...
-    - Specimens: `DRAWERID_tray_01_spec_001.jpg`...
+---
 
-### 3. Run the Processing Script 
+## 🔧 Advanced Options
 
-⚠️ **Before running the script, make sure that you have:** ⚠️
-- Cloned the repository
-- Created a virtual environment with the required packages
-- Navigated to the `DrawerDissect` directory
-- Decided on a model approach
-- Modified `process_images.py` according to your approach
+### Calling Individual Steps
 
-**Run the Command**
+You can run specific steps of the pipeline individually:
 
-```sh
-python process_images.py
+```bash
+python test_process_images.py step_1 step_2 step_3...
 ```
-
-The script will:
-- Process all unprocessed images in the `fullsize` folder
-- Create organized output directories
-- Generate individual specimen images, masks, transparencies, and data
-
-[How to call individual steps](#-calling-individual-steps)
-
-[Calling combinations of steps](#-calling-combinations-of-steps)
-
-[Expected outputs](#-summary-and-outputs)
-
-## 🔧 Calling Individual Steps
-
-Each step can be run individually using either the test script or the full processing script. 
-
-**[For a detailed summary of EACH STEP and how to call them, click here!](https://github.com/EGPostema/DrawerDissect/blob/main/functions/functions_README.md)**
 
 ## 🛠 Calling Combinations of Steps
 
@@ -237,7 +195,7 @@ You can call unique combinations of steps by simply adding steps to the basic pr
 python test_process_images.py step_1 step_2 step_3...
 ```
 
-Pick steps from this list:
+**Steps Available:**
 
 ```sh
 resize_drawers
@@ -264,9 +222,9 @@ transcribe_taxonomy
 merge_data
 ```
 
-⚠️ **NOTE**: Many steps hinge on the output of previous steps. Make sure you know the [required inputs/outputs to combine them properly.](https://github.com/EGPostema/DrawerDissect/blob/main/functions/functions_README.md)
+### Custom Pipelines
 
-### 1. Example: Specimen-Only Pipeline
+#### Example 1: Specimen-Only Pipeline
 
 You may have a full set of **individual specimen photos** you want masked, measured, and turned into transparent PNGs.
 
@@ -280,7 +238,7 @@ To do this:
 python process_images.py infer_beetles create_masks fix_mask process_and_measure_images censor_background infer_pins create_pinmask create_transparency transcribe_images
 ```
 
-### 2. Example: No Label Reconstruction
+#### Example 2: No Label Reconstruction
 
 You may already have existing metadata for your specimens, making the label reconstruction step is unnecessary.
 
@@ -294,7 +252,7 @@ To run the script without label reconstruction:
 python process_images.py resize_drawers process_metadata infer_drawers crop_trays resize_trays infer_labels crop_labels infer_trays crop_specimens infer_beetles create_masks fix_mask process_and_measure_images censor_background infer_pins create_pinmask create_transparency process_barcodes transcribe_taxonomy
 ```
 
-### 3. Example: No Unit Tray Labels
+#### Example 3: No Unit Tray Labels
 
 If your unit trays do not have **visible labels**, you can run the script without label detection/transcription.
 
@@ -308,10 +266,9 @@ To run the script on drawers without unit tray labels:
 python process_images.py resize_drawers process_metadata infer_drawers crop_trays resize_trays infer_trays crop_specimens infer_beetles create_masks fix_mask process_and_measure_images censor_background infer_pins create_pinmask create_transparency
 ```
 
-## 📝 Summary and Outputs
+---
 
-[Coming Soon]
+## 📋 Outputs and Tips
 
-## ❗ Tips & Troubleshooting
-
-[Coming Soon]
+- Outputs are saved in structured directories based on image names.
+- Consult [functions_README.md](https://github.com/EGPostema/DrawerDissect/blob/main/functions/functions_README.md) for a detailed guide to pipeline steps.
