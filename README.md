@@ -309,4 +309,4 @@ python process_images.py
 ## 📋 Outputs and Tips
 
 - Outputs are saved in structured directories based on image names.
-- Consult [the list of functions](https://github.com/EGPostema/DrawerDissect/blob/main/functions/functions_README.md](https://github.com/EGPostema/DrawerDissect/blob/main/functions/all_function_descriptions.md) for a detailed guide to all pipeline steps.
+- Consult [the list of functions](https://github.com/EGPostema/DrawerDissect/blob/main/functions/all_function_descriptions.md) for a detailed guide to all pipeline steps.
