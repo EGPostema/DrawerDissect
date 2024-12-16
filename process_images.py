@@ -34,7 +34,6 @@ API_KEY = 'YOUR_ROBOFLOW_API_HERE'
 WORKSPACE = 'YOUR_WORKSPACE_HERE'
 
 # Metadata toggle
-
 PROCESS_METADATA = 'N'  # Default is N; set to Y for FMNH users with Gigamacro TXT files
 
 # Transcription toggles
