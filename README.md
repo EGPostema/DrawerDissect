@@ -103,14 +103,11 @@ The script will:
 - All specimens within a given unit tray have the same **barcode** and **taxonomic unit**.
 - Tray labels are **top-down visible** for proper detection / transcription.
 
+
 <div>
   <img src="https://github.com/user-attachments/assets/66393033-3481-4a5a-ac9e-28565fd8b55d" width="300">
   <img src="https://github.com/user-attachments/assets/6ae70348-f612-48e2-bc27-1353f11941ec" width="300">
 </div>
-
-**FMNH Unit Tray Label Components**
-
-<img width="300" src="https://github.com/user-attachments/assets/71cc48a2-ed38-41a8-b39f-2c488ad02112" />
 
 
 **Recommendation for Other Users** 
