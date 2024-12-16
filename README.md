@@ -129,7 +129,7 @@ TRANSCRIBE_BARCODES = 'N'
 TRANSCRIBE_TAXONOMY = 'Y'  
 ```
 
-Proceed to [Step 2, Choose Your Model Approach](#-2-choose-your-model-approach)
+Proceed to [Step 2, Choose Your Model Approach](#2-choose-your-model-approach)
 
 #### II. If drawers have **unit trays with barcoded labels**, but **no taxonomic information...**
 
@@ -143,7 +143,7 @@ TRANSCRIBE_BARCODES = 'Y'
 TRANSCRIBE_TAXONOMY = 'N'  
 ```
 
-Proceed to [Step 2, Choose Your Model Approach](#-2-choose-your-model-approach)
+Proceed to [Step 2, Choose Your Model Approach](#2-choose-your-model-approach)
 
 #### III. If drawers have **unit trays** but **no labels...**
 
