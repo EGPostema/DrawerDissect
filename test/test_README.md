@@ -18,7 +18,7 @@ Same instructions as in main folder
 
 specifically test/drawers/fullsize
 
-## 4. Add Roboflow API Key
+## 4. Add API Keys
 
 Show screenshot here, the rest of the script will be filled out entirely
 
@@ -26,6 +26,6 @@ Show screenshot here, the rest of the script will be filled out entirely
 
 Same instructions as in main folder, but with test_process_images.py
 
-## 6. Run OCR
+# Advanced Options
 
-Same instructions as in main folder, but with test_drawerOCR.py
+[coming soon]
