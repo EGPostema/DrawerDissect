@@ -101,9 +101,6 @@ The script will:
 **Field Museum Drawers**
 - FMNH drawers contain **unit trays**.
 - All specimens within a given unit tray have the same:
-  - taxonomic identity
-  - barcode (QR + 5-digit number for databasing)
-  - broad geographic location (3-letter code, e.g. NEA = nearctic)
 - Tray labels are **top-down visible** for proper detection / transcription.
 
 <div>
@@ -111,9 +108,10 @@ The script will:
   <img src="https://github.com/user-attachments/assets/6ae70348-f612-48e2-bc27-1353f11941ec" width="300">
 </div>
 
-**What the Label Detection Model Looks For:**
+**FMNH Unit Tray Label Components**
 
 <img width="300" src="https://github.com/user-attachments/assets/71cc48a2-ed38-41a8-b39f-2c488ad02112" />
+
 
 **Recommendation for Other Users** 
 - Ideally, drawers should have a **visually distinct** way of **organizing specimens into taxonomic units**.
