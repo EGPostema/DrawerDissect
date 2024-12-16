@@ -111,11 +111,49 @@ The script will:
   <img src="https://github.com/user-attachments/assets/6ae70348-f612-48e2-bc27-1353f11941ec" width="300">
 </div>
 
+**What the Label Detection Model Looks For:**
+
+<img width="300" src="https://github.com/user-attachments/assets/71cc48a2-ed38-41a8-b39f-2c488ad02112" />
 
 **Recommendation for Other Users** 
-- Drawers should have some **visually distinct** way of **organizing specimens into taxonomic units**.
-- Other organizational methods ***may require different models.***
-- Drawers with non-organized specimens should **skip all tray-related steps** in the pipeline.
+- Ideally, drawers should have a **visually distinct** way of **organizing specimens into taxonomic units**.
+- Other organizational methods **may require one of these modified approaches:**
+
+I. If drawers have **unit trays with taxon labels**, but **no barcodes...**
+
+- Open process_images.py
+- Adjust the Transcription Toggles:
+
+```sh
+# Copy and paste these transcription settings!
+
+TRANSCRIBE_BARCODES = 'N'  
+TRANSCRIBE_TAXONOMY = 'Y'  
+```
+
+Proceed to [Step 2, Choose Your Model Approach](#-2-choose-your-model-approach)
+
+II. If drawers have **unit trays with barcoded labels**, but **no taxonomic information...**
+
+- Open process_images.py
+- Adjust the Transcription Toggles:
+
+```sh
+# Copy and paste these transcription settings!
+
+TRANSCRIBE_BARCODES = 'Y'  
+TRANSCRIBE_TAXONOMY = 'N'  
+```
+
+Proceed to [Step 2, Choose Your Model Approach](#-2-choose-your-model-approach)
+
+III. If drawers have **unit trays** but **no labels...**
+
+See example 3
+
+IV. If drawers have **no unit trays or subdivisions of any kind...**
+
+[coming soon - use modified version of beetlefinder & script that looks at whole images?]
   
 ### 2. Choose Your Model Approach
 
@@ -135,14 +173,6 @@ The simplest approach - just add your API keys & our pre-trained models!
 ANTHROPIC_KEY = 'YOUR_API_HERE'
 API_KEY = 'YOUR_ROBOFLOW_API_HERE'
 WORKSPACE = 'YOUR_WORKSPACE_HERE'
-```
-
-**Tray Label Transcipriton Toggles**
-```sh
-# Transcription toggles, adjust to your drawer configuration
-
-TRANSCRIBE_BARCODES = 'Y'  # Default is Y; set to N if your drawer images DON'T have trays with barcoded labels
-TRANSCRIBE_TAXONOMY = 'Y'  # Default is Y; set to N if your drawer images DON'T have trays seperated by taxon
 ```
 
 **Use Our Model Inputs**
@@ -254,9 +284,9 @@ merge_data
 
 ⚠️ **NOTE**: Many steps hinge on the output of previous steps. Make sure you know the [required inputs/outputs to combine them properly.](https://github.com/EGPostema/DrawerDissect/blob/main/functions/functions_README.md)
 
-### 1. Example: Specimens-only Pipeline
+### 1. Example: Specimen-Only Pipeline
 
-Maybe you have a full set of **individual specimen photos** you want masked, measured, and turned into transparent PNGs.
+You may have a full set of **individual specimen photos** you want masked, measured, and turned into transparent PNGs.
 
 To do this:
 
@@ -270,7 +300,7 @@ python process_images.py infer_beetles create_masks fix_mask process_and_measure
 
 ### 2. Example: No Label Reconstruction
 
-In this case, you might already have existing metadata for your specimens, so the label reconstruction step is unnecessary.
+You may already have existing metadata for your specimens, making the label reconstruction step is unnecessary.
 
 To run the script without label reconstruction:
 
@@ -279,7 +309,21 @@ To run the script without label reconstruction:
 3. Run the command below
 
 ```sh
-python process_images.py resize_drawers process_metadata infer_drawers crop_trays resize_trays infer_labels crop_labels infer_trays crop_specimens infer_beetles create_masks fix_mask process_and_measure_images censor_background infer_pins create_pinmask create_transparency process_barcodes transcribe_taxonomy merge_data
+python process_images.py resize_drawers process_metadata infer_drawers crop_trays resize_trays infer_labels crop_labels infer_trays crop_specimens infer_beetles create_masks fix_mask process_and_measure_images censor_background infer_pins create_pinmask create_transparency process_barcodes transcribe_taxonomy
+```
+
+### 3. Example: No Unit Tray Labels
+
+If your unit trays do not have **visible labels**, you can run the script without label detection/transcription.
+
+To run the script on drawers without unit tray labels:
+
+1. Add your whole-drawer image(s) to `drawers/fullsize` as usual
+2. [Modify process_images.py with your API keys](#2-choose-your-model-approach)
+3. Run the command below
+
+```sh
+python process_images.py resize_drawers process_metadata infer_drawers crop_trays resize_trays infer_trays crop_specimens infer_beetles create_masks fix_mask process_and_measure_images censor_background infer_pins create_pinmask create_transparency
 ```
 
 ## 📝 Summary and Outputs
