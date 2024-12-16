@@ -41,17 +41,18 @@ TRANSCRIBE_TAXONOMY = 'Y'  # Default is Y; set to N if your drawer images DON'T 
 rf = roboflow.Roboflow(api_key=API_KEY)
 workspace = rf.workspace(WORKSPACE)
 
-# User inputs for roboflow models **MAKE SURE TO MODIFY THESE!**
-DRAWER_MODEL_ENDPOINT = '{model_name}'
-DRAWER_MODEL_VERSION = 1  # Adjust the version as needed!
-TRAY_MODEL_ENDPOINT = '{model_name}'
-TRAY_MODEL_VERSION = 1  # Adjust the version as needed
-LABEL_MODEL_ENDPOINT = '{model_name}'
-LABEL_MODEL_VERSION = 1  # Adjust the version as needed!
-MASK_MODEL_ENDPOINT = '{model_name}'
-MASK_MODEL_VERSION = 1  # Adjust the version as needed!
-PIN_MODEL_ENDPOINT = '{model_name}'
-PIN_MODEL_VERSION = 1  # Adjust the version as needed!
+# Default FMNH roboflow models, up-to-date as of Dec-16-2024
+## All model names and versions adjustable
+DRAWER_MODEL_ENDPOINT = 'trayfinder'
+DRAWER_MODEL_VERSION = 8 
+TRAY_MODEL_ENDPOINT = 'beetlefinder'
+TRAY_MODEL_VERSION = 8
+LABEL_MODEL_ENDPOINT = 'labelfinder'
+LABEL_MODEL_VERSION = 4
+MASK_MODEL_ENDPOINT = 'bugmasker-base'
+MASK_MODEL_VERSION = 1
+PIN_MODEL_ENDPOINT = 'pinmasker'
+PIN_MODEL_VERSION = 5
 
 # Define directories
 directories = {
