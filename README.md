@@ -6,7 +6,7 @@
 
 ## 📖 Overview
 
-This tool is ideal for those handling large volumes of preserved insects, particularly in museums. DrawerDissect provides:
+This tool is ideal for those handling large volumes of preserved insects, particularly in museums. DrawerDissect extracts:
 
 - 📷 Individual specimen photos
 - 📏 Specimen size data
