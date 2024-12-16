@@ -129,10 +129,10 @@ You have three options for processing images:
 
 1. **Use Public FMNH Roboflow Models** ⚠️ DEFAULT
 
-RECOMMENDED - just add your API keys!
-- Requires Roboflow & Anthropic APIs
-- Model names/versions are pre-filled
-- Modify these parts of `process_images.py`:
+  Just add your API keys!
+  - Requires Roboflow & Anthropic APIs
+  - Model names/versions are pre-filled
+  - Modify these parts of `process_images.py`:
 
   **API Inputs**
   ```sh
