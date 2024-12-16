@@ -97,13 +97,9 @@ This will:
 
    **FMNH Example:** `row_cabinet_position` (e.g., `63_5_8.jpg`).
 
-2. **Capture Metadata (FMNH ONLY)**
-    - Place metadata .txt files in the `fullsize/metadata_capture` folder.
-    - NEED TO FIGURE THIS OUT FOR NON-FMNH USERS; toggle??
-
 <img width="800" alt="Screenshot 2024-12-16 at 3 44 59 PM" src="https://github.com/user-attachments/assets/387e6413-375f-401a-a258-ffb46f6286e4" />
 
-3. **Adjust Unit Tray Settings (if needed):**
+2. **Adjust Unit Tray Settings (if needed):**
     - Standard FMNH drawers contain **unit trays** with labels (see above)
     - All specimens in a tray share a **barcode**, **qr code**, **geocode**, and **taxonomic unit**
     - By default DrawerDissect crops and transcribes **barcode** and **taxonomy**
@@ -249,6 +245,24 @@ If your unit trays do not have **visible labels**:
 
 ```sh
 python process_images.py resize_drawers process_metadata infer_drawers crop_trays resize_trays infer_trays crop_specimens infer_beetles create_masks fix_mask process_and_measure_images censor_background infer_pins create_pinmask create_transparency
+```
+
+#### Example 4: FMNH Only - Get Pixel:MM Ratios from GIGAMacro Metadata
+
+If you are capturing whole drawers with a GIGAMacro Magnify2 system:
+
+1. Add your whole-drawer image(s) to `drawers/fullsize` as usual
+2. Add matching metadata TXT files to `drawers/fullsize/capture_metadata`
+3. [Modify process_images.py with your API keys](#step-2-choose-your-model-approach)
+4. Set metadata toggle to 'Y'
+
+```sh
+# Metadata toggle (Default is N; set to Y for FMNH users with Gigamacro TXT files)
+PROCESS_METADATA = 'Y'
+```
+5. Run the command:
+```sh
+python process_images.py
 ```
 
 ---
