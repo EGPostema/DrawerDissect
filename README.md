@@ -97,10 +97,7 @@ This will:
 
    **FMNH Example:** `row_cabinet_position` (e.g., `63_5_8.jpg`).
 
-<div>
-  <img src="https://github.com/user-attachments/assets/66393033-3481-4a5a-ac9e-28565fd8b55d" width="300">
-  <img src="https://github.com/user-attachments/assets/6ae70348-f612-48e2-bc27-1353f11941ec" width="300">
-</div>
+<img width="1000" alt="Screenshot 2024-12-16 at 3 44 59 PM" src="https://github.com/user-attachments/assets/387e6413-375f-401a-a258-ffb46f6286e4" />
 
 2. **Adjust Unit Tray Settings (if needed):**
     - Standard FMNH drawers contain **unit trays** with labels (see above)
