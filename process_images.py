@@ -75,7 +75,6 @@ directories = {
     'transparencies': 'drawers/transparencies',
     'specimen_level': 'drawers/transcriptions/specimen_labels',
     'tray_level': 'drawers/transcriptions/tray_labels',
-    'data': 'drawers/data'
 }
 
 # Create directories if not already there!
