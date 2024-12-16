@@ -127,30 +127,31 @@ This will:
 
 You have three options for processing images:
 
-#### I. Use Public FMNH Roboflow Models (⚠️ DEFAULT)
+1. **Use Public FMNH Roboflow Models** ⚠️ DEFAULT
 
-The simplest approach - just add your API keys!
+RECOMMENDED - just add your API keys!
 - Requires Roboflow & Anthropic APIs
-- Model names and versions are pre-filled by defaults
+- Model names/versions are pre-filled
 - Modify these parts of `process_images.py`:
 
-**API Inputs**
-```sh
-# Replace YOUR_API_HERE, YOUR_ROBOFLOW_API_HERE, and YOUR_WORKSPACE_HERE!
+  **API Inputs**
+  ```sh
+  # Replace YOUR_API_HERE, YOUR_ROBOFLOW_API_HERE, and YOUR_WORKSPACE_HERE!
+  
+  ANTHROPIC_KEY = 'YOUR_API_HERE'
+  API_KEY = 'YOUR_ROBOFLOW_API_HERE'
+  WORKSPACE = 'YOUR_WORKSPACE_HERE'
+  ```
 
-ANTHROPIC_KEY = 'YOUR_API_HERE'
-API_KEY = 'YOUR_ROBOFLOW_API_HERE'
-WORKSPACE = 'YOUR_WORKSPACE_HERE'
-```
-
-#### II. Create Your Own Roboflow Models
+2. **Create Your Own Roboflow Models**
 
 [coming soon] Link to roboflow documentation. 
-- Make sure that 5 key models are present (3 obj detection, 2 segmentation) and there is some OCR method.
+- Make sure that key models are present (3 obj detection, 2 segmentation) + an OCR method.
 - Requires Roboflow & Anthropic APIs as-is
 
-#### III. Build Custom Models Using Our Training Data 
-[Coming Soon] Access our training data and annotations through Google Drive to build your own models. 
+3. **Build Custom Models Using Our Training Data**
+
+[coming Soon] Access our training data and annotations through Google Drive to build your own models. 
 - Can also recommend other open-source methods for OCR
 - Note that processing script would have to be substantially modified
 - List specific function scripts that would also need to be modified
@@ -166,7 +167,7 @@ WORKSPACE = 'YOUR_WORKSPACE_HERE'
    - Create organized output directories
    - Generate specimen images, masks, and data
 
-  **Script not working? Check that you have...**
+  ❗ **Script not working? Check that you have...**
   - Cloned the repository
   - Created a virtual environment with the required packages
   - Navigated to the `DrawerDissect` directory
