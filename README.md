@@ -105,7 +105,7 @@ This will:
     - By default DrawerDissect crops and transcribes **barcode** and **taxonomy**
     - For different setups, adjust toggles:
 
-   **For Trays with <ins>barcodes only</ins>:**
+   **Trays with <ins>barcodes only</ins>:**
    ```python
    TRANSCRIBE_BARCODES = 'Y'
    TRANSCRIBE_TAXONOMY = 'N'
