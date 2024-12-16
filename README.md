@@ -205,7 +205,6 @@ transcribe_images
 validate_transcription
 process_barcodes
 transcribe_taxonomy
-merge_data
 ```
 
 ### Custom Pipelines
