@@ -43,7 +43,7 @@ TRANSCRIBE_TAXONOMY = 'Y'  # Set to 'Y' or 'N'
 rf = roboflow.Roboflow(api_key=API_KEY)
 workspace = rf.workspace(WORKSPACE)
 
-# User inputs for roboflow models **MAKE SURE TO MODIFY THESE!**
+# Default FMNH roboflow models, up-to-date as of Dec-16-2024
 DRAWER_MODEL_ENDPOINT = 'trayfinder'
 DRAWER_MODEL_VERSION = 8  # Adjust the version as needed!
 TRAY_MODEL_ENDPOINT = 'beetlefinder'
