@@ -168,10 +168,11 @@ RECOMMENDED - just add your API keys!
    - Generate specimen images, masks, and data
 
   ❗ **Script not working? Check that you have...**
-  - Cloned the repository
-  - Created a virtual environment with the required packages
-  - Navigated to the `DrawerDissect` directory
-  - Decided on a model approach & modified `process_images.py` accordingly
+  [x] Cloned the repository
+  [x] Created a virtual environment with the required packages
+  [x] Navigated to the `DrawerDissect` directory
+  [x] Decided on a model approach 
+  [x] Modified `process_images.py` accordingly
 
 ---
 
