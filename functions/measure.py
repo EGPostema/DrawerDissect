@@ -52,8 +52,13 @@ def generate_csv_with_visuals_and_measurements(input_dir, mask_dir, sizeratios_p
         output_visual_dir = os.path.join(output_dir, 'visuals')
         os.makedirs(output_visual_dir, exist_ok=True)
 
-        sizeratios_df = pd.read_csv(sizeratios_path)
-        sizeratios_map = sizeratios_df.set_index('drawer_id')['px_mm_ratio'].to_dict()
+        # Initialize sizeratios_map based on whether metadata is available
+        if sizeratios_path and os.path.exists(sizeratios_path):
+            sizeratios_df = pd.read_csv(sizeratios_path)
+            sizeratios_map = sizeratios_df.set_index('drawer_id')['px_mm_ratio'].to_dict()
+        else:
+            sizeratios_map = {}
+            logger.info("No size ratios metadata available. Measurements will be in pixels only.")
 
         file_info = []
         for root, _, files in os.walk(input_dir):
@@ -76,8 +81,11 @@ def generate_csv_with_visuals_and_measurements(input_dir, mask_dir, sizeratios_p
         df = pd.DataFrame(file_info)
         df['longest_px'] = pd.NA
         df['area_px'] = pd.NA
-        df['spec_length_mm'] = pd.NA
-        df['spec_area_mm2'] = pd.NA
+        
+        # Only create mm columns if we have metadata
+        if sizeratios_map:
+            df['spec_length_mm'] = pd.NA
+            df['spec_area_mm2'] = pd.NA
 
         with ThreadPoolExecutor() as executor:
             futures = []
@@ -94,23 +102,29 @@ def generate_csv_with_visuals_and_measurements(input_dir, mask_dir, sizeratios_p
                     longest_px, area_px = future.result()
                     if longest_px and area_px:
                         idx = df[df['full_id'] == full_id].index[0]
-                        ratio = df.at[idx, 'px_mm_ratio']
                         df.at[idx, 'longest_px'] = longest_px
                         df.at[idx, 'area_px'] = area_px
-                        if ratio:
+                        
+                        # Only calculate mm measurements if we have the ratio
+                        ratio = df.at[idx, 'px_mm_ratio']
+                        if ratio and sizeratios_map:
                             df.at[idx, 'spec_length_mm'] = longest_px / ratio
                             df.at[idx, 'spec_area_mm2'] = area_px / (ratio ** 2)
                 except Exception as e:
                     logger.error(f"Error processing {full_id}: {e}")
 
-        df['bad_size'] = df['spec_length_mm'].apply(lambda x: 'Y' if pd.notna(x) and x <= 5 else 'N')
-        df['missing_size'] = df.apply(
-            lambda row: 'Y' if row['mask_OK'] == 'Y' and pd.isna(row.get('spec_length_mm')) else 'N', 
-            axis=1
-        )
-
-        cols = ['full_id', 'drawer_id', 'tray_id', 'spec_length_mm', 'spec_area_mm2',
-                'longest_px', 'area_px', 'px_mm_ratio', 'mask_OK', 'missing_size', 'bad_size']
+        # Only add size-related columns if we have metadata
+        if sizeratios_map:
+            df['bad_size'] = df['spec_length_mm'].apply(lambda x: 'Y' if pd.notna(x) and x <= 5 else 'N')
+            df['missing_size'] = df.apply(
+                lambda row: 'Y' if row['mask_OK'] == 'Y' and pd.isna(row.get('spec_length_mm')) else 'N', 
+                axis=1
+            )
+            cols = ['full_id', 'drawer_id', 'tray_id', 'spec_length_mm', 'spec_area_mm2',
+                    'longest_px', 'area_px', 'px_mm_ratio', 'mask_OK', 'missing_size', 'bad_size']
+        else:
+            # If no metadata, only include pixel measurements
+            cols = ['full_id', 'drawer_id', 'tray_id', 'longest_px', 'area_px', 'mask_OK']
         
         df[cols].to_csv(os.path.join(output_dir, 'measurements.csv'), index=False)
         plt.close('all')
