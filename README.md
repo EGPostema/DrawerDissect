@@ -176,10 +176,10 @@ You have three options for processing images:
 
 ### Calling Individual Steps
 
-You can run specific steps of the pipeline individually:
+You can run specific steps of the pipeline individually, e.g.:
 
 ```bash
-python test_process_images.py step_1
+python process_images.py resize_drawers
 ```
 
 **Steps Available:**
