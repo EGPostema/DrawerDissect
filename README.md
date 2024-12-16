@@ -113,16 +113,15 @@ The script will:
 
 
 **Recommendation for Other Users** 
-- At the VERY LEAST, drawers should have some **visually distinct** way to **organize specimens into taxonomic units**.
-- Those taxonomic units should also be **labeled** in a top-down visible way.
-- Other organizational methods that may require different models.
+- Drawers should have some **visually distinct** way of **organizing specimens into taxonomic units**.
+- Other organizational methods ***may require different models.***
 - Drawers with non-organized specimens should **skip all tray-related steps** in the pipeline.
   
 ### 2. Choose Your Model Approach
 
 You have three options for processing images:
 
-#### A. Use Public FMNH Roboflow Models
+#### I. Use Public FMNH Roboflow Models
 
 The simplest approach - just add your API keys & our pre-trained models!
 - Requires Roboflow & Anthropic APIs
@@ -162,13 +161,13 @@ PIN_MODEL_ENDPOINT = 'pinmasker'
 PIN_MODEL_VERSION = 5
 ```
 
-#### B. Create Your Own Roboflow Models
+#### II. Create Your Own Roboflow Models
 
 [coming soon] Link to roboflow documentation. 
 - Make sure that 5 key models are present (3 obj detection, 2 segmentation) and there is some OCR method.
 - Requires Roboflow & Anthropic APIs as-is
 
-#### C. Build Custom Models Using Our Training Data 
+#### III. Build Custom Models Using Our Training Data 
 [Coming Soon] Access our training data and annotations through Google Drive to build your own models. 
 - Can also recommend other open-source methods for OCR!
 
