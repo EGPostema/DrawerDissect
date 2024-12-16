@@ -147,7 +147,7 @@ Proceed to [Step 2, Choose Your Model Approach](#2-choose-your-model-approach)
 
 #### III. If drawers have **unit trays** but **no labels...**
 
-See [3. Example: No Unit Tray Labels](#-3-example-no-unit-tray-labels)
+See [Example: No Unit Tray Labels](#3-example-no-unit-tray-labels)
 
 #### IV. If drawers have **no unit trays or subdivisions of any kind...**
 
