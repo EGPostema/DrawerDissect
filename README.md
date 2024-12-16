@@ -119,7 +119,7 @@ The script will:
 - Ideally, drawers should have a **visually distinct** way of **organizing specimens into taxonomic units**.
 - Other organizational methods **may require one of these modified approaches:**
 
-I. If drawers have **unit trays with taxon labels**, but **no barcodes...**
+#### I. If drawers have **unit trays with taxon labels**, but **no barcodes...**
 
 - Open process_images.py
 - Adjust the Transcription Toggles:
@@ -133,7 +133,7 @@ TRANSCRIBE_TAXONOMY = 'Y'
 
 Proceed to [Step 2, Choose Your Model Approach](#-2-choose-your-model-approach)
 
-II. If drawers have **unit trays with barcoded labels**, but **no taxonomic information...**
+#### II. If drawers have **unit trays with barcoded labels**, but **no taxonomic information...**
 
 - Open process_images.py
 - Adjust the Transcription Toggles:
@@ -147,7 +147,7 @@ TRANSCRIBE_TAXONOMY = 'N'
 
 Proceed to [Step 2, Choose Your Model Approach](#-2-choose-your-model-approach)
 
-III. If drawers have **unit trays** but **no labels...**
+#### III. If drawers have **unit trays** but **no labels...**
 
 See example 3
 
@@ -159,11 +159,11 @@ IV. If drawers have **no unit trays or subdivisions of any kind...**
 
 You have three options for processing images:
 
-#### I. Use Public FMNH Roboflow Models
+#### I. Use Public FMNH Roboflow Models (⚠️ DEFAULT)
 
-The simplest approach - just add your API keys & our pre-trained models!
+The simplest approach - just add your API keys!
 - Requires Roboflow & Anthropic APIs
-- Drawers organized by unit tray
+- Model names and versions are pre-filled by defaults
 - Modify these parts of `process_images.py`:
 
 **API Inputs**
@@ -175,22 +175,6 @@ API_KEY = 'YOUR_ROBOFLOW_API_HERE'
 WORKSPACE = 'YOUR_WORKSPACE_HERE'
 ```
 
-**Use Our Model Inputs**
-```sh
-# User inputs filled in with our public model names. Version numbers up-to-date as of DEC-12-2024
-
-DRAWER_MODEL_ENDPOINT = 'trayfinder'
-DRAWER_MODEL_VERSION = 9
-TRAY_MODEL_ENDPOINT = 'beetlefinder'
-TRAY_MODEL_VERSION = 8
-LABEL_MODEL_ENDPOINT = 'labelfinder'
-LABEL_MODEL_VERSION = 4
-MASK_MODEL_ENDPOINT = 'bugmasker-base'
-MASK_MODEL_VERSION = 1
-PIN_MODEL_ENDPOINT = 'pinmasker'
-PIN_MODEL_VERSION = 5
-```
-
 #### II. Create Your Own Roboflow Models
 
 [coming soon] Link to roboflow documentation. 
@@ -199,13 +183,14 @@ PIN_MODEL_VERSION = 5
 
 #### III. Build Custom Models Using Our Training Data 
 [Coming Soon] Access our training data and annotations through Google Drive to build your own models. 
-- Can also recommend other open-source methods for OCR!
+- Can also recommend other open-source methods for OCR
+- Note that processing script would have to be substantially modified
+- List specific function scripts that would also need to be modified
 
 ### 2. Prepare Your Images
 
-- Place all images in the `fullsize` folder
-- Use .jpg format (code could be modified to accept other formats)
-- Avoid dashes in filenames (use underscores instead)
+- Place all whole-drawer images in the `fullsize` folder
+- Use .jpg format (though code could be modified to accept other formats)
 - Use a consistent naming convention!
 
 **Example Naming Convention:**
@@ -225,6 +210,8 @@ The script organizes outputs based on your image names:
 - Navigated to the `DrawerDissect` directory
 - Decided on a model approach
 - Modified `process_images.py` according to your approach
+
+**Run the Command**
 
 ```sh
 python process_images.py
