@@ -101,7 +101,8 @@ This will:
 
 2. **Adjust Unit Tray Settings (if needed):**
     - Standard FMNH drawers contain **unit trays** with labels (see above)
-    - All specimens in a tray share a **barcode** and **taxonomic unit**
+    - All specimens in a tray share a **barcode**, **qr code**, **geocode**, and **taxonomic unit**
+    - By default DrawerDissect crops and transcribes **barcode** and **taxonomy**
     - For different setups, adjust toggles:
 
    **For Trays with <ins>barcodes only</ins>:**
