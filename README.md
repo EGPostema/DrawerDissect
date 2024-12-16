@@ -97,9 +97,13 @@ This will:
 
    **FMNH Example:** `row_cabinet_position` (e.g., `63_5_8.jpg`).
 
+2. **Capture Metadata (FMNH ONLY)**
+    - Place metadata .txt files in the `fullsize/metadata_capture` folder.
+    - NEED TO FIGURE THIS OUT FOR NON-FMNH USERS; toggle??
+
 <img width="800" alt="Screenshot 2024-12-16 at 3 44 59 PM" src="https://github.com/user-attachments/assets/387e6413-375f-401a-a258-ffb46f6286e4" />
 
-2. **Adjust Unit Tray Settings (if needed):**
+3. **Adjust Unit Tray Settings (if needed):**
     - Standard FMNH drawers contain **unit trays** with labels (see above)
     - All specimens in a tray share a **barcode**, **qr code**, **geocode**, and **taxonomic unit**
     - By default DrawerDissect crops and transcribes **barcode** and **taxonomy**
