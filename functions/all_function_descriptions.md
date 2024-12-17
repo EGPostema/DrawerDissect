@@ -21,7 +21,7 @@ Below, we list and describe all steps used in the processing script.
 
 **Description**
 
-Resizes full-size drawer images to create 1000px-wide versions ready for inference.
+Resizes full-size drawer images to create 1000px-wide versions for inference.
 
 **Command**
 ```sh
@@ -32,7 +32,7 @@ python process_images.py resize_drawers
 ```
 
 **Inputs**
-- Whole-size drawer images
+- Original whole-drawer images
   - Location: drawers/fullsize/
   - Filetype: JPG
   - Format: [drawer_id].jpg
@@ -47,7 +47,7 @@ python process_images.py resize_drawers
 **Dependencies**
 - No prior steps required (this is typically the first step)
 
-### 2. Calculate Size Ratios from Metadata
+### 2. Calculate Size Ratios from Metadata - FMNH Only
 **Description**
 
 Calculates pixel-to-millimeter conversion ratios for each drawer.
@@ -61,8 +61,8 @@ python process_images.py process_metadata
 ```
 
 **Inputs**
-- Metadata text files
-  - Location: drawers/capture_metadata/
+- Metadata text files from GIGAMacro capture system
+  - Location: drawers/fullsize/capture_metadata/
   - Filetype: TXT
   - Format: [drawer_id].txt
 - Original drawer images
@@ -74,16 +74,22 @@ python process_images.py process_metadata
 - CSV files with px-to-mm ratios for each [drawer_id].jpg
   - Location: drawers/fullsize/capture_metadata/sizeratios.csv
   - Filetype: CSV
-  - Fields: [drawer_id], image dimensions (px/mm), px_mm_ratio
-
+  - Fields:
+    - drawer_id
+    - image_height_mm
+    - image_width_mm
+    - image_height_px
+    - image_width_px
+    - px_mm_ratio
+ 
 **Dependencies**
-- No prior steps required
+- TXT file manually added to drawers/fullsize/capture_metadata/
 
 ### 3. 🟣 Find Tray Coordinates
 
 **Description**
 
-Uses Roboflow object detection to locate drawer unit trays in resized images.
+Uses Roboflow object detection to locate unit trays.
 
 **Command**
 ```sh
@@ -101,7 +107,7 @@ python process_images.py infer_drawers --drawer_confidence 50 --drawer_overlap 5
 
 **Outputs**
 - Tray coordinate predictions
- - Location: drawers/drawer_predictions/
+ - Location: drawers/resized/coordinates
  - Filetype: JSON
  - Format: [drawer_id]_1000.json
 
@@ -112,7 +118,7 @@ python process_images.py infer_drawers --drawer_confidence 50 --drawer_overlap 5
 
 **Description**
 
-Crops individual unit trays from full-size drawer images using coordinate predictions.
+Crops individual unit trays from full-size drawer images using scaled-up coordinates.
 
 **Command**
 ```sh
@@ -137,20 +143,18 @@ python process_images.py crop_trays
 **Outputs**
 - Individual tray images
  - Location: drawers/trays/[drawer_id]/
- - Filetype: JPG files
+ - Filetype: JPG 
  - Format: [drawer_id]_[tray_##].jpg
 
 **Dependencies**
-- Resized Drawer Images (Step 1)
+- Resize Drawer Images (Step 1)
 - Find Tray Coordinates (Step 3)
-
-❗❗❗❗❗❗❗❗❗ CHECK AND REVISE ALL STEPS STARTING HERE ❗❗❗❗❗❗❗❗❗ 
 
 ### 5. Resize Trays
 
 **Description**
 
-Creates 1000px-wide versions of cropped tray images for processing.
+Creates 1000px-wide versions of cropped tray images for inference.
 
 **Command**
 ```sh
@@ -163,22 +167,22 @@ python process_images.py resize_trays
 **Inputs**
 - Original tray images
  - Location: drawers/trays/[drawer_id]/
- - Filetype: JPG files
+ - Filetype: JPG 
 
 **Outputs**
 - Resized tray images
- - Location: drawers/trays_resized/[drawer_id]/
- - Filetype: JPG files
- - Format: original filename with '_1000' suffix
+ - Location: drawers/resized_trays/[drawer_id]/
+ - Filetype: JPG 
+ - Format: [drawer_id]_[tray_##]_1000.jpg
 
 **Dependencies**
-- Cropped Trays (Step 4)
+- Crop Trays from Drawers (Step 4)
 
 ### 6. 🟣 Find Tray Label Coordinates
 
 **Description**
 
-Uses Roboflow object detection to locate barcodes, geocodes, and taxonomic text within tray images.
+Uses Roboflow object detection to locate barcodes, QR codes, geocodes, and taxonomic text from tray header labels.
 
 **Command**
 ```sh
@@ -190,24 +194,25 @@ python process_images.py infer_labels --label_confidence 50 --label_overlap 50
 
 **Inputs**
 - Resized tray images
- - Location: drawers/trays_resized/[drawer_id]/
- - Filetype: JPG files with '_1000' suffix
+ - Location: drawers/resized_trays/[drawer_id]/
+ - Filetype: JPG 
+ - Format: [drawer_id]_[tray_##]_1000.jpg
 
 **Outputs**
-- Label coordinate predictions
- - Location: drawers/label_predictions/
- - Filetype: JSON files with '_label' suffix
- - Classes: predictions for barcode, geocode, label, qr
+- Label component coordinates
+ - Location: drawers/resized_trays/label_coordinates/##/
+ - Filetype: JSON
+ - Format: [drawer_id]_[tray_##]_1000_label.json
+ - Classes: barcode, geocode, label, qr
 
 **Dependencies**
-- Cropped Trays (Step 4)
-- Resized Trays (Step 5)
+- Resize Trays (Step 5)
 
 ### 7. Crop Tray Label Components
 
 **Description**
 
-Extracts individual label components (barcodes, geocodes, text labels) from full-size tray images.
+Crops label components (barcodes, geocodes, text labels) from full-size tray images.
 
 **Command**
 ```sh
@@ -221,25 +226,34 @@ python process_images.py crop_labels
 - Original tray images
  - Location: drawers/trays/[drawer_id]/
  - Filetype: JPG
- - 
-- Label coordinate predictions
- - Location: drawers/label_predictions/
- - Filetype: JSON files
+ - [drawer_id]_[tray_##].jpg
+- Resized tray images
+ - Location: drawers/resized_trays/[drawer_id]/
+ - Filetype: JPG 
+ - Format: [drawer_id]_[tray_##]_1000.jpg
+- Label component coordinates
+ - Location: drawers/resized_trays/label_coordinates/##/
+ - Filetype: JSON
+ - Format: [drawer_id]_[tray_##]_1000_label.json
 
 **Outputs**
 - Cropped label components
- - Location: drawers/labels/[drawer_id]/[tray_##]/
- - Filetype: JPG files
- - Format: [drawer_id]_tray_[##]_label.jpg
+ - Location: drawers/labels/[drawer_id]/[##]/
+ - Filetype: JPG
+ - Formats:
+   - [drawer_id]_[tray_##]_barcode.jpg
+   - [drawer_id]_[tray_##]_label.jpg
 
 **Dependencies**
+- Crop Trays from Drawers (Step 4)
+- Resize Trays (Step 5)
 - Find Tray Label Coordinates (Step 6)
 
 ### 8. 🟣 Find Specimen Coordinates
 
 **Description**
 
-Uses Roboflow object detection to locate individual specimens within tray images.
+Uses Roboflow object detection to locate individual specimens.
 
 **Command**
 ```sh
