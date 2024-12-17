@@ -30,6 +30,10 @@ This tool is ideal for those handling large volumes of preserved insects, partic
 
 See [all options here.](#step-2-choose-your-model-approach)
 
+### List of Steps
+
+Consult [the list of functions](https://github.com/EGPostema/DrawerDissect/blob/main/functions/all_function_descriptions.md) for a detailed guide to all pipeline steps.
+
 ### Installation
 
 1. **Set up a virtual environment:**
@@ -140,13 +144,13 @@ You have three options for processing images:
 
 2. **Create Your Own Roboflow Models**
 
-    [coming soon] Link to roboflow documentation. 
+    ❗ [coming soon] Link to roboflow documentation. 
     - Make sure that key models are present (3 obj detection, 2 segmentation) + an OCR method.
     - Requires Roboflow & Anthropic APIs as-is
 
 3. **Build Custom Models Using Our Training Data**
 
-    [coming Soon] Access our training data and annotations through Google Drive to build your own models. 
+    ❗ [coming Soon] Access our training data and annotations through Google Drive to build your own models. 
     - Can also recommend other open-source methods for OCR
     - Note that processing script would have to be substantially modified
     - List specific function scripts that would also need to be modified
@@ -308,5 +312,4 @@ python process_images.py
 
 ## 📋 Outputs and Tips
 
-- Outputs are saved in structured directories based on image names.
-- Consult [the list of functions](https://github.com/EGPostema/DrawerDissect/blob/main/functions/all_function_descriptions.md) for a detailed guide to all pipeline steps.
+❗ [coming soon]
