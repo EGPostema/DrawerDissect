@@ -74,13 +74,7 @@ python process_images.py process_metadata
 - CSV files with px-to-mm ratios for each [drawer_id].jpg
   - Location: drawers/fullsize/capture_metadata/sizeratios.csv
   - Filetype: CSV
-  - Fields:
-    - drawer_id
-    - image_height_mm
-    - image_width_mm
-    - image_height_px
-    - image_width_px
-    - px_mm_ratio
+  - Fields: drawer_id, image_height_mm, image_width_mm, image_height_px, image_width_px, px_mm_ratio
  
 **Dependencies**
 - TXT file manually added to drawers/fullsize/capture_metadata/
@@ -100,19 +94,19 @@ python process_images.py infer_drawers --drawer_confidence 50 --drawer_overlap 5
 ```
 
 **Inputs**
-  - Resized drawer images
-   - Location: drawers/resized/
-   - Filetype: JPG
-   - Format: [drawer_id]_1000.jpg
+- Resized drawer images
+  - Location: drawers/resized/
+  - Filetype: JPG
+  - Format: [drawer_id]_1000.jpg
 
 **Outputs**
-  - Tray coordinate predictions
-   - Location: drawers/resized/coordinates
-   - Filetype: JSON
-   - Format: [drawer_id]_1000.json
+- Tray coordinate predictions
+  - Location: drawers/resized/coordinates
+  - Filetype: JSON
+  - Format: [drawer_id]_1000.json
 
 **Dependencies**
-  - Resized Drawer Images (Step 1)
+- Resized Drawer Images (Step 1)
 
 ### 4. Crop Trays from Drawers
 
