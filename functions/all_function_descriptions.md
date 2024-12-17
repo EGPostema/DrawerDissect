@@ -124,21 +124,21 @@ python process_images.py crop_trays
 
 **Inputs**
 - Full-size drawer images
- - Location: drawers/fullsize/
- - Filetype: JPG
+  - Location: drawers/fullsize/
+  - Filetype: JPG
 - Resized drawer images
- - Location: drawers/resized/
- - Filetype: _1000.jpg
+  - Location: drawers/resized/
+  - Filetype: _1000.jpg
 - Tray coordinate predictions
- - Location: drawers/resized/coordinates
- - Filetype: JSON
- - Format: [drawer_id]_1000.json
+  - Location: drawers/resized/coordinates
+  - Filetype: JSON
+  - Format: [drawer_id]_1000.json
 
 **Outputs**
 - Individual tray images
- - Location: drawers/trays/[drawer_id]/
- - Filetype: JPG 
- - Format: [drawer_id]_[tray_##].jpg
+  - Location: drawers/trays/[drawer_id]/
+  - Filetype: JPG
+  - Format: [drawer_id]_[tray_##].jpg
 
 **Dependencies**
 - Resize Drawer Images (Step 1)
@@ -160,14 +160,14 @@ python process_images.py resize_trays
 
 **Inputs**
 - Original tray images
- - Location: drawers/trays/[drawer_id]/
- - Filetype: JPG 
+  - Location: drawers/trays/[drawer_id]/
+  - Filetype: JPG 
 
 **Outputs**
 - Resized tray images
- - Location: drawers/resized_trays/[drawer_id]/
- - Filetype: JPG 
- - Format: [drawer_id]_[tray_##]_1000.jpg
+  - Location: drawers/resized_trays/[drawer_id]/
+  - Filetype: JPG 
+  - Format: [drawer_id]_[tray_##]_1000.jpg
 
 **Dependencies**
 - Crop Trays from Drawers (Step 4)
@@ -188,16 +188,16 @@ python process_images.py infer_labels --label_confidence 50 --label_overlap 50
 
 **Inputs**
 - Resized tray images
- - Location: drawers/resized_trays/[drawer_id]/
- - Filetype: JPG 
- - Format: [drawer_id]_[tray_##]_1000.jpg
+  - Location: drawers/resized_trays/[drawer_id]/
+  - Filetype: JPG 
+  - Format: [drawer_id]_[tray_##]_1000.jpg
 
 **Outputs**
 - Label component coordinates
- - Location: drawers/resized_trays/label_coordinates/##/
- - Filetype: JSON
- - Format: [drawer_id]_[tray_##]_1000_label.json
- - Classes: barcode, geocode, label, qr
+  - Location: drawers/resized_trays/label_coordinates/##/
+  - Filetype: JSON
+  - Format: [drawer_id]_[tray_##]_1000_label.json
+  - Classes: barcode, geocode, label, qr
 
 **Dependencies**
 - Resize Trays (Step 5)
@@ -218,25 +218,25 @@ python process_images.py crop_labels
 
 **Inputs**
 - Original tray images
- - Location: drawers/trays/[drawer_id]/
- - Filetype: JPG
- - [drawer_id]_[tray_##].jpg
+  - Location: drawers/trays/[drawer_id]/
+  - Filetype: JPG
+  - [drawer_id]_[tray_##].jpg
 - Resized tray images
- - Location: drawers/resized_trays/[drawer_id]/
- - Filetype: JPG 
- - Format: [drawer_id]_[tray_##]_1000.jpg
+  - Location: drawers/resized_trays/[drawer_id]/
+  - Filetype: JPG 
+  - Format: [drawer_id]_[tray_##]_1000.jpg
 - Label component coordinates
- - Location: drawers/resized_trays/label_coordinates/##/
- - Filetype: JSON
- - Format: [drawer_id]_[tray_##]_1000_label.json
+  - Location: drawers/resized_trays/label_coordinates/##/
+  - Filetype: JSON
+  - Format: [drawer_id]_[tray_##]_1000_label.json
 
 **Outputs**
 - Cropped label components
- - Location: drawers/labels/[drawer_id]/[##]/
- - Filetype: JPG
- - Formats:
-   - [drawer_id]_[tray_##]_barcode.jpg
-   - [drawer_id]_[tray_##]_label.jpg
+  - Location: drawers/labels/[drawer_id]/[##]/
+  - Filetype: JPG
+  - Formats:
+    - [drawer_id]_[tray_##]_barcode.jpg
+    - [drawer_id]_[tray_##]_label.jpg
 
 **Dependencies**
 - Crop Trays from Drawers (Step 4)
@@ -259,8 +259,9 @@ python process_images.py infer_trays --tray_confidence 50 --tray_overlap 50
 
 **Inputs**
 - Resized tray images
- - Location: drawers/trays_resized/[drawer_id]/
- - Filetype: JPG files with '_1000' suffix
+  - Location: drawers/trays_resized/[drawer_id]/
+  - Filetype: JPG
+  - Format: [drawer_id]_[tray_##]_1000.jpg
 
 **Outputs**
 - Specimen coordinate predictions
