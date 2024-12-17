@@ -14,7 +14,7 @@ This tool is ideal for those handling large volumes of preserved insects, partic
 - 🌈 Masked specimens (ImageJ compatible)
 - 🌎 Broad geolocation + specimen-level location (when visible)
 
-<img width="1451" alt="Pipeline Overview" src="https://github.com/user-attachments/assets/385ecb70-589a-4903-9027-ae876ca2decf" />
+<img width="1000" alt="Whole-drawer processing pipeline" src="https://github.com/user-attachments/assets/681c98dc-0daa-48f2-9aa2-a347e908cc45" />
 
 ---
 
