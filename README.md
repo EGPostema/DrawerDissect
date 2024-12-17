@@ -30,10 +30,6 @@ This tool is ideal for those handling large volumes of preserved insects, partic
 
 See [all options here.](#step-2-choose-your-model-approach)
 
-### List of Steps
-
-Consult [the list of functions](https://github.com/EGPostema/DrawerDissect/blob/main/functions/all_function_descriptions.md) for a detailed guide to all pipeline steps.
-
 ### Installation
 
 1. **Set up a virtual environment:**
@@ -52,6 +48,10 @@ Consult [the list of functions](https://github.com/EGPostema/DrawerDissect/blob/
    git clone https://github.com/EGPostema/DrawerDissect.git
    cd DrawerDissect
    ```
+   
+### Pipeline Steps
+
+Consult [the list of functions](https://github.com/EGPostema/DrawerDissect/blob/main/functions/all_function_descriptions.md) for a detailed guide to all pipeline steps.
 
 ---
 
