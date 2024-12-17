@@ -57,6 +57,12 @@ Consult [the list of functions](https://github.com/EGPostema/DrawerDissect/blob/
 
 ## 🧪 Processing Test Images
 
+### Step 0: Navigate to `test`
+
+   ```bash
+   cd test
+   ```
+
 ### Step 1: Download the Test Image
 - [Download test image](https://drive.google.com/drive/folders/1NHV9MSR-sjmAW43KlyPfSB9Xr5ZTvJFt?usp=drive_link)
 - Place it in `DrawerDissect/test/drawers/fullsize`
@@ -92,6 +98,12 @@ This will:
 
 ## 📷 Processing Your Images
 
+### Step 0: Navigate to `DrawerDissect`
+
+   ```bash
+   cd DrawerDissect
+   ```
+
 ### Step 1: Image Preparation
 
 1. **Organize images:**
@@ -104,8 +116,8 @@ This will:
 
 2. **Adjust Unit Tray Settings (if needed):**
     - Standard FMNH drawers contain **unit trays** with labels (see above)
-    - All specimens in a tray share a **barcode**, **qr code**, **geocode**, and **taxonomic unit**
-    - DrawerDissect crops and transcribes **barcodes** and **taxonomic units**
+    - All specimens in a tray share a **barcode**, **qr code**, **geocode**, and **taxonomic ID**
+    - DrawerDissect crops and transcribes **barcodes** and **taxonomic IDs**
     - For different setups, **adjust toggles** in `process_images.py`:
 
    **Trays with <ins>barcodes only</ins>:**
