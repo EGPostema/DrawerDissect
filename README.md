@@ -23,8 +23,8 @@ DrawerDissect is ideal for digitizing large volumes of preserved insects, partic
 ### Prerequisites
 - Python 3.x
 - Git
-- [Roboflow](https://roboflow.com) account (for default script)
-- [Anthropic](https://console.anthropic.com) account (for default script)
+- [Roboflow account](https://roboflow.com) (for default script)
+- [Anthropic account](https://console.anthropic.com) (for default script)
   
 ### Options for Models
 
