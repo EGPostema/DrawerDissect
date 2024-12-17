@@ -5,8 +5,8 @@ Below, we list and describe all steps used in the processing script.
 ### Model Configuration Notes
 
 🟣 **Roboflow Model Steps**
-- Customize confidence and overlap percentages (0-100) when applicable
-- Confidence = only annotations the model is over [X]% sure about will be recorded.
+- [Customize confidence and overlap](https://docs.roboflow.com/deploy/hosted-api/custom-models/object-detection) percentages (0-100) when applicable
+- Confidence = only annotations the model is [X]% or more confident in will be recorded.
 - Overlap = the model expects object bounding boxes to overlap by up to [X]%.
   - Only for object detection  
 
