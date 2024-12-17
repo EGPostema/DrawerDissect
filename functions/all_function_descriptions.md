@@ -193,7 +193,7 @@ python process_images.py infer_labels --label_confidence 50 --label_overlap 50
   - Format: [drawer_id]_[tray_##]_1000.jpg
 
 **Outputs**
-- Label component coordinates
+- Tray label bounding box coordinates
   - Location: drawers/resized_trays/label_coordinates/##/
   - Filetype: JSON
   - Format: [drawer_id]_[tray_##]_1000_label.json
@@ -225,7 +225,7 @@ python process_images.py crop_labels
   - Location: drawers/resized_trays/[drawer_id]/
   - Filetype: JPG 
   - Format: [drawer_id]_[tray_##]_1000.jpg
-- Label component coordinates
+- Tray label bounding box coordinates
   - Location: drawers/resized_trays/label_coordinates/##/
   - Filetype: JSON
   - Format: [drawer_id]_[tray_##]_1000_label.json
@@ -264,10 +264,10 @@ python process_images.py infer_trays --tray_confidence 50 --tray_overlap 50
   - Format: [drawer_id]_[tray_##]_1000.jpg
 
 **Outputs**
-- Specimen coordinate predictions
- - Location: drawers/specimen_predictions/
- - Filetype: JSON files
- - Fields: predictions for each specimen location
+- Specimen bounding box coordinates
+  - Location: drawers/drawers/resized_trays/coordinates/[drawer_id]/[##]
+  - Filetype: JSON
+  - Format: [drawer_id]_[tray_##]_1000.json
 
 **Dependencies**
 - Resize Trays (Step 5)
@@ -276,7 +276,7 @@ python process_images.py infer_trays --tray_confidence 50 --tray_overlap 50
 
 **Description**
 
-Extracts individual specimens from full-size tray images in a top-to-bottom, left-to-right order.
+Crops specimens from tray images, in top-to-bottom, left-to-right order (001 = top-left corner)
 
 **Command**
 ```sh
@@ -288,20 +288,28 @@ python process_images.py crop_specimens
 
 **Inputs**
 - Original tray images
- - Location: drawers/trays/[drawer_id]/
- - Filetype: JPG files
-- Specimen coordinate predictions
- - Location: drawers/specimen_predictions/
- - Filetype: JSON files
+  - Location: drawers/trays/[drawer_id]/
+  - Filetype: JPG
+  - Format: [drawer_id]_[tray_##].jpg
+- Resized tray images
+  - Location: drawers/trays_resized/[drawer_id]/
+  - Filetype: JPG
+  - Format: [drawer_id]_[tray_##]_1000.jpg
+- Specimen bounding box coordinates
+  - Location: drawers/resized_trays/coordinates/[drawer_id]/[##]
+  - Filetype: JSON
+  - Format: [drawer_id]_[tray_##]_1000.json
 
 **Outputs**
 - Individual specimen images
- - Location: drawers/specimens/[drawer_id]/[tray_##]/
- - Filetype: JPG files
- - Format: [drawer_id]_tray_[##]_spec_[###].jpg
+  - Location: drawers/specimens/[drawer_id]/[##]/
+  - Filetype: JPG
+  - Format: [drawer_id]_[tray_##]_[spec_###].jpg
 
 **Dependencies**
-- Find Specimen Coordinates (Step 8)
+- Crop Trays from Drawers (Step 4)
+- Resize Trays (Step 5)
+- 🟣 Find Specimen Coordinates (Step 8)
 
 ### 10. 🟣 Find Specimen Body Outlines
 
@@ -319,14 +327,15 @@ python process_images.py infer_beetles --beetle_confidence 50
 
 **Inputs**
 - Individual specimen images
- - Location: drawers/specimens/[drawer_id]/[tray_##]/
- - Filetype: JPG files
+  - Location: drawers/specimens/[drawer_id]/[##]/
+  - Filetype: JPG
+  - Format: [drawer_id]_[tray_##]_[spec_###].jpg
 
 **Outputs**
-- Specimen segmentation predictions
- - Location: drawers/beetle_predictions/[drawer_id]/[tray_##]/
- - Filetype: JSON files
- - Fields: segmentation mask coordinates
+- Coordinates of specimen's body outline
+  - Location: drawers/masks/mask_coordinates/[drawer_id]/[##]/
+  - Filetype: JSON
+  - Format: [drawer_id]_[tray_##]_[spec_###].json
 
 **Dependencies**
 - Crop Specimens from Trays (Step 9)
@@ -335,8 +344,7 @@ python process_images.py infer_beetles --beetle_confidence 50
 
 **Description**
 
-Converts specimen segmentation predictions into binary mask images.
-
+Converts specimen outline coordinates into binary (black and white) masks.
 
 **Command**
 ```sh
@@ -347,24 +355,30 @@ python process_images.py create_masks
 ```
 
 **Inputs**
-- Specimen segmentation predictions
- - Location: drawers/beetle_predictions/[drawer_id]/[tray_##]/
- - Filetype: JSON files with segmentation coordinates
+- Individual specimen images
+  - Location: drawers/specimens/[drawer_id]/[##]/
+  - Filetype: JPG
+  - Format: [drawer_id]_[tray_##]_[spec_###].jpg
+- Coordinates of specimen's body outline
+  - Location: drawers/masks/mask_coordinates/[drawer_id]/[##]/
+  - Filetype: JSON
+  - Format: [drawer_id]_[tray_##]_[spec_###].json
 
 **Outputs**
-- Binary masks
- - Location: drawers/masks/[drawer_id]/[tray_##]/
- - Filetype: PNG files (black and white)
- - Format: Same as specimen filename with .png extension
+- Binary masks (white = filled body-shaped polygon, black = background)
+  - Location: drawers/masks/mask_png/[drawer_id]/[##]/
+  - Filetype: PNG
+  - Format: [drawer_id]_[tray_##]_[spec_###].png
 
 **Dependencies**
+- Crop Specimens from Trays (Step 9)
 - Find Specimen Body Outlines (Step 10)
 
 ### 12. Fix Multi-Polygon Masks
 
 **Description**
 
-Ensures each mask contains a single body mask by keeping the largest polygon.
+If there are multiple polygons in a binary mask, this function excludes the smaller (likely erroneous) polygon.
 
 **Command**
 ```sh
@@ -375,15 +389,16 @@ python process_images.py fix_mask
 ```
 
 **Inputs**
-- Binary masks
- - Location: drawers/masks/[drawer_id]/[tray_##]/
- - Filetype: PNG files
+- Binary masks (white = filled body-shaped polygon, black = background)
+  - Location: drawers/masks/mask_png/[drawer_id]/[##]/
+  - Filetype: PNG
+  - Format: [drawer_id]_[tray_##]_[spec_###].png
 
 **Outputs**
 - Fixed binary masks
- - Location: Same as input
- - Filetype: PNG files
- - Modification: Only largest connected component retained
+  - Location: drawers/masks/mask_png/[drawer_id]/[##]/ _no change_
+  - Filetype: PNG
+  - Format: [drawer_id]_[tray_##]_[spec_###].png _no change_
 
 **Dependencies**
 - Create Binary Mask PNGs (Step 11)
@@ -392,7 +407,8 @@ python process_images.py fix_mask
 
 **Description**
 
-Calculates specimen dimensions using binary masks and pixel-to-mm ratios.
+Calculates area and longest vertical length for each specimen.
+  - FMNH / GIGAMacro ONLY: converts pixels to mm using sizeratios.csv
 
 **Command**
 ```sh
@@ -403,31 +419,43 @@ python process_images.py process_and_measure_images
 ```
 
 **Inputs**
-- Binary masks
- - Location: drawers/masks/[drawer_id]/[tray_##]/
- - Filetype: PNG files
-- Drawer measurement data
- - Location: drawers/data/drawer_measurements.csv
- - Filetype: CSV with px_mm_ratio
+- Individual specimen images
+  - Location: drawers/specimens/[drawer_id]/[##]/
+  - Filetype: JPG
+  - Format: [drawer_id]_[tray_##]_[spec_###].jpg
+- Binary masks (white = filled body-shaped polygon, black = background)
+  - Location: drawers/masks/mask_png/[drawer_id]/[##]/
+  - Filetype: PNG
+  - Format: [drawer_id]_[tray_##]_[spec_###].png
+    
+- FMNH ONLY: CSV file with px-to-mm ratios for each [drawer_id].jpg
+  - Location: drawers/fullsize/capture_metadata/sizeratios.csv
+  - Filetype: CSV
+  - Fields Used: drawer_id, px_mm_ratio
 
 **Outputs**
-- Measurement data
- - Location: drawers/data/measurements.csv
- - Filetype: CSV with length and area measurements
- - Fields: specimen ID, dimensions in px and mm
+- Spreadsheet with length and area for each specimen and whether the image has a mask or not
+  - Location: drawers/measurements/
+  - Filetype: CSV
+  - Format: measurements.csv
+  - Fields: full_id, drawer_id, tray_id, longest_px, area_px, mask_ok
+    - FMNH-ONLY: spec_length_mm, spec_area_mm2, longest_px, missing_size, bad_size 
 - Measurement visualizations
- - Location: drawers/measurements/visuals/
- - Filetype: PNG files showing contours and measurements
+  - Location: drawers/measurements/visuals/[drawer_id]/[##]
+  - Filetype: PNG
+  - Format: [drawer_id]_[tray_##]_[spec_###]_measured.png
 
 **Dependencies**
+- Crop Specimens from Trays (Step 9)
+- Create Binary Mask PNGs (Step 11)
 - Fix Multi-Polygon Masks (Step 12)
-- Calculate Pixel:MM Ratios (Step 2)
+- FMNH ONLY: Calculate Pixel:MM Ratios (Step 2)
 
-### 14. Apply Initial Background Mask
+### 14. Remove Background
 
 **Description**
 
-Creates initial masked specimens by applying body segmentation masks to remove backgrounds.
+Uses binary masks to remove background pixels from specimen images.
 
 **Command**
 ```sh
@@ -438,24 +466,24 @@ python process_images.py censor_background
 ```
 
 **Inputs**
-- Individual specimen images 
- - Location: drawers/specimens/[drawer_id]/[tray_##]/
- - Filetype: JPG files
-- Binary masks
- - Location: drawers/masks/[drawer_id]/[tray_##]/
- - Filetype: PNG files
-- Measurement data
- - Location: drawers/data/measurements.csv
- - Filetype: CSV with validation flags
+- Individual specimen images
+  - Location: drawers/specimens/[drawer_id]/[##]/
+  - Filetype: JPG
+  - Format: [drawer_id]_[tray_##]_[spec_###].jpg
+- Binary masks (white = filled body-shaped polygon, black = background)
+  - Location: drawers/masks/mask_png/[drawer_id]/[##]/
+  - Filetype: PNG
+  - Format: [drawer_id]_[tray_##]_[spec_###].png
 
 **Outputs**
-- Masked specimens
- - Location: drawers/masked_specimens/[drawer_id]/[tray_##]/
- - Filetype: PNG files
- - Format: Original filename with '_masked' suffix
+- Specimen images without whited-out backgrounds
+  - Location: drawers/masks/no_background/[drawer_id]/[##]/
+  - Filetype: PNG 
+  - Format: [drawer_id]_[tray_##]_[spec_###]_masked.png
 
 **Dependencies**
-- Measure Specimens (Step 13)
+- Crop Specimens from Trays (Step 9)
+- Create Binary Mask PNGs (Step 11)
 
 ### 15. 🟣 Find Pin Outlines 
 
