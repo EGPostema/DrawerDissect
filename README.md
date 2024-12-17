@@ -61,7 +61,7 @@ Consult [the list of functions](https://github.com/EGPostema/DrawerDissect/blob/
 - [Download test image](https://drive.google.com/drive/folders/1NHV9MSR-sjmAW43KlyPfSB9Xr5ZTvJFt?usp=drive_link)
 - Place it in `DrawerDissect/test/drawers/fullsize`
   
-**Note:** The test image is large and may take some time to download.
+❗ The test image is large and may take some time to download.
 
 ### Step 2: Configure API Keys
 
@@ -152,7 +152,7 @@ You have three options for processing images:
 
     ❗ [coming Soon] Access our training data and annotations through Google Drive to build your own models. 
     - Can also recommend other open-source methods for OCR
-    - Note that processing script would have to be substantially modified
+    - Processing script would have to be substantially modified
     - List specific function scripts that would also need to be modified
 
 ### Step 3. Run the Processing Script 
