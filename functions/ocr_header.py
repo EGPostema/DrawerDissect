@@ -276,10 +276,10 @@ class ImageTranscriber:
 # Example configs (you can modify the prompts as needed)
 BARCODE_CONFIG = TranscriptionConfig(
     file_suffix='_barcode.jpg',
-    system_prompt="You are a numerical barcode reading tool. You should output only the 5-digit number (format: 5####) found in the image. If no valid 5-digit number starting with 5 is found, output 'none'.",
-    user_prompt="Read the 5-digit barcode number. Output only the number, no explanations.",
+    system_prompt="You are a barcode reading tool. You should output only the number (or letter-number string) found in the image. If no valid barcode is found, output 'none'.",
+    user_prompt="Read the barcode number. Output only the number, no explanations.",
     csv_fields=['tray_id', 'unit_barcode'],
-    validation_func=lambda x: {'unit_barcode': 'no_barcode' if not (len(x) == 5 and x.startswith('5') and x.isdigit()) else x}
+    validation_func=lambda x: {'unit_barcode': 'no_barcode' if x.lower() == 'none' else x}
 )
 
 LABEL_CONFIG = TranscriptionConfig(
