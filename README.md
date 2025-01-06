@@ -94,6 +94,10 @@ This will:
 - Generate output directories
 - Create specimen images, masks, and data
 
+### Example Outputs
+
+[show images of outputs here]
+
 ---
 
 ## 📷 Processing Your Images
