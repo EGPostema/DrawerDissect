@@ -192,7 +192,6 @@ Crops label components (barcodes, geocodes, text labels) from full-size tray ima
 
 **Command**
 ```sh
-# Full processing
 python process_images.py crop_labels
 ```
 
@@ -231,7 +230,6 @@ Uses Roboflow object detection to locate individual specimens.
 
 **Command**
 ```sh
-# Full processing
 python process_images.py infer_trays --tray_confidence 50 --tray_overlap 50
 ```
 
