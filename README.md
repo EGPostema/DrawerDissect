@@ -6,7 +6,7 @@
 
 ## 📖 Overview
 
-DrawerDissect is ideal for digitizing large volumes of preserved insects, particularly from museum collections. It can extract:
+DrawerDissect is ideal for digitizing large volumes of preserved insects, particularly from natural history collections. It can extract:
 
 - 📷  Individual specimen photos
 - 📏  Specimen size data
