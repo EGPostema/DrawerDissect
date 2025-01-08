@@ -120,9 +120,10 @@ This will:
     - Standard FMNH drawers contain **unit trays** with labels (see above)
     - All specimens in a tray share a **barcode**, **qr code**, **geocode**, and **taxonomic ID**
     - DrawerDissect crops and transcribes **barcodes** and **taxonomic IDs**
-    - For different setups, **adjust toggles** in `process_images.py`:
 
 <img width="800" alt="Screenshot 2024-12-16 at 3 44 59 PM" src="https://github.com/user-attachments/assets/387e6413-375f-401a-a258-ffb46f6286e4" />
+
+  **For different setups, simply adjust the toggles in `process_images.py`:**
 
    **Trays with <ins>barcodes only</ins>:**
    ```python
