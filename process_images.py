@@ -31,7 +31,7 @@ base_dir = os.path.abspath(os.path.dirname(__file__))
 # User inputs for API keys and model details **MAKE SURE TO MODIFY THIS!**
 ANTHROPIC_KEY = 'YOUR_API_HERE'
 API_KEY = 'YOUR_ROBOFLOW_API_HERE'
-WORKSPACE = 'YOUR_WORKSPACE_HERE'
+WORKSPACE = 'field-museum'
 
 # Metadata toggle
 PROCESS_METADATA = 'N'  # Default is N; set to Y for FMNH users with Gigamacro TXT files
