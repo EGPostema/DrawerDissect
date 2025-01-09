@@ -65,10 +65,6 @@ See [all options here.](#step-2-choose-your-model-approach)
    git clone https://github.com/EGPostema/DrawerDissect.git
    cd DrawerDissect
    ```
-   
-### Pipeline Steps
-
-Consult [the list of functions](https://github.com/EGPostema/DrawerDissect/blob/main/functions/all_function_descriptions.md) for a detailed guide to all pipeline steps.
 
 ---
 
@@ -76,9 +72,9 @@ Consult [the list of functions](https://github.com/EGPostema/DrawerDissect/blob/
 
 ### Step 0: Navigate to `test`
 
-   ```bash
-   cd test
-   ```
+  ```bash
+  cd test
+  ```
 
 ### Step 1: Download the Test Image
 - [Download test image](https://drive.google.com/drive/folders/1NHV9MSR-sjmAW43KlyPfSB9Xr5ZTvJFt?usp=drive_link)
@@ -90,10 +86,10 @@ Consult [the list of functions](https://github.com/EGPostema/DrawerDissect/blob/
 
 Edit `test_process_images.py` and replace placeholders with your API keys:
 
-```python
-ANTHROPIC_KEY = 'YOUR_API_HERE'
-API_KEY = 'YOUR_ROBOFLOW_API_HERE'
-```
+  ```python
+  ANTHROPIC_KEY = 'YOUR_API_HERE'
+  API_KEY = 'YOUR_ROBOFLOW_API_HERE'
+  ```
 
 - [Get Roboflow API key](https://docs.roboflow.com/api-reference/authentication)
 - [Get Anthropic API key](https://docs.anthropic.com/en/api/getting-started)
@@ -102,9 +98,9 @@ API_KEY = 'YOUR_ROBOFLOW_API_HERE'
 
 Execute the script:
 
-```bash
-python test_process_images.py
-```
+  ```bash
+  python test_process_images.py
+  ```
 
 This will:
 - Process the image in `fullsize`
@@ -117,7 +113,7 @@ This will:
 
 ---
 
-## 📷 Processing Your Images
+## 📷 Processing Your Own Images
 
 ### Step 0: Navigate to `DrawerDissect`
 
@@ -134,9 +130,15 @@ This will:
    **FMNH Example:** `row_cabinet_position` (e.g., `63_5_8.jpg`).
 
 2. **Adjust Unit Tray Settings (if needed):**
-    - Standard FMNH drawers contain **unit trays** with labels (see above)
-    - All specimens in a tray share a **barcode**, **qr code**, **geocode**, and **taxonomic ID**
-    - DrawerDissect crops and transcribes **barcodes** and **taxonomic IDs**
+    - Standard FMNH drawers contain **unit trays** with labels (see below)
+    - All specimens in a tray share a:
+      - **barcode**
+      - **qr code**
+      - **geocode**
+      - **taxonomic ID**
+    - By default, DrawerDissect crops and transcribes:
+      - **barcodes**
+      - **taxonomic IDs**
 
 <img width="800" alt="Screenshot 2024-12-16 at 3 44 59 PM" src="https://github.com/user-attachments/assets/387e6413-375f-401a-a258-ffb46f6286e4" />
 
@@ -170,9 +172,9 @@ You have three options for processing images:
 
     - Model names/versions are pre-filled
     - Requires Roboflow & Anthropic APIs
-    - Modify `process_images.py`:
+
+    **To begin, modify APIs for `process_images.py`:**
   
-    **API Inputs**
     ```sh
     # Replace YOUR_API_HERE and YOUR_ROBOFLOW_API_HERE
     
