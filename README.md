@@ -35,15 +35,32 @@ See [all options here.](#step-2-choose-your-model-approach)
 1. **Set up a virtual environment:**
    ```bash
    python3 -m venv drawerdissect
-   source drawerdissect/bin/activate
    ```
 
-2. **Install required packages:**
+   **Active Environment (Mac)**
+
+   ```sh
+   source drawerdissect/bin/activate
+    ```
+   
+   **Activate Environment (Windows Powershell)**
+
+   ```powershell
+   .\drawerdissect\Scripts\activate
+    ```
+
+   **Activate Environment (Windows CMD)**
+
+   ```cmd
+   drawerdissect\Scripts\activate.bat
+    ```
+   
+3. **Install required packages:**
    ```bash
    pip install pandas numpy Pillow opencv-python matplotlib roboflow anthropic aiofiles
    ```
 
-3. **Clone the repository:**
+4. **Clone the repository:**
    ```bash
    git clone https://github.com/EGPostema/DrawerDissect.git
    cd DrawerDissect
