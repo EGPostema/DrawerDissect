@@ -3,11 +3,10 @@ import json
 import time
 from roboflow import Roboflow
 
-def infer_drawers(input_dir, output_dir, api_key, model_endpoint, version, confidence=50, overlap=50):
-    start_time = time.time()  # Start the timer
+def infer_drawers(input_dir, output_dir, rf_instance, workspace_instance, model_endpoint, version, confidence=50, overlap=50):
+    start_time = time.time()
     os.makedirs(output_dir, exist_ok=True)
-    rf = Roboflow(api_key=api_key)
-    project = rf.workspace().project(model_endpoint)
+    project = workspace_instance.project(model_endpoint)
     model = project.version(version).model
 
     for root, _, files in os.walk(input_dir):
