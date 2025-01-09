@@ -3,16 +3,13 @@ import json
 import time
 from roboflow import Roboflow
 
-def infer_tray_labels(input_dir, output_dir, api_key, model_endpoint, version, confidence=50, overlap=50):
+def infer_tray_labels(input_dir, output_dir, rf_instance, model_endpoint, version, confidence=50, overlap=50):
     start_time = time.time()  # Start the timer
     os.makedirs(output_dir, exist_ok=True)
-    
-    # Initialize Roboflow and model
-    rf = Roboflow(api_key=api_key)
-    project = rf.workspace().project(model_endpoint)
+    project = rf_instance.workspace().project(model_endpoint)
     model = project.version(version).model
 
-    for root, _, files in os.walk(input_dir):
+    for root, _, files in os.walk(input_dir):  # Fixed typo in *dir
         for file in files:
             if file.endswith('_1000.jpg'):
                 json_path = os.path.join(output_dir, file.replace('_1000.jpg', '_1000_label.json'))
