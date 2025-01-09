@@ -1,3 +1,4 @@
+# Imports
 import os
 import time
 import argparse
@@ -28,24 +29,12 @@ from functions.ocr_header import process_images, TranscriptionConfig, BARCODE_CO
 # Set base directory
 base_dir = os.path.abspath(os.path.dirname(__file__))
 
-# User inputs for API keys and model details **MAKE SURE TO MODIFY THIS!**
+# User inputs for API keys **MAKE SURE TO MODIFY THIS!**
 ANTHROPIC_KEY = 'YOUR_API_HERE'
 API_KEY = 'YOUR_ROBOFLOW_API_HERE'
 WORKSPACE = 'field-museum'
 
-# Metadata toggle
-PROCESS_METADATA = 'N'  # Default is N; set to Y for FMNH users with Gigamacro TXT files
-
-# Transcription toggles
-TRANSCRIBE_BARCODES = 'Y'  # Default is Y; set to N if your drawer images DON'T have trays with barcoded labels
-TRANSCRIBE_TAXONOMY = 'Y'  # Default is Y; set to N if your drawer images DON'T have trays seperated by taxon
-
-# Initialize Roboflow
-rf = roboflow.Roboflow(api_key=API_KEY)
-workspace = rf.workspace(WORKSPACE)
-
 # Default FMNH roboflow models, up-to-date as of Dec-16-2024
-## All model names and versions adjustable
 DRAWER_MODEL_ENDPOINT = 'trayfinder'
 DRAWER_MODEL_VERSION = 8 
 TRAY_MODEL_ENDPOINT = 'beetlefinder'
@@ -57,7 +46,14 @@ MASK_MODEL_VERSION = 1
 PIN_MODEL_ENDPOINT = 'pinmasker'
 PIN_MODEL_VERSION = 5
 
-# Define directories
+# Metadata toggle
+PROCESS_METADATA = 'Y'  # Default is N; set to Y for FMNH users with Gigamacro TXT files
+
+# Transcription toggles
+TRANSCRIBE_BARCODES = 'Y'  # Default is Y; set to N if your drawer images DON'T have trays with barcoded labels
+TRANSCRIBE_TAXONOMY = 'Y'  # Default is Y; set to N if your drawer images DON'T have trays seperated by taxon
+
+# Define all directories
 directories = {
     'fullsize': 'drawers/fullsize',
     'metadata': 'drawers/fullsize/capture_metadata',
@@ -86,13 +82,16 @@ for name, directory in directories.items():
         print(f"Creating directory: {directory}")
         os.makedirs(directory, exist_ok=True)
 
-# Define roboflow
-def load_roboflow_workspace_and_project():
-    rf = roboflow.Roboflow(api_key=API_KEY)
-    workspace = rf.workspace(WORKSPACE)
+# Single instance of Roboflow initialization
+def get_roboflow_instance():
+    if not hasattr(get_roboflow_instance, '_rf_instance'):
+        print("Initializing Roboflow workspace (this should only happen once)")
+        get_roboflow_instance._rf_instance = roboflow.Roboflow(api_key=API_KEY)
+        get_roboflow_instance._workspace_instance = get_roboflow_instance._rf_instance.workspace(WORKSPACE)
+    return get_roboflow_instance._rf_instance, get_roboflow_instance._workspace_instance
 
 # Commands for running individual steps
-def run_step(step, directories, args):
+def run_step(step, directories, args, rf_instance, workspace_instance):
     print(f"Running step: {step}")
 
     if step == 'resize_drawers':
@@ -114,7 +113,8 @@ def run_step(step, directories, args):
         infer_drawers(
             directories['resized'], 
             directories['coordinates'], 
-            API_KEY, 
+            rf_instance,
+	    workspace_instance,  
             DRAWER_MODEL_ENDPOINT, 
             DRAWER_MODEL_VERSION, 
             confidence=args.drawer_confidence, 
@@ -138,7 +138,8 @@ def run_step(step, directories, args):
         infer_tray_labels(
             directories['resized_trays'], 
             directories['label_coordinates'], 
-            API_KEY, 
+            rf_instance,
+	    workspace_instance, 
             LABEL_MODEL_ENDPOINT, 
             LABEL_MODEL_VERSION, 
             confidence=args.label_confidence, 
@@ -154,13 +155,13 @@ def run_step(step, directories, args):
             directories['labels']
         )
         print(f"Cropped labels saved in {directories['labels']}")
-
     
     elif step == 'infer_trays':
         infer_tray_images(
             directories['resized_trays'], 
             directories['resized_trays_coordinates'], 
-            API_KEY, 
+            rf_instance,
+	    workspace_instance, 
             TRAY_MODEL_ENDPOINT, 
             TRAY_MODEL_VERSION, 
             confidence=args.tray_confidence, 
@@ -180,7 +181,8 @@ def run_step(step, directories, args):
         infer_beetles(
             directories['specimens'], 
             directories['mask_coordinates'], 
-            API_KEY, 
+            rf_instance,
+	    workspace_instance, 
             MASK_MODEL_ENDPOINT, 
             MASK_MODEL_VERSION, 
             confidence=args.beetle_confidence
@@ -202,8 +204,6 @@ def run_step(step, directories, args):
 
     elif step == 'process_and_measure_images':
         sizeratios_path = os.path.join(directories['metadata'], 'sizeratios.csv')
-        
-        # If PROCESS_METADATA is 'N', pass None instead of the sizeratios.csv path
         metadata_file = sizeratios_path if PROCESS_METADATA == 'Y' else None
         
         generate_csv_with_visuals_and_measurements(
@@ -228,7 +228,8 @@ def run_step(step, directories, args):
             directories['no_background'], 
             directories['pin_coordinates'],
             os.path.join(directories['measurements'], 'measurements.csv'),
-            API_KEY, 
+            rf_instance,
+	    workspace_instance, 
             PIN_MODEL_ENDPOINT, 
             PIN_MODEL_VERSION, 
             confidence=args.pin_confidence
@@ -242,7 +243,6 @@ def run_step(step, directories, args):
             directories['full_masks']
         )
         print(f"Masks with pins saved in {directories['full_masks']}")
-
 
     elif step == 'create_transparency':
         create_transparency(
@@ -298,6 +298,9 @@ def run_step(step, directories, args):
 def main():
     start_time = time.time()
     
+    # Get single Roboflow instance at the start with specified workspace
+    rf_instance, workspace_instance = get_roboflow_instance()
+    
     all_steps = [
         'resize_drawers', 'process_metadata', 'infer_drawers', 'crop_trays',
         'resize_trays', 'infer_labels', 'crop_labels', 'infer_trays',
@@ -311,7 +314,7 @@ def main():
     
     parser.add_argument(
         'steps',
-        nargs='+',  # Changed from '?' to '+' to accept multiple steps
+        nargs='+',
         choices=all_steps + ['all'],
         help="Steps to execute"
     )
@@ -334,21 +337,20 @@ def main():
     
     args = parser.parse_args()
     print("Starting the image processing pipeline...")
-    load_roboflow_workspace_and_project()
 
     if 'all' in args.steps:
         # Run all steps
         for step in all_steps:
             if not getattr(args, f'skip_{step}'):
                 step_start = time.time()
-                run_step(step, directories, args)
+                run_step(step, directories, args, rf_instance, workspace_instance)
                 step_time = time.time() - step_start
                 print(f"{step} completed in {step_time:.2f} seconds")
     else:
         # Run specified steps in order
         for step in args.steps:
             step_start = time.time()
-            run_step(step, directories, args)
+            run_step(step, directories, args, rf_instance, workspace_instance)
             step_time = time.time() - step_start
             print(f"{step} completed in {step_time:.2f} seconds")
 
@@ -360,3 +362,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
