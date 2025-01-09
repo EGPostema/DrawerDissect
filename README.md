@@ -142,24 +142,26 @@ This will:
 
   **For different setups, simply adjust the toggles in `process_images.py`:**
 
-   **Trays with <ins>barcodes only</ins>:**
-   ```python
-   TRANSCRIBE_BARCODES = 'Y'
-   TRANSCRIBE_TAXONOMY = 'N'
-   ```
+  **<ins>Trays with barcodes only:</ins>**
+  ```python
+  TRANSCRIBE_BARCODES = 'Y'
+  TRANSCRIBE_TAXONOMY = 'N'
+  ```
 
-   **Trays with <ins>taxonomy only</ins>:**
-   **Trays with <ins>no label</ins>:**
-   ```python
-   TRANSCRIBE_BARCODES = 'N'
-   TRANSCRIBE_TAXONOMY = 'Y'
-   ```
+  **<ins>Trays with taxonomy only:</ins>**
+  ```python
+  TRANSCRIBE_BARCODES = 'N'
+  TRANSCRIBE_TAXONOMY = 'Y'
+  ```
 
-   **Trays with <ins>no label</ins>:**
+  **<ins>Trays with no header labels:</ins>**
+  ```python
+  TRANSCRIBE_BARCODES = 'N'
+  TRANSCRIBE_TAXONOMY = 'N'
+  ```
 
-  See [Example: No Unit Tray Labels](#3-example-no-unit-tray-labels)
-
-
+  Also see: [Example 3: No Unit Tray Labels](https://github.com/EGPostema/DrawerDissect#example-3-no-unit-tray-labels)
+  
 ### Step 2. Choose Your Model Approach
 
 You have three options for processing images:
