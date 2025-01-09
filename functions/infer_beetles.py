@@ -7,20 +7,20 @@ from typing import Optional
 def infer_beetles(
     input_dir: str,
     output_dir: str,
-    api_key: str,
+    rf_instance: Roboflow,  # Changed from api_key: str
     model_endpoint: str,
     version: int,
     confidence: Optional[float] = 50
 ):
     start_time = time.time()
-    rf = Roboflow(api_key=api_key)
-    project = rf.workspace().project(model_endpoint)
+    # Remove Roboflow initialization
+    project = rf_instance.workspace().project(model_endpoint)
     model = project.version(version).model
     
     processed = 0
     errors = 0
     
-    for root, _, files in os.walk(input_dir):
+    for root, _, files in os.walk(input_dir):  # Fixed typo in *dir
         jpg_files = [f for f in files if f.endswith('.jpg')]
         if not jpg_files:
             continue
@@ -57,7 +57,7 @@ def infer_beetles(
                 errors += 1
                 print(f"Error processing {file}: {str(e)}")
                 continue
-
+    
     elapsed = time.time() - start_time
     print(f"Complete in {elapsed:.2f}s. Processed: {processed}, Errors: {errors}")
 
