@@ -68,7 +68,7 @@ See [all options here.](#step-2-choose-your-model-approach)
 
 ---
 
-## 🧪 Processing Test Images
+## 🧪 Process Test Image
 
 ### Step 0: Navigate to `test`
 
