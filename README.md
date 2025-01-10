@@ -123,11 +123,10 @@ This will:
 
 ### Step 1: Image Preparation
 
-1. **Organize images:**
+1. **Input images:**
    - Place drawer images in the `fullsize` folder.
-   - Use `.jpg` format with a consistent naming convention.
-
-   **FMNH Example:** `row_cabinet_position` (e.g., `63_5_8.jpg`).
+   - Use `.jpg` format.
+   - A consistent drawer naming format is best for keeping things organized.
 
 2. **Adjust Unit Tray Settings (if needed):**
     - Standard FMNH drawers contain **unit trays** with labels (see below)
