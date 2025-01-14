@@ -30,7 +30,7 @@ DrawerDissect is ideal for digitizing large volumes of preserved insects, partic
 
 <ins>For Mac</ins>: enter the commands in **Terminal**
 
-<ins>For Windows</ins>: enter the commands in **PowerShell** or **CMD**
+<ins>For Windows</ins>: enter the commands in **PowerShell**
 
 1. **Clone the DrawerDissect repository:**
 
