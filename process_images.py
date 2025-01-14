@@ -25,6 +25,7 @@ from functions.create_transparency import create_transparency
 from functions.ocr_label import transcribe_images, ImageProcessor, ProcessingResult
 from functions.ocr_validation import validate_transcriptions
 from functions.ocr_header import process_images, TranscriptionConfig, BARCODE_CONFIG, LABEL_CONFIG
+from functions.merge_data import merge_data
 
 # Set base directory
 base_dir = os.path.abspath(os.path.dirname(__file__))
@@ -74,6 +75,7 @@ directories = {
     'transparencies': 'drawers/transparencies',
     'specimen_level': 'drawers/transcriptions/specimen_labels',
     'tray_level': 'drawers/transcriptions/tray_labels',
+    'data': 'drawers/data'
 }
 
 # Create directories if not already there!
@@ -291,6 +293,18 @@ def run_step(step, directories, args, rf_instance, workspace_instance):
             print(f"Taxonomic label transcription completed. Results saved to {directories['tray_level']}")
         else:
             print("Skipping taxonomy transcription as per configuration")
+
+    elif step == 'merge_data':
+        output_base_path = os.path.join(directories['data'], 'merged_data')
+        merge_data(
+            os.path.join(directories['measurements'], 'measurements.csv'),
+            os.path.join(directories['specimen_level'], 'location_checked.csv'),
+            os.path.join(directories['tray_level'], 'taxonomy.csv'),
+            os.path.join(directories['tray_level'], 'unit_barcodes.csv'),
+            output_base_path
+        )
+        
+        print(f"Merged dataset saved with a timestamped filename in {directories['data']}")
     
     else:
         print(f"Unknown step: {step}")
@@ -307,7 +321,7 @@ def main():
         'crop_specimens', 'infer_beetles', 'create_masks', 'fix_mask',
         'process_and_measure_images', 'censor_background', 'infer_pins',
         'create_pinmask', 'create_transparency', 'transcribe_images', 'validate_transcription', 'process_barcodes', 
-        'transcribe_taxonomy'
+        'transcribe_taxonomy', 'merge_data'
     ]
     
     parser = argparse.ArgumentParser(description="Process images with specified steps and parameters.")
