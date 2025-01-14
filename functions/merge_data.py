@@ -14,7 +14,7 @@ def merge_data(
         taxonomy_path (str): Path to the taxonomy CSV file.
         unit_barcodes_path (str): Path to the unit barcodes CSV file.
         output_base_path (str): Base path for the output file (timestamp will be appended).
-        mode (str): Toggle for Default or FMNH test pipeline.
+        mode (str): Toggle for FMNH or Default pipelines (default is 'FMNH').
 
     Returns:
         None: Saves the merged dataset as a CSV file.
@@ -44,8 +44,8 @@ def merge_data(
         merge_steps = [
             (unit_barcodes, 'tray_id'),
             (taxonomy[['tray_id', 'taxonomy']].rename(columns={'taxonomy': 'full_taxonomy'}), 'tray_id'),
-            (location_checked[['filename', 'validation_status', 'final_location']]
-             .rename(columns={'filename': 'spec_filename', 'final_location': 'location'}), 'spec_filename')
+            (location_checked[['filename', 'verbatim_text', 'proposed_location', 'validation_status', 'final_location', 'confidence_notes']]
+             .rename(columns={'filename': 'spec_filename'}), 'spec_filename')
         ]
         for df, key in merge_steps:
             merged = pd.merge(merged, df, on=key, how='left')
@@ -54,7 +54,7 @@ def merge_data(
         final_columns = [
             'full_id', 'drawer_id', 'tray_id', 'unit_barcode', 'full_taxonomy',
             'spec_length_mm', 'spec_area_mm2', 'mask_OK', 'missing_size', 'bad_size',
-            'spec_filename', 'location', 'validation_status'
+            'spec_filename', 'verbatim_text', 'proposed_location', 'validation_status', 'final_location', 'confidence_notes'
         ]
         merged = merged[final_columns]
 
@@ -75,14 +75,15 @@ def merge_data(
             merged = pd.merge(merged, taxonomy.rename(columns={'taxonomy': 'full_taxonomy'}), on='tray_id', how='left')
         merged = pd.merge(
             merged,
-            location_checked.rename(columns={'filename': 'spec_filename', 'final_location': 'location'}),
+            location_checked[['filename', 'verbatim_text', 'proposed_location', 'validation_status', 'final_location', 'confidence_notes']]
+            .rename(columns={'filename': 'spec_filename'}),
             on='spec_filename',
             how='left'
         )
 
         # Select and reorder columns dynamically
         final_columns = [
-            'full_id', 'drawer_id', 'tray_id', 'longest_px', 'area_px', 'mask_OK', 'spec_filename', 'location', 'validation_status'
+            'full_id', 'drawer_id', 'tray_id', 'longest_px', 'area_px', 'mask_OK', 'spec_filename', 'verbatim_text', 'proposed_location', 'validation_status', 'final_location', 'confidence_notes'
         ]
         if taxonomy is not None:
             final_columns.insert(4, 'full_taxonomy')
@@ -108,3 +109,4 @@ def merge_data(
     # Save the final merged CSV
     merged.to_csv(output_file_path, index=False)
     print(f"Data successfully merged and saved to {output_file_path}")
+
