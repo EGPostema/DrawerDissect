@@ -297,19 +297,18 @@ def run_step(step, directories, args, rf_instance, workspace_instance):
         else:
             print("Skipping taxonomy transcription as per configuration")
 
-	elif step == 'merge_data':
-	    output_base_path = os.path.join(directories['data'], 'merged_data')
-	    merge_data(
-	        os.path.join(directories['measurements'], 'measurements.csv'),
-	        os.path.join(directories['specimen_level'], 'location_checked.csv'),
-	        os.path.join(directories['tray_level'], 'taxonomy.csv'),
-	        os.path.join(directories['tray_level'], 'unit_barcodes.csv'),
-	        output_base_path,
-	        mode=PIPELINE_MODE
-	    )
-        
+    elif step == 'merge_data':
+        output_base_path = os.path.join(directories['data'], 'merged_data')
+        merge_data(
+            os.path.join(directories['measurements'], 'measurements.csv'),
+            os.path.join(directories['specimen_level'], 'location_checked.csv'),
+            os.path.join(directories['tray_level'], 'taxonomy.csv'),
+            os.path.join(directories['tray_level'], 'unit_barcodes.csv'),
+            output_base_path,
+            mode=PIPELINE_MODE
+        )
         print(f"Merged dataset saved with a timestamped filename in {directories['data']}")
-    
+
     else:
         print(f"Unknown step: {step}")
 
