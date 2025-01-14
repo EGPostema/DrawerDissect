@@ -101,10 +101,14 @@ Place the image in `DrawerDissect/drawers/fullsize`
 
 Edit `process_images.py` and replace placeholders with your API keys:
 
-  ```python
-  ANTHROPIC_KEY = 'YOUR_API_HERE'
-  API_KEY = 'YOUR_ROBOFLOW_API_HERE'
-  ```
+
+   ```sh
+   # Replace YOUR_API_HERE and YOUR_ROBOFLOW_API_HERE
+   
+   ANTHROPIC_KEY = 'YOUR_API_HERE'
+   API_KEY = 'YOUR_ROBOFLOW_API_HERE'
+   ```
+
 
 - [Get Roboflow API key](https://docs.roboflow.com/api-reference/authentication)
 - [Get Anthropic API key](https://docs.anthropic.com/en/api/getting-started)
@@ -122,17 +126,19 @@ Edit `process_images.py` to set specific models and toggles:
 
    **Set PROCESS_METADATA to Y**
    ```sh
-   # Metadata toggle (Default is N; set to Y for test image)
+   # Default is N; set to Y for test image
    PROCESS_METADATA = 'Y'
    ```
 
    **Set PIPELINE_MODE to FMNH**
    ```sh
-   # Toggle Data-Merging Pipeline
-   PIPELINE_MODE = 'FMNH' # Replace 'Default' with 'FMNH'
+   # Replace 'Default' with 'FMNH' for test image
+   PIPELINE_MODE = 'FMNH'
    ```
 
-Make sure to save and exit.
+Your edited script should look like this:
+
+[IMAGE]
 
 ### Step 4: Run the Script
 
@@ -207,12 +213,12 @@ This will:
 
 You have three options for processing images:
 
-I. **Use Public FMNH Roboflow Models** (DEFAULT)
+1. **Use Public FMNH Roboflow Models** (DEFAULT)
 
     - Model names/versions are pre-filled
     - Only requires Roboflow & Anthropic APIs
 
-    ** Just modify APIs for `process_images.py`:**
+    **Just modify APIs for `process_images.py`:**
   
     ```sh
     # Replace YOUR_API_HERE and YOUR_ROBOFLOW_API_HERE
@@ -221,13 +227,13 @@ I. **Use Public FMNH Roboflow Models** (DEFAULT)
     API_KEY = 'YOUR_ROBOFLOW_API_HERE'
     ```
 
-II. **Create Your Own Roboflow Models** ❗ [coming soon]
+2. **Create Your Own Roboflow Models** ❗ [coming soon]
 
     - Link to roboflow documentation. 
     - Make sure that key models are present (3 obj detection, 2 segmentation) + an OCR method.
     - Requires Roboflow & Anthropic APIs as-is
 
-III. **Build Custom Models Using Our Training Data** ❗ [coming soon]
+3. **Build Custom Models Using Our Training Data** ❗ [coming soon]
 
     - Access our training data and annotations through Google Drive to build your own models. 
     - Can also recommend other open-source methods for OCR
