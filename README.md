@@ -111,19 +111,25 @@ Edit `process_images.py` and replace placeholders with your API keys:
 
 ### Step 3: Tailor the Pipeline
 
-Edit `process_images.py` to tailor the pipeline:
+Edit `process_images.py` to set specific models and toggles:
 
-   **Use Specialized Model for Segmentation**
+   **Use Specialized Model for Masking**
 
    ```sh
    MASK_MODEL_ENDPOINT = 'bugmasker-tigerbeetle' # replace 'bugmasker-base' with this model
    MASK_MODEL_VERSION = 11  # use version 11
    ```
 
-   **Set Process_Metadata to Y**
+   **Set PROCESS_METADATA to Y**
    ```sh
    # Metadata toggle (Default is N; set to Y for test image)
    PROCESS_METADATA = 'Y'
+   ```
+
+   **Set PIPELINE_MODE to FMNH**
+   ```sh
+   # Toggle Data-Merging Pipeline
+   PIPELINE_MODE = 'FMNH' # Replace 'Default' with 'FMNH'
    ```
 
 ### Step 4: Run the Script
