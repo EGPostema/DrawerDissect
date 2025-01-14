@@ -154,13 +154,17 @@ This will:
 
 ### Example Outputs
 
+**Generated Directory** 🗂️
+
+<img width="668" alt="Screenshot 2025-01-14 at 4 20 30 PM" src="https://github.com/user-attachments/assets/2a5261ff-0de3-48d9-85ad-4ca4f5fe7559" />
+
 **Individual Tray Images** 📷 
 
-[images here]
+<img width="666" alt="Screenshot 2025-01-14 at 4 22 16 PM" src="https://github.com/user-attachments/assets/8bb72f93-bea3-4eaf-b28f-2caa7ee06ce1" />
 
 **Individual Specimen Images** 📷 
 
-[images here]
+<img width="678" alt="Screenshot 2025-01-14 at 4 37 46 PM" src="https://github.com/user-attachments/assets/937673ef-f733-468b-b016-7b8b87998ec3" />
 
 **Specimen Transparencies** 📷
 
