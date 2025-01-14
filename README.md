@@ -37,9 +37,12 @@ DrawerDissect is ideal for digitizing large volumes of preserved insects, partic
    ```bash
    git clone https://github.com/EGPostema/DrawerDissect.git
    ```
-    _Alternatively, simply download and unzip the DrawerDissect repository_
+    _Alternatively, simply download and unzip the DrawerDissect repository:_
 
-2. **Navigate to the Directory**
+   <img width="459" alt="Screenshot 2025-01-14 at 11 48 02 AM" src="https://github.com/user-attachments/assets/e60c552f-3aa3-4f17-adc7-09befeb28787" />
+
+
+3. **Navigate to the Directory**
  
   ```bash
   cd DrawerDissect
