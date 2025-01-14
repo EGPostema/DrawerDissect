@@ -126,7 +126,7 @@ Edit `process_images.py` to tailor the pipeline:
    PROCESS_METADATA = 'Y'
    ```
 
-### Step 4: Run the Test Script
+### Step 4: Run the Script
 
 Execute the script:
 
@@ -137,7 +137,7 @@ Execute the script:
 This will:
 - Process the image in `fullsize`
 - Generate output directories
-- Create specimen images, masks, and data
+- Create specimen images, masks, and data CSVs
 
 ### Example Outputs
 
