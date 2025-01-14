@@ -91,9 +91,11 @@ This is a good place to start to see how the pipeline works!
    ```
 
 ### Step 1: Download the Test Image
-- [Download test image](https://drive.google.com/drive/folders/1NHV9MSR-sjmAW43KlyPfSB9Xr5ZTvJFt?usp=drive_link)
-- Place it in `DrawerDissect/test/drawers/fullsize`
-- ❗ The test image is large and may take some time to download/move.
+
+[Download test image](https://drive.google.com/drive/folders/1NHV9MSR-sjmAW43KlyPfSB9Xr5ZTvJFt?usp=drive_link)
+- ❗ The test image is large and may take some time to download/move
+
+Place the image in `DrawerDissect/drawers/fullsize`
 
 ### Step 2: Configure API Keys
 
@@ -109,13 +111,20 @@ Edit `process_images.py` and replace placeholders with your API keys:
 
 ### Step 3: Configure Step Toggles
 
-Edit `process_images.py` to switch on some optional steps:
+Edit `process_images.py` to tailor the pipeline:
 
-  **Set Process_Metadata to Y**
-  ```sh
-  # Metadata toggle (Default is N; set to Y for test image)
-  PROCESS_METADATA = 'Y'
-  ```
+   **Use Specialized Model for Segmentation**
+
+   ```sh
+   MASK_MODEL_ENDPOINT = 'bugmasker-tigerbeetle' # replace 'bugmasker-base' with this model
+   MASK_MODEL_VERSION = 11  # use version 11
+   ```
+
+   **Set Process_Metadata to Y**
+   ```sh
+   # Metadata toggle (Default is N; set to Y for test image)
+   PROCESS_METADATA = 'Y'
+   ```
 
 ### Step 4: Run the Test Script
 
