@@ -143,7 +143,7 @@ Edit `process_images.py` to set specific models and toggles:
 Execute the script:
 
   ```bash
-  python process_images.py
+  python process_images.py all
   ```
 
 This will:
@@ -263,7 +263,7 @@ You have three options for processing images:
 ### Step 3. Run the Processing Script 
 
    ```bash
-   python process_images.py
+   python process_images.py all
    ```
 
    The script will:
@@ -276,7 +276,7 @@ You have three options for processing images:
   - [x] Navigated to the `DrawerDissect` directory
   - [x] Created a virtual environment with the required packages
   - [x] Decided on a model approach 
-  - [x] Modified (and saved) `process_images.py` accordingly
+  - [x] Edited (and saved) `process_images.py` accordingly
 
 ---
 
@@ -293,6 +293,7 @@ python process_images.py resize_drawers
 **Steps Available:**
 
 ```sh
+all # to run full script
 resize_drawers
 process_metadata # FMNH / GIGAMacro Only
 infer_drawers
