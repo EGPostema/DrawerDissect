@@ -166,11 +166,9 @@ This will:
 
 <img width="678" alt="Screenshot 2025-01-14 at 4 37 46 PM" src="https://github.com/user-attachments/assets/937673ef-f733-468b-b016-7b8b87998ec3" />
 
+**Binary Masks** ✏️
+
 **Specimen Transparencies** 📷
-
-[images here]
-
-**Size Visualizations** 📷
 
 [images here]
 
