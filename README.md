@@ -109,7 +109,7 @@ Edit `process_images.py` and replace placeholders with your API keys:
 - [Get Roboflow API key](https://docs.roboflow.com/api-reference/authentication)
 - [Get Anthropic API key](https://docs.anthropic.com/en/api/getting-started)
 
-### Step 3: Configure Step Toggles
+### Step 3: Tailor the Pipeline
 
 Edit `process_images.py` to tailor the pipeline:
 
