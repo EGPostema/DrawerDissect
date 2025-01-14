@@ -54,6 +54,9 @@ PROCESS_METADATA = 'Y'  # Default is N; set to Y for FMNH users with Gigamacro T
 TRANSCRIBE_BARCODES = 'Y'  # Default is Y; set to N if your drawer images DON'T have trays with barcoded labels
 TRANSCRIBE_TAXONOMY = 'Y'  # Default is Y; set to N if your drawer images DON'T have trays seperated by taxon
 
+# Toggle Data-Merging Pipeline
+PIPELINE_MODE = 'Default' # For test FMNH image, use 'FMNH'
+
 # Define all directories
 directories = {
     'fullsize': 'drawers/fullsize',
@@ -294,15 +297,16 @@ def run_step(step, directories, args, rf_instance, workspace_instance):
         else:
             print("Skipping taxonomy transcription as per configuration")
 
-    elif step == 'merge_data':
-        output_base_path = os.path.join(directories['data'], 'merged_data')
-        merge_data(
-            os.path.join(directories['measurements'], 'measurements.csv'),
-            os.path.join(directories['specimen_level'], 'location_checked.csv'),
-            os.path.join(directories['tray_level'], 'taxonomy.csv'),
-            os.path.join(directories['tray_level'], 'unit_barcodes.csv'),
-            output_base_path
-        )
+	elif step == 'merge_data':
+	    output_base_path = os.path.join(directories['data'], 'merged_data')
+	    merge_data(
+	        os.path.join(directories['measurements'], 'measurements.csv'),
+	        os.path.join(directories['specimen_level'], 'location_checked.csv'),
+	        os.path.join(directories['tray_level'], 'taxonomy.csv'),
+	        os.path.join(directories['tray_level'], 'unit_barcodes.csv'),
+	        output_base_path,
+	        mode=PIPELINE_MODE
+	    )
         
         print(f"Merged dataset saved with a timestamped filename in {directories['data']}")
     
