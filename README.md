@@ -132,6 +132,8 @@ Edit `process_images.py` to set specific models and toggles:
    PIPELINE_MODE = 'FMNH' # Replace 'Default' with 'FMNH'
    ```
 
+Make sure to save and exit.
+
 ### Step 4: Run the Script
 
 Execute the script:
