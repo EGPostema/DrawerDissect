@@ -14,7 +14,7 @@ def merge_data(
         taxonomy_path (str): Path to the taxonomy CSV file.
         unit_barcodes_path (str): Path to the unit barcodes CSV file.
         output_base_path (str): Base path for the output file (timestamp will be appended).
-        mode (str): Toggle for FMNH or Default pipelines (default is 'FMNH').
+        mode (str): Toggle for Default or FMNH test pipeline.
 
     Returns:
         None: Saves the merged dataset as a CSV file.
