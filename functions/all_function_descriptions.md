@@ -400,7 +400,7 @@ python process_images.py process_and_measure_images
   - Filetype: CSV
   - Format: measurements.csv
   - Fields: full_id, drawer_id, tray_id, longest_px, area_px, mask_OK
-    - FMNH-ONLY: spec_length_mm, spec_area_mm2, longest_px, missing_size, bad_size 
+    - FMNH-ONLY additions: spec_length_mm, spec_area_mm2, missing_size, bad_size 
 - Measurement visualizations
   - Location: drawers/measurements/visuals/[drawer_id]/[##]
   - Filetype: PNG
