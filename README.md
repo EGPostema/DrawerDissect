@@ -42,13 +42,14 @@ DrawerDissect is ideal for digitizing large volumes of preserved insects, partic
    <img width="459" alt="Screenshot 2025-01-14 at 11 48 02 AM" src="https://github.com/user-attachments/assets/e60c552f-3aa3-4f17-adc7-09befeb28787" />
 
 
-3. **Navigate to the Directory**
+3. **Navigate to the Repository**
  
   ```bash
-  cd DrawerDissect
+  cd /path/to/DrawerDissect #replace with your path
   ```
+Your path will depend on where the repository was downloaded to.
 
-2. **Set up a virtual environment:**
+2. **Set up a Virtual Environment:**
 
    ```bash
    python -m venv drawerdissect
@@ -80,16 +81,18 @@ This is a good place to start to see how the pipeline works!
 
 ### Step 0: Ensure you are in `DrawerDissect`
 
-   ```bash
-   cd DrawerDissect
-   ```
+  ```bash
+  cd /path/to/DrawerDissect #replace with your path
+  ```
+
+Your path will depend on where the repository was downloaded to.
 
 ### Step 1: Download the Test Image
 
 [Download test image](https://drive.google.com/drive/folders/1NHV9MSR-sjmAW43KlyPfSB9Xr5ZTvJFt?usp=drive_link)
 - ❗ The test image is large and may take some time to download/move
 
-Place the image in `DrawerDissect/drawers/fullsize`
+Place the image in `drawers/fullsize`
 
 ### Step 2: Configure API Keys
 
@@ -175,9 +178,11 @@ This will:
 
 ### Step 0: Ensure you are in `DrawerDissect`
 
-   ```bash
-   cd DrawerDissect
-   ```
+  ```bash
+  cd /path/to/DrawerDissect #replace with your path
+  ```
+
+Your path will depend on where the repository was downloaded to.
 
 ### Step 1: Image Preparation
 
