@@ -248,10 +248,7 @@ python process_images.py resize_drawers
 
 ```sh
 resize_drawers
-
-#FMNH / GIGAMacro Only
-process_metadata
-
+process_metadata # FMNH / GIGAMacro Only
 infer_drawers
 crop_trays
 resize_trays
@@ -269,8 +266,8 @@ create_pinmask
 create_transparency
 transcribe_images
 validate_transcription
-process_barcodes
-transcribe_taxonomy
+process_barcodes # if trays have barcodes
+transcribe_taxonomy # if trays have taxonomic info
 ```
 
 ### Custom Pipelines
