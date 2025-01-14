@@ -32,12 +32,30 @@ See [all options here.](#step-2-choose-your-model-approach)
 
 ### Installation
 
-1. **Set up a virtual environment:**
+<ins>For Mac</ins>: enter the commands in **Terminal**
+
+<ins>For Windows</ins>: enter the commands in **PowerShell** or **CMD**
+
+1. **Clone the DrawerDissect repository:**
+
+   ```bash
+   git clone https://github.com/EGPostema/DrawerDissect.git
+   ```
+    _Alternatively, simply download DrawerDissect_
+
+2. **Navigate to the Directory**
+ 
+  ```bash
+  cd DrawerDissect
+  ```
+
+2. **Set up a virtual environment:**
+
    ```bash
    python3 -m venv drawerdissect
    ```
 
-   **Active Environment (Mac)**
+   **Activate Environment (Mac)**
 
    ```sh
    source drawerdissect/bin/activate
@@ -55,36 +73,32 @@ See [all options here.](#step-2-choose-your-model-approach)
    drawerdissect\Scripts\activate.bat
     ```
    
-3. **Install required packages:**
+4. **Install required packages:**
+
    ```bash
    pip install pandas numpy Pillow opencv-python matplotlib roboflow anthropic aiofiles
-   ```
-
-4. **Clone the repository:**
-   ```bash
-   git clone https://github.com/EGPostema/DrawerDissect.git
-   cd DrawerDissect
    ```
 
 ---
 
 ## 🧪 Process Test Image
 
-### Step 0: Navigate to `test`
+This is a good place to start to see how the pipeline works!
 
-  ```bash
-  cd test
-  ```
+### Step 0: Ensure you are in `DrawerDissect`
+
+   ```bash
+   cd DrawerDissect
+   ```
 
 ### Step 1: Download the Test Image
 - [Download test image](https://drive.google.com/drive/folders/1NHV9MSR-sjmAW43KlyPfSB9Xr5ZTvJFt?usp=drive_link)
 - Place it in `DrawerDissect/test/drawers/fullsize`
-  
-❗ The test image is large and may take some time to download.
+- ❗ The test image is large and may take some time to download/move.
 
 ### Step 2: Configure API Keys
 
-Edit `test_process_images.py` and replace placeholders with your API keys:
+Edit `process_images.py` and replace placeholders with your API keys:
 
   ```python
   ANTHROPIC_KEY = 'YOUR_API_HERE'
@@ -94,12 +108,22 @@ Edit `test_process_images.py` and replace placeholders with your API keys:
 - [Get Roboflow API key](https://docs.roboflow.com/api-reference/authentication)
 - [Get Anthropic API key](https://docs.anthropic.com/en/api/getting-started)
 
-### Step 3: Run the Test Script
+### Step 3: Configure Step Toggles
+
+Edit `process_images.py` to switch on some optional steps:
+
+  **Set Process_Metadata to Y**
+  ```sh
+  # Metadata toggle (Default is N; set to Y for test image)
+  PROCESS_METADATA = 'Y'
+  ```
+
+### Step 4: Run the Test Script
 
 Execute the script:
 
   ```bash
-  python test_process_images.py
+  python process_images.py
   ```
 
 This will:
@@ -115,7 +139,7 @@ This will:
 
 ## 📷 Processing Your Own Images
 
-### Step 0: Navigate to `DrawerDissect`
+### Step 0: Ensure you are in `DrawerDissect`
 
    ```bash
    cd DrawerDissect
@@ -342,6 +366,7 @@ If you are capturing whole drawers with a GIGAMacro Magnify2 system:
 # Metadata toggle (Default is N; set to Y for FMNH users with Gigamacro TXT files)
 PROCESS_METADATA = 'Y'
 ```
+
 5. Run the command:
 ```sh
 python process_images.py
