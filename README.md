@@ -136,9 +136,9 @@ Edit `process_images.py` to set specific models and toggles:
    PIPELINE_MODE = 'FMNH'
    ```
 
-Your final edited script should look like this (changes indicated with arrows):
+**Your final edited script should look like this** (changes indicated with arrows):
 
-<img width="449" alt="Screenshot 2025-01-14 at 1 17 02 PM" src="https://github.com/user-attachments/assets/6d85767a-63b6-4609-8051-d88df7201890" />
+<img width="550" alt="Screenshot 2025-01-14 at 1 17 02 PM" src="https://github.com/user-attachments/assets/6d85767a-63b6-4609-8051-d88df7201890" />
 
 
 ### Step 4: Run the Script
