@@ -25,10 +25,6 @@ DrawerDissect is ideal for digitizing large volumes of preserved insects, partic
 - Git
 - [Roboflow account](https://roboflow.com) (for default script)
 - [Anthropic account](https://console.anthropic.com) (for default script)
-  
-### Options for Models
-
-See [all options here.](#step-2-choose-your-model-approach)
 
 ### Installation
 
@@ -133,7 +129,7 @@ This will:
 
 ### Example Outputs
 
-[show images of outputs here]
+❗ [coming soon]
 
 ---
 
@@ -165,7 +161,7 @@ This will:
 
 <img width="800" alt="Screenshot 2024-12-16 at 3 44 59 PM" src="https://github.com/user-attachments/assets/387e6413-375f-401a-a258-ffb46f6286e4" />
 
-  **For different setups, simply adjust the toggles in `process_images.py`:**
+  **For different drawer setups, simply adjust the toggles in `process_images.py`:**
 
   **<ins>Trays with barcodes only:</ins>**
   ```python
@@ -191,12 +187,12 @@ This will:
 
 You have three options for processing images:
 
-1. **Use Public FMNH Roboflow Models** ⚠️ DEFAULT
+I. **Use Public FMNH Roboflow Models** (DEFAULT)
 
     - Model names/versions are pre-filled
-    - Requires Roboflow & Anthropic APIs
+    - Only requires Roboflow & Anthropic APIs
 
-    **To begin, modify APIs for `process_images.py`:**
+    ** Just modify APIs for `process_images.py`:**
   
     ```sh
     # Replace YOUR_API_HERE and YOUR_ROBOFLOW_API_HERE
@@ -205,15 +201,15 @@ You have three options for processing images:
     API_KEY = 'YOUR_ROBOFLOW_API_HERE'
     ```
 
-2. **Create Your Own Roboflow Models**
+II. **Create Your Own Roboflow Models** ❗ [coming soon]
 
-    ❗ [coming soon] Link to roboflow documentation. 
+    - Link to roboflow documentation. 
     - Make sure that key models are present (3 obj detection, 2 segmentation) + an OCR method.
     - Requires Roboflow & Anthropic APIs as-is
 
-3. **Build Custom Models Using Our Training Data**
+III. **Build Custom Models Using Our Training Data** ❗ [coming soon]
 
-    ❗ [coming Soon] Access our training data and annotations through Google Drive to build your own models. 
+    - Access our training data and annotations through Google Drive to build your own models. 
     - Can also recommend other open-source methods for OCR
     - Processing script would have to be substantially modified
     - List specific function scripts that would also need to be modified
@@ -230,11 +226,11 @@ You have three options for processing images:
    - Generate specimen images, masks, and data
 
   ❗ **Script not working? Check that you have...**
-  - [x] Cloned the repository
-  - [x] Created a virtual environment with the required packages
+  - [x] Cloned or downloaded the repository
   - [x] Navigated to the `DrawerDissect` directory
+  - [x] Created a virtual environment with the required packages
   - [x] Decided on a model approach 
-  - [x] Modified `process_images.py` accordingly
+  - [x] Modified (and saved) `process_images.py` accordingly
 
 ---
 
@@ -252,66 +248,28 @@ python process_images.py resize_drawers
 
 ```sh
 resize_drawers
-```
-```sh
+
 #FMNH / GIGAMacro Only
 process_metadata
-```
-```sh
+
 infer_drawers
-```
-```sh
 crop_trays
-```
-```sh
 resize_trays
-```
-```sh
 infer_labels
-```
-```sh
 crop_labels
-```
-```sh
 infer_trays
-```
-```sh
 crop_specimens
-```
-```sh
 infer_beetles
-```
-```sh
 create_masks
-```
-```sh
 fix_mask
-```
-```sh
 process_and_measure_images
-```
-```sh
 censor_background
-```
-```sh
 infer_pins
-```
-```sh
 create_pinmask
-```
-```sh
 create_transparency
-```
-```sh
 transcribe_images
-```
-```sh
 validate_transcription
-```
-```sh
 process_barcodes
-```
-```sh
 transcribe_taxonomy
 ```
 
