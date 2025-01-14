@@ -65,12 +65,6 @@ DrawerDissect is ideal for digitizing large volumes of preserved insects, partic
    ```powershell
    .\drawerdissect\Scripts\activate
     ```
-
-   **Activate Environment (Windows CMD)**
-
-   ```cmd
-   drawerdissect\Scripts\activate.bat
-    ```
    
 4. **Install required packages:**
 
