@@ -51,7 +51,7 @@ DrawerDissect is ideal for digitizing large volumes of preserved insects, partic
 2. **Set up a virtual environment:**
 
    ```bash
-   python3 -m venv drawerdissect
+   python -m venv drawerdissect
    ```
 
    **Activate Environment (Mac)**
