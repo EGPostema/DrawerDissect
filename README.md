@@ -144,13 +144,30 @@ Execute the script:
   ```
 
 This will:
-- Process the image in `fullsize`
-- Generate output directories
-- Create specimen images, masks, and data CSVs
+- Start the processing pipeline on the test image in `fullsize`
+- Automatically generate all outputs and directories
 
 ### Example Outputs
 
-❗ [coming soon]
+**Individual Tray Images** 📷 
+
+[images here]
+
+**Individual Specimen Images** 📷 
+
+[images here]
+
+**Specimen Transparencies** 📷
+
+[images here]
+
+**Size Visualizations** 📷
+
+[images here]
+
+**Merged Dataset** 📋
+
+[images here]
 
 ---
 
@@ -165,9 +182,11 @@ This will:
 ### Step 1: Image Preparation
 
 1. **Input images:**
-   - Place drawer images in the `fullsize` folder.
-   - Use `.jpg` format.
-   - A consistent drawer naming format is best for keeping things organized.
+   - Place drawer images in the `drawers/fullsize` folder.
+   - JPG format only ❗ [may support other formats in future]
+   - A consistent drawer naming scheme is helpful for keeping things organized.
+  
+[example image here]
 
 2. **Adjust Unit Tray Settings (if needed):**
     - Standard FMNH drawers contain **unit trays** with labels (see below)
@@ -211,9 +230,10 @@ You have three options for processing images:
 1. **Use Public FMNH Roboflow Models** (DEFAULT)
 
     - Model names/versions are pre-filled
-    - Only requires Roboflow & Anthropic APIs
+    - All toggles are set to default
+    - Only requires Roboflow & Anthropic API inputs
 
-    **Just modify APIs for `process_images.py`:**
+    **Simply Input APIs in `process_images.py`:**
   
     ```sh
     # Replace YOUR_API_HERE and YOUR_ROBOFLOW_API_HERE
@@ -244,7 +264,7 @@ You have three options for processing images:
    The script will:
    - Process images in `fullsize`
    - Create organized output directories
-   - Generate specimen images, masks, and data
+   - Generate specimen images, masks, and a merged dataset
 
   ❗ **Script not working? Check that you have...**
   - [x] Cloned or downloaded the repository
