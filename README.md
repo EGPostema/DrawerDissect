@@ -96,6 +96,8 @@ Your path will depend on where the repository was downloaded to.
 
 Place the image in `drawers/fullsize`
 
+<img width="353" alt="Screenshot 2025-01-15 at 11 45 44 AM" src="https://github.com/user-attachments/assets/1743ff86-f64a-469d-9722-942868ae096d" />
+
 ### Step 2: Configure API Keys
 
 Edit `process_images.py` and replace placeholders with your API keys:
