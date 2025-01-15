@@ -35,20 +35,20 @@ ANTHROPIC_KEY = 'YOUR_API_HERE'
 API_KEY = 'YOUR_ROBOFLOW_API_HERE'
 WORKSPACE = 'field-museum'
 
-# Default FMNH roboflow models, up-to-date as of Dec-16-2024
+# Default FMNH roboflow models, up-to-date as of Jan-15-2025
 DRAWER_MODEL_ENDPOINT = 'trayfinder'
-DRAWER_MODEL_VERSION = 8 
+DRAWER_MODEL_VERSION = 9 
 TRAY_MODEL_ENDPOINT = 'beetlefinder'
-TRAY_MODEL_VERSION = 8
+TRAY_MODEL_VERSION = 9
 LABEL_MODEL_ENDPOINT = 'labelfinder'
-LABEL_MODEL_VERSION = 4
+LABEL_MODEL_VERSION = 5
 MASK_MODEL_ENDPOINT = 'bugmasker-base'
 MASK_MODEL_VERSION = 1
 PIN_MODEL_ENDPOINT = 'pinmasker'
 PIN_MODEL_VERSION = 5
 
 # Metadata toggle
-PROCESS_METADATA = 'Y'  # Default is N; set to Y for FMNH users with Gigamacro TXT files
+PROCESS_METADATA = 'N'  # Default is N; set to Y for FMNH users with Gigamacro TXT files
 
 # Transcription toggles
 TRANSCRIBE_BARCODES = 'Y'  # Default is Y; set to N if your drawer images DON'T have trays with barcoded labels
