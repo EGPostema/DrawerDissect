@@ -151,6 +151,7 @@ Execute the script:
 This will:
 - Start the processing pipeline on the test image in `fullsize`
 - Automatically generate all outputs and directories
+- Skip any images that have already been processed (no overwriting)
 
 ### Example Outputs
 
@@ -274,6 +275,7 @@ You have three options for processing images:
    - Process images in `fullsize`
    - Create organized output directories
    - Generate specimen images, masks, and a merged dataset
+   - Skip any images that have already been processed (no overwriting)
 
   ❗ **Script not working? Check that you have...**
   - [x] Cloned or downloaded the repository
