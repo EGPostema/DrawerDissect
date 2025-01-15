@@ -171,13 +171,22 @@ This will:
 
 **Binary Masks** ✏️
 
+<img width="670" alt="Screenshot 2025-01-15 at 10 02 32 AM" src="https://github.com/user-attachments/assets/d6dee632-4383-49d2-bada-9dff7646ba42" />
+
 **Specimen Transparencies** 📷
 
-[images here]
+<img width="670" alt="Screenshot 2025-01-15 at 10 02 32 AM" src="https://github.com/user-attachments/assets/cdf044a5-e1e2-4cc7-beef-c113cd5cc276" />
 
 **Merged Dataset** 📋
 
-[images here]
+<img width="289" alt="Screenshot 2025-01-15 at 11 49 00 AM" src="https://github.com/user-attachments/assets/889065e9-0f81-46f8-8961-4f87fa042df2" />
+
+<ins>Dataset Fields:</ins>
+   - Drawer, Tray, and Specimen-level IDs and filenames
+   - Tray-level label text (barcode, taxonomy)
+   - Specimen length and area, in mm/mm2
+   - Mask/measurement checks
+   - Specimen-level location reconstructions / checks
 
 ---
 
