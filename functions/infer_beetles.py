@@ -7,20 +7,34 @@ from typing import Optional
 def infer_beetles(
     input_dir: str,
     output_dir: str,
-    rf_instance: Roboflow,  # Changed from api_key: str
+    rf_instance: Roboflow,
+    workspace_instance,
     model_endpoint: str,
     version: int,
     confidence: Optional[float] = 50
 ):
+    """
+    Infer beetle segmentation masks using Roboflow model.
+    
+    Args:
+        input_dir (str): Directory containing input images
+        output_dir (str): Directory to save prediction JSONs
+        rf_instance: Initialized Roboflow instance
+        workspace_instance: Initialized Roboflow workspace
+        model_endpoint (str): Name of the Roboflow model
+        version (int): Version number of the model
+        confidence (float, optional): Confidence threshold (0-100)
+    """
     start_time = time.time()
-    # Remove Roboflow initialization
-    project = rf_instance.workspace().project(model_endpoint)
+    
+    # Get model from workspace
+    project = workspace_instance.project(model_endpoint)
     model = project.version(version).model
     
     processed = 0
     errors = 0
     
-    for root, _, files in os.walk(input_dir):  # Fixed typo in *dir
+    for root, _, files in os.walk(input_dir):
         jpg_files = [f for f in files if f.endswith('.jpg')]
         if not jpg_files:
             continue
