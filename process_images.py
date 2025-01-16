@@ -57,9 +57,6 @@ TRANSCRIBE_TAXONOMY = 'Y'  # Default is Y; set to N if your drawer images DON'T 
 # Toggle Data-Merging Pipeline
 PIPELINE_MODE = 'Default' # For test FMNH image, use 'FMNH'
 
-# Toggle Data-Merging Pipeline
-PIPELINE_MODE = 'Default' # For test FMNH image, use 'FMNH'
-
 # Define all directories
 directories = {
     'fullsize': 'drawers/fullsize',
