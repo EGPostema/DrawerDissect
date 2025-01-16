@@ -3,7 +3,7 @@ import json
 import time
 from roboflow import Roboflow
 
-def infer_tray_labels(input_dir, output_dir, rf_instance, model_endpoint, version, confidence=50, overlap=50):
+def infer_tray_labels(input_dir, output_dir, rf_instance, workspace_instance, model_endpoint, version, confidence=50, overlap=50):
     start_time = time.time()  # Start the timer
     os.makedirs(output_dir, exist_ok=True)
     project = rf_instance.workspace().project(model_endpoint)
