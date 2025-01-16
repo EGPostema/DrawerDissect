@@ -25,8 +25,7 @@ def censor_background(specimens_dir, mask_dir, masked_specs_dir, measurements_cs
     # Read measurements CSV and filter valid rows
     df = pd.read_csv(measurements_csv)
     valid_specimens = df[
-        (df['mask_OK'] == 'Y') & 
-        (df['missing_size'] == 'N') & 
+        (df['mask_OK'] == 'Y') &  
         (df['bad_size'] == 'N')
     ]['full_id'].tolist()
     
