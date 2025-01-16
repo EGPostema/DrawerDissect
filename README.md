@@ -381,6 +381,6 @@ python process_images.py all
 
 ---
 
-## 📋 Outputs and Tips
+## 📋 Troubleshooting
 
 ❗ [coming soon]
