@@ -39,23 +39,18 @@ class TranscriptionConfig:
 class ImageTranscriber:
     def __init__(self, api_key: str, max_retries: int = 7, retry_delay: float = 5.0):
         self.client = Anthropic(api_key=api_key)
-        self.setup_logging()
+        self.SONNET_RATE = 0.00025
         self.max_retries = max_retries
         self.retry_delay = retry_delay
         self.semaphore = asyncio.Semaphore(1)
-
-    def setup_logging(self):
-        os.makedirs('logs', exist_ok=True)
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        logging.basicConfig(
-            level=logging.INFO,
-            format='%(asctime)s - %(levelname)s - %(message)s',
-            handlers=[
-                logging.FileHandler(f'logs/transcription_{timestamp}.log'),
-                logging.StreamHandler()
-            ]
-        )
+        
+        # Suppress verbose logs from external libraries
+        logging.getLogger('anthropic').setLevel(logging.WARNING)
+        logging.getLogger('httpx').setLevel(logging.WARNING)
+        
+        # Setup basic logging for our application
         self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
 
     def find_images(self, folder_path: str, suffix: str) -> List[str]:
         if not os.path.exists(folder_path):
