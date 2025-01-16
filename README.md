@@ -171,7 +171,8 @@ This will:
 
 **Binary Masks** ✏️
 
-<img width="670" alt="Screenshot 2025-01-15 at 10 02 32 AM" src="https://github.com/user-attachments/assets/d6dee632-4383-49d2-bada-9dff7646ba42" />
+<img width="670" alt="Screenshot 2025-01-15 at 8 49 05 PM" src="https://github.com/user-attachments/assets/0752cad1-a299-4dff-9e8c-5e19fcff20cb" />
+
 
 **Specimen Transparencies** 📷
 
