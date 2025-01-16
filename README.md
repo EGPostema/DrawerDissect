@@ -75,6 +75,10 @@ Your path will depend on where the repository was downloaded to.
    pip install pandas numpy Pillow opencv-python matplotlib roboflow anthropic aiofiles
    ```
 
+### Custom Pipelines / Calling Individual Steps
+
+[See: Advanced Options](https://github.com/EGPostema/DrawerDissect?tab=readme-ov-file#-advanced-options)
+
 ---
 
 ## 🧪 Process Test Image
