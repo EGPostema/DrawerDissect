@@ -206,8 +206,6 @@ Your path will depend on where the repository was downloaded to.
    - Place drawer images in the `drawers/fullsize` folder.
    - JPG format only ❗ [may support other formats in future]
    - A consistent drawer naming scheme is helpful for keeping things organized.
-  
-[example image here]
 
 2. **Adjust Unit Tray Settings (if needed):**
     - Standard FMNH drawers contain **unit trays** with labels (see below)
@@ -241,8 +239,6 @@ Your path will depend on where the repository was downloaded to.
   TRANSCRIBE_BARCODES = 'N'
   TRANSCRIBE_TAXONOMY = 'N'
   ```
-
-  Also see: [Example 3: No Unit Tray Labels](https://github.com/EGPostema/DrawerDissect#example-3-no-unit-tray-labels)
   
 ### Step 2. Choose Your Model Approach
 
@@ -290,8 +286,8 @@ You have three options for processing images:
 
   ❗ **Script not working? Check that you have...**
   - [x] Cloned or downloaded the repository
-  - [x] Navigated to the `DrawerDissect` directory
-  - [x] Created a virtual environment with the required packages
+  - [x] Navigated to the `DrawerDissect` directory in a command-line program
+  - [x] Created and activated a virtual environment with the required packages
   - [x] Decided on a model approach 
   - [x] Edited (and saved) `process_images.py` accordingly
 
@@ -348,31 +344,19 @@ If you have a set of **individual specimen photos** you want masked, measured, a
 python process_images.py infer_beetles create_masks fix_mask process_and_measure_images censor_background infer_pins create_pinmask create_transparency transcribe_images
 ```
 
-#### Example 2: No Label Reconstruction
+#### Example 2: Specimen Detection and Cropping Only
 
-If you have existing metadata for your specimens or simply don't want to reconstruct labels:
+For simply detecting and cropping individual specimens from images.
 
-1. Add your whole-drawer image(s) to `drawers/fullsize` as usual
+1. Add image(s) with multiple specimens to `drawers/trays`
 2. [Modify process_images.py with your API keys](#step-2-choose-your-model-approach)
-3. Run the command:
+4. Run the command:
 
 ```sh
-python process_images.py resize_drawers process_metadata infer_drawers crop_trays resize_trays infer_labels crop_labels infer_trays crop_specimens infer_beetles create_masks fix_mask process_and_measure_images censor_background infer_pins create_pinmask create_transparency process_barcodes transcribe_taxonomy
+python process_images.py infer_trays crop_specimens
 ```
 
-#### Example 3: No Unit Tray Labels
-
-If your unit trays do not have **visible labels**:
-
-1. Add your whole-drawer image(s) to `drawers/fullsize` as usual
-2. [Modify process_images.py with your API keys](#step-2-choose-your-model-approach)
-3. Run the command:
-
-```sh
-python process_images.py resize_drawers process_metadata infer_drawers crop_trays resize_trays infer_trays crop_specimens infer_beetles create_masks fix_mask process_and_measure_images censor_background infer_pins create_pinmask create_transparency
-```
-
-#### Example 4: FMNH Only - Get Pixel:MM Ratios from GIGAMacro Metadata
+#### Example 3: FMNH Only - Get Pixel:MM Ratios from GIGAMacro Metadata
 
 If you are capturing whole drawers with a GIGAMacro Magnify2 system:
 
@@ -388,7 +372,7 @@ PROCESS_METADATA = 'Y'
 
 5. Run the command:
 ```sh
-python process_images.py
+python process_images.py all
 ```
 
 ---
