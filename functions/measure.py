@@ -2,100 +2,132 @@ import os
 import cv2
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 from concurrent.futures import ThreadPoolExecutor
 import logging
 
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 logger = logging.getLogger(__name__)
 
-def process_mask(mask_path, output_visual_path):
+def get_max_length(contour):
+    """
+    Find the maximum length across the contour and return both the length
+    and the endpoints of the maximum length line.
+    """
+    hull = cv2.convexHull(contour)
+    max_distance = 0
+    max_points = None
+
+    # Convert hull to point array
+    hull_points = hull.reshape(-1, 2)
+
+    # Find the farthest points
+    for i in range(len(hull_points)):
+        for j in range(i + 1, len(hull_points)):
+            dist = np.sqrt(np.sum((hull_points[i] - hull_points[j]) ** 2))
+            if dist > max_distance:
+                max_distance = dist
+                max_points = (hull_points[i], hull_points[j])
+
+    return max_distance, max_points
+
+def process_mask(mask_path):
+    """
+    Process a mask and calculate the measurements (longest dimension and area).
+    """
     try:
+        logger.info(f"Processing mask: {mask_path}")
         mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
         if mask is None:
             logger.error(f"Could not read mask: {mask_path}")
             return None, None
-            
+
+        # Ensure mask is binary
+        _, mask = cv2.threshold(mask, 127, 255, cv2.THRESH_BINARY)
+
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         if not contours:
+            logger.warning(f"No contours found in {mask_path}")
             return None, None
-            
+
         contour = max(contours, key=cv2.contourArea)
-        rect = cv2.minAreaRect(contour)
-        box = cv2.boxPoints(rect)
         area_px = cv2.contourArea(contour)
-        
-        fig, ax = plt.subplots(figsize=(6, 6))
-        ax.imshow(mask, cmap="gray")
-        ax.plot(contour[:, 0, 0], contour[:, 0, 1], 'b-', label="Contour")
-        ax.plot(np.append(box[:, 0], box[0, 0]), 
-               np.append(box[:, 1], box[0, 1]), 'g--', 
-               label=f"Length: {max(rect[1]):.1f}px")
-        ax.legend(bbox_to_anchor=(0.5, -0.1), loc='upper center')
-        ax.set_title(f"Area: {area_px:.0f}px²")
-        ax.grid(True)
-        
-        os.makedirs(os.path.dirname(output_visual_path), exist_ok=True)
-        plt.savefig(output_visual_path, bbox_inches="tight", dpi=150)
-        plt.close(fig)
-        
-        return max(rect[1]), area_px
-        
+
+        # Get maximum length and endpoints
+        longest_px, endpoints = get_max_length(contour)
+
+        return longest_px, area_px
     except Exception as e:
         logger.error(f"Error processing {os.path.basename(mask_path)}: {e}")
-        plt.close('all')
         return None, None
 
-def generate_csv_with_visuals_and_measurements(input_dir, mask_dir, sizeratios_path, output_dir):
+def generate_csv_with_measurements(mask_dir, sizeratios_path, output_dir, csv_filename='measurements.csv'):
+    """
+    Generate or update a CSV file of measurements for all valid masks.
+    Skip already processed images and append data for new ones.
+    """
     try:
-        os.makedirs(output_dir, exist_ok=True)
-        output_visual_dir = os.path.join(output_dir, 'visuals')
-        os.makedirs(output_visual_dir, exist_ok=True)
+        # Ensure the output file path is valid
+        csv_path = os.path.join(output_dir, csv_filename)
 
-        # Initialize sizeratios_map based on whether metadata is available
-        if sizeratios_path and os.path.exists(sizeratios_path):
+        # Load existing measurements if the CSV exists
+        if os.path.exists(csv_path):
+            existing_df = pd.read_csv(csv_path)
+            processed_ids = set(existing_df['full_id'])
+            logger.info(f"Loaded {len(processed_ids)} already processed images from CSV.")
+        else:
+            existing_df = pd.DataFrame()
+            processed_ids = set()
+            logger.info(f"No existing CSV found. Starting fresh.")
+
+        # Initialize sizeratios_map based on metadata availability
+        sizeratios_map = {}
+        if sizeratios_path and os.path.isfile(sizeratios_path):
             sizeratios_df = pd.read_csv(sizeratios_path)
             sizeratios_map = sizeratios_df.set_index('drawer_id')['px_mm_ratio'].to_dict()
+            logger.info(f"Loaded size ratios for {len(sizeratios_map)} drawers.")
         else:
-            sizeratios_map = {}
             logger.info("No size ratios metadata available. Measurements will be in pixels only.")
 
         file_info = []
-        for root, _, files in os.walk(input_dir):
+        for root, _, files in os.walk(mask_dir):
             for f in files:
-                if f.endswith('.jpg') and 'checkpoint' not in f:
-                    full_id = f.replace('.jpg', '')
+                if f.endswith('.png'):
+                    mask_path = os.path.join(root, f)
+                    full_id = f.replace('.png', '')
+                    if full_id in processed_ids:
+                        logger.info(f"Skipping already processed image: {full_id}")
+                        continue
+
+                    # Extract drawer_id and tray_id
                     drawer_id = full_id.split('_tray_')[0]
-                    tray_id = '_spec_'.join(full_id.split('_spec_')[0].split('_tray_'))
-                    
-                    mask_path = os.path.join(mask_dir, drawer_id, tray_id, f"{full_id}.png")
+                    tray_id = full_id.split('_spec')[0]
+
                     file_info.append({
                         'spec_filename': f,
                         'full_id': full_id,
                         'drawer_id': drawer_id,
                         'tray_id': tray_id,
-                        'mask_OK': 'Y' if os.path.exists(mask_path) else 'N',
-                        'px_mm_ratio': sizeratios_map.get(drawer_id)
+                        'mask_OK': 'Y',
+                        'px_mm_ratio': sizeratios_map.get(drawer_id),
+                        'mask_path': mask_path
                     })
 
         df = pd.DataFrame(file_info)
-        df['longest_px'] = pd.NA
-        df['area_px'] = pd.NA
-        
-        # Only create mm columns if we have metadata
-        if sizeratios_map:
-            df['spec_length_mm'] = pd.NA
-            df['spec_area_mm2'] = pd.NA
 
+        # Ensure required columns are present, even if DataFrame is empty
+        required_columns = ['full_id', 'drawer_id', 'tray_id', 'spec_length_mm',
+                          'spec_area_mm2', 'longest_px', 'area_px', 'px_mm_ratio', 
+                          'mask_OK', 'bad_size']
+        for col in required_columns:
+            if col not in df.columns:
+                df[col] = pd.NA
+
+        # Process masks with ThreadPoolExecutor
         with ThreadPoolExecutor() as executor:
             futures = []
             for _, row in df.iterrows():
-                if row['mask_OK'] == 'Y':
-                    mask_path = os.path.join(mask_dir, row['drawer_id'], row['tray_id'], f"{row['full_id']}.png")
-                    visual_path = os.path.join(output_visual_dir, row['drawer_id'], row['tray_id'])
-                    os.makedirs(visual_path, exist_ok=True)
-                    visual_path = os.path.join(visual_path, f"{row['full_id']}_measured.png")
-                    futures.append((row['full_id'], executor.submit(process_mask, mask_path, visual_path)))
+                mask_path = row['mask_path']
+                futures.append((row['full_id'], executor.submit(process_mask, mask_path)))
 
             for full_id, future in futures:
                 try:
@@ -105,35 +137,35 @@ def generate_csv_with_visuals_and_measurements(input_dir, mask_dir, sizeratios_p
                         df.at[idx, 'longest_px'] = longest_px
                         df.at[idx, 'area_px'] = area_px
                         
+                        # Add bad_size flag based on longest_px
+                        df.at[idx, 'bad_size'] = 'Y' if longest_px < 50 else 'N'
+
                         # Only calculate mm measurements if we have the ratio
                         ratio = df.at[idx, 'px_mm_ratio']
-                        if ratio and sizeratios_map:
+                        if ratio:
                             df.at[idx, 'spec_length_mm'] = longest_px / ratio
                             df.at[idx, 'spec_area_mm2'] = area_px / (ratio ** 2)
                 except Exception as e:
                     logger.error(f"Error processing {full_id}: {e}")
 
-        # Only add size-related columns if we have metadata
-        if sizeratios_map:
-            df['bad_size'] = df['spec_length_mm'].apply(lambda x: 'Y' if pd.notna(x) and x <= 5 else 'N')
-            df['missing_size'] = df.apply(
-                lambda row: 'Y' if row['mask_OK'] == 'Y' and pd.isna(row.get('spec_length_mm')) else 'N', 
-                axis=1
-            )
-            cols = ['full_id', 'drawer_id', 'tray_id', 'spec_length_mm', 'spec_area_mm2',
-                    'longest_px', 'area_px', 'px_mm_ratio', 'mask_OK', 'missing_size', 'bad_size']
-        else:
-            # If no metadata, only include pixel measurements
-            cols = ['full_id', 'drawer_id', 'tray_id', 'longest_px', 'area_px', 'mask_OK']
-        
-        df[cols].to_csv(os.path.join(output_dir, 'measurements.csv'), index=False)
-        plt.close('all')
-        return True
+        # Concatenate new data with existing data
+        cols = ['full_id', 'drawer_id', 'tray_id', 'spec_length_mm', 'spec_area_mm2',
+                'longest_px', 'area_px', 'px_mm_ratio', 'mask_OK', 'bad_size']
 
+        new_df = df[cols]
+        if not existing_df.empty:
+            # Add bad_size column to existing data if it doesn't exist
+            if 'bad_size' not in existing_df.columns:
+                existing_df['bad_size'] = existing_df['longest_px'].apply(
+                    lambda x: 'Y' if x < 50 else 'N')
+            updated_df = pd.concat([existing_df, new_df], ignore_index=True)
+        else:
+            updated_df = new_df
+
+        updated_df.to_csv(csv_path, index=False)
+        logger.info(f"Updated measurements saved to: {csv_path}")
     except Exception as e:
         logger.error(f"Error generating measurements: {e}")
-        plt.close('all')
-        return False
 
 
 
