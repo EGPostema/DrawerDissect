@@ -95,8 +95,7 @@ Your path will depend on where the repository was downloaded to.
 
 ### Step 1: Download the Test Image
 
-[Download test image](https://drive.google.com/drive/folders/1NHV9MSR-sjmAW43KlyPfSB9Xr5ZTvJFt?usp=drive_link)
-- ❗ The test image is large and may take some time to download/move
+[Download test image here!](https://drive.google.com/drive/folders/1NHV9MSR-sjmAW43KlyPfSB9Xr5ZTvJFt?usp=drive_link)
 
 Place the image in `drawers/fullsize`
 
