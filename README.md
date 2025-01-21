@@ -172,7 +172,7 @@ This will:
 
 <img width="678" alt="Screenshot 2025-01-14 at 4 37 46 PM" src="https://github.com/user-attachments/assets/937673ef-f733-468b-b016-7b8b87998ec3" />
 
-📏 **Measurement CSV + 10 Size Visualizations**
+📏 **Measurement CSV + Sample Size Visualizations**
 
 <img width="660" alt="Screenshot 2025-01-21 at 3 19 56 PM" src="https://github.com/user-attachments/assets/f3c354d3-8fd6-4990-9f3f-c4d8197d0380" />
 
