@@ -172,7 +172,11 @@ This will:
 
 <img width="678" alt="Screenshot 2025-01-14 at 4 37 46 PM" src="https://github.com/user-attachments/assets/937673ef-f733-468b-b016-7b8b87998ec3" />
 
-✏️ **Binary Masks**
+📏 **Measurement CSV + 10 Size Visualizations**
+
+<img width="660" alt="Screenshot 2025-01-21 at 3 19 56 PM" src="https://github.com/user-attachments/assets/f3c354d3-8fd6-4990-9f3f-c4d8197d0380" />
+
+🏁 **Binary Masks**
 
 <img width="670" alt="Screenshot 2025-01-15 at 8 49 05 PM" src="https://github.com/user-attachments/assets/0752cad1-a299-4dff-9e8c-5e19fcff20cb" />
 
@@ -187,7 +191,7 @@ This will:
 <ins>Dataset Fields:</ins>
    - Drawer, Tray, and Specimen-level IDs and filenames
    - Tray-level label text (barcode, taxonomy)
-   - Specimen length and area, in mm/mm2
+   - Specimen length1/length2 and area (in pixels & mm)
    - Mask/measurement checks
    - Specimen-level location reconstructions, with confidence notes
 
