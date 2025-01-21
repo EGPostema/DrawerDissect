@@ -18,6 +18,7 @@ from functions.infer_beetles import infer_beetles
 from functions.create_masks import create_masks
 from functions.multipolygon_fixer import fix_mask
 from functions.measure import generate_csv_with_measurements
+from functions.measure import visualize_measurements
 from functions.censor_background import censor_background
 from functions.infer_pins import infer_pins
 from functions.create_pinmask import create_pinmask
@@ -210,13 +211,22 @@ def run_step(step, directories, args, rf_instance, workspace_instance):
     elif step == 'process_and_measure_images':
         sizeratios_path = os.path.join(directories['metadata'], 'sizeratios.csv')
         metadata_file = sizeratios_path if PROCESS_METADATA == 'Y' else None
-        
+
+        # Generate measurements and save CSV
         generate_csv_with_measurements(
             directories['mask_png'],
             metadata_file,
             directories['measurements']
         )
-        print(f"Measurements and visuals saved in {directories['measurements']}")
+
+        # Visualize measurements for the first 10 rows
+        csv_path = os.path.join(directories['measurements'], 'measurements.csv')
+        visualize_measurements(
+            csv_path,
+            directories['mask_png'],
+            directories['measurements']
+        )
+        print(f"Measurements and visuals saved in {directories['measurements']}"
 
     elif step == 'censor_background':
         censor_background(
