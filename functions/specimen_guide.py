@@ -12,26 +12,24 @@ def create_guide(args):
     
     # Parse filename components
     base_name = resized_filename.replace('_1000.jpg', '')
-    drawer_name = '_'.join(base_name.split('_')[:-2])
-    tray_num = base_name.split('_')[-1]
     
-    # Get the relative subfolder path from root to maintain structure
+    # Find the relative path from the resized_trays_dir to the current file
     rel_path = os.path.relpath(root, resized_trays_dir)
     if rel_path == '.':
         rel_path = ''
         
-    # Setup paths preserving subfolder structure
-    original_path = os.path.join(trays_dir, drawer_name, f"{base_name}.jpg")
+    # Use the relative path from trays_dir to find the original image
+    tray_image_path = os.path.join(trays_dir, rel_path, f"{base_name}.jpg")
     json_path = os.path.join(resized_trays_dir, 'coordinates', rel_path, f"{base_name}_1000.json")
     
-    if not os.path.exists(json_path) or not os.path.exists(original_path):
+    if not os.path.exists(json_path) or not os.path.exists(tray_image_path):
         print(f"Looking for JSON at: {json_path}")
-        print(f"Looking for original at: {original_path}")
+        print(f"Looking for original at: {tray_image_path}")
         return f"Skipped {base_name}: Missing required files"
 
-    # Create guides directory structure matching the input structure
-    drawer_guide_dir = os.path.join(guides_dir, drawer_name)
-    os.makedirs(drawer_guide_dir, exist_ok=True)
+    # Create the same directory structure in guides as in trays
+    guide_output_dir = os.path.join(guides_dir, rel_path)
+    os.makedirs(guide_output_dir, exist_ok=True)
     
     try:
         # Load and parse JSON
@@ -60,7 +58,7 @@ def create_guide(args):
             sorted_annotations.extend(sorted(current_row, key=lambda a: a['x']))
         
         # Open and process the image
-        with Image.open(original_path) as img:
+        with Image.open(tray_image_path) as img:
             # Create a copy to draw on
             guide_img = img.copy()
             draw = ImageDraw.Draw(guide_img)
@@ -128,11 +126,11 @@ def create_guide(args):
                     font=font
                 )
             
-            # Save the guide image
-            output_path = os.path.join(drawer_guide_dir, f"{base_name}_guide.jpg")
+            # Save the guide image in the same relative path as the original
+            output_path = os.path.join(guide_output_dir, f"{base_name}_guide.jpg")
             guide_img.save(output_path, quality=95)
             
-            return f"Created guide for {base_name}"
+            return f"Created guide for {base_name} in {guide_output_dir}"
             
     except Exception as e:
         return f"Failed {base_name}: {str(e)}"
