@@ -15,15 +15,23 @@ def create_guide(args):
     drawer_name = '_'.join(base_name.split('_')[:-2])
     tray_num = base_name.split('_')[-1]
     
-    # Setup paths
+    # Get the relative subfolder path from root to maintain structure
+    rel_path = os.path.relpath(root, resized_trays_dir)
+    if rel_path == '.':
+        rel_path = ''
+        
+    # Setup paths preserving subfolder structure
     original_path = os.path.join(trays_dir, drawer_name, f"{base_name}.jpg")
-    json_path = os.path.join(resized_trays_dir, 'coordinates', f"{base_name}_1000.json")
+    json_path = os.path.join(resized_trays_dir, 'coordinates', rel_path, f"{base_name}_1000.json")
     
     if not os.path.exists(json_path) or not os.path.exists(original_path):
+        print(f"Looking for JSON at: {json_path}")
+        print(f"Looking for original at: {original_path}")
         return f"Skipped {base_name}: Missing required files"
 
-    # Create guides directory if it doesn't exist
-    os.makedirs(guides_dir, exist_ok=True)
+    # Create guides directory structure matching the input structure
+    drawer_guide_dir = os.path.join(guides_dir, drawer_name)
+    os.makedirs(drawer_guide_dir, exist_ok=True)
     
     try:
         # Load and parse JSON
@@ -121,7 +129,7 @@ def create_guide(args):
                 )
             
             # Save the guide image
-            output_path = os.path.join(guides_dir, f"{base_name}_guide.jpg")
+            output_path = os.path.join(drawer_guide_dir, f"{base_name}_guide.jpg")
             guide_img.save(output_path, quality=95)
             
             return f"Created guide for {base_name}"
@@ -129,14 +137,16 @@ def create_guide(args):
     except Exception as e:
         return f"Failed {base_name}: {str(e)}"
 
-def create_tray_guides(trays_dir, resized_trays_dir, guides_dir):
+def create_specimen_guides(trays_dir, resized_trays_dir, guides_dir):
     """
     Create visual guides for all trays showing specimen numbers.
+    Traverses through nested folders to find and process all tray images.
     
     Args:
         trays_dir (str): Directory containing original tray images
         resized_trays_dir (str): Directory containing resized images and coordinates
         guides_dir (str): Directory where guide images will be saved
+
     """
     start_time = time.time()
     
