@@ -214,20 +214,22 @@ Your path will depend on where the repository was downloaded to.
    - JPG format only ❗ [may support other formats in future]
    - A consistent drawer naming scheme is helpful for keeping things organized.
 
-2. **Adjust Unit Tray Settings (if needed):**
+2. **Adjust Settings for Your Drawer Configuration (if needed):**
     - Standard FMNH drawers contain **unit trays** with labels (see below)
-    - All specimens in a tray share a:
-      - **barcode**
-      - **qr code**
-      - **geocode**
-      - **taxonomic ID**
     - By default, DrawerDissect crops and transcribes:
       - **barcodes**
       - **taxonomic IDs**
 
 <img width="800" alt="Screenshot 2024-12-16 at 3 44 59 PM" src="https://github.com/user-attachments/assets/387e6413-375f-401a-a258-ffb46f6286e4" />
 
-  **For different drawer setups, simply adjust the toggles in `process_images.py`:**
+  **For different drawer setups, simply adjust `process_images.py`:**
+
+  **<ins>Default, barcodes and taxonomy:</ins>**
+
+  ```python
+  TRANSCRIBE_BARCODES = 'Y' #default setting
+  TRANSCRIBE_TAXONOMY = 'Y' #default setting
+  ```
 
   **<ins>Trays with barcodes only:</ins>**
   ```python
@@ -241,10 +243,17 @@ Your path will depend on where the repository was downloaded to.
   TRANSCRIBE_TAXONOMY = 'Y'
   ```
 
-  **<ins>Trays with no header labels:</ins>**
+  **<ins>Trays with NO LABELS:</ins>**
   ```python
   TRANSCRIBE_BARCODES = 'N'
   TRANSCRIBE_TAXONOMY = 'N'
+  ```
+  
+  Additionally, switch the trayfinder model:
+  
+  ```python
+   DRAWER_MODEL_ENDPOINT = 'trayfinder-base' #switch from trayfinder-labeled to trayfinder-base
+   DRAWER_MODEL_VERSION = 1 
   ```
   
 ### Step 2. Choose Your Model Approach
@@ -266,13 +275,29 @@ You have three options for processing images:
     API_KEY = 'YOUR_ROBOFLOW_API_HERE'
     ```
 
-2. **Create Your Own Roboflow Models** ❗ [coming soon]
+    **All FMNH Models (⭐ = pipeline default)**
 
-    - Link to roboflow documentation. 
-    - Make sure that key models are present (3 obj detection, 2 segmentation) + an OCR method.
-    - Requires Roboflow & Anthropic APIs as-is
+   | Model Name            | Description   | Current Version   |
+   | --------------------- | ------------- | ----------------- |
+   | trayfinder-base | detects trays in drawers  | 1 |
+   | ⭐ trayfinder-labels  | detects trays (with tray labels) in drawers  | 17 |
+   | ⭐ labelfinder  | detects tray label components  | 5 |
+   | ⭐ bugfinder-kdn9e | detects specimens  | 9 |
+   | ⭐ bugmasker-base | outlines specimen bodies (not taxon specific)  | 9 |
+   | bugmasker-tigerbeetle | outlines specimen bodies (specialized for tiger beetles)  | 11 |
+   | bugmasker-pimeliinae | outlines specimen bodies (specialized for fog-basking beetles )  | 1 |
+   | ⭐ pinmasker | outlines specimen pins | 5 |
 
-3. **Build Custom Models Using Our Training Data** ❗ [coming soon]
+   Table is up-to-date as of: **1/24/2025**
+   
+3. **Create Your Own Roboflow Models** ❗ [coming soon]
+
+    - Input API keys
+    - Change workspace
+    - Change models/versions
+    - Updates scripts to account for any changes in classes etc.
+
+4. **Build Custom Models Using Our Training Data** ❗ [coming soon]
 
     - Access our training data and annotations through Google Drive to build your own models. 
     - Can also recommend other open-source methods for OCR
