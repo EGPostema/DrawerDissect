@@ -284,8 +284,8 @@ You have three options for processing images:
    | ⭐ labelfinder  | detects tray label components  | 5 |
    | ⭐ bugfinder-kdn9e | detects specimens  | 9 |
    | ⭐ bugmasker-base | outlines specimen bodies (not taxon specific)  | 9 |
-   | bugmasker-tigerbeetle | outlines specimen bodies (specialized for tiger beetles)  | 11 |
-   | bugmasker-pimeliinae | outlines specimen bodies (specialized for fog-basking beetles )  | 1 |
+   | bugmasker-tigerbeetle | outlines specimen bodies (specailized)  | 11 |
+   | bugmasker-pimeliinae | outlines specimen bodies (specialized)  | 1 |
    | ⭐ pinmasker | outlines specimen pins | 5 |
 
    Table is up-to-date as of: **1/24/2025**
