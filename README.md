@@ -14,7 +14,7 @@ DrawerDissect is ideal for digitizing large volumes of preserved insects, partic
 - 🌈  Masked specimens (ImageJ compatible)
 - 🌎  Broad geolocation + specimen-level location (when visible)
 
-<img width="1351" alt="Screenshot 2025-01-29 at 4 09 29 PM" src="https://github.com/user-attachments/assets/f9e60c09-400b-413a-bb4b-7f3445439502" />
+<img width="1000" alt="Screenshot 2025-01-29 at 4 12 05 PM" src="https://github.com/user-attachments/assets/2568c5af-a22b-42b3-b0c5-e070b9995db8" />
 
 ---
 
