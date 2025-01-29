@@ -49,7 +49,8 @@ DrawerDissect is ideal for digitizing large volumes of preserved insects, partic
   ```bash
   cd /path/to/DrawerDissect #replace with your path
   ```
-Your path will depend on where the repository was downloaded to.
+
+   Your path will depend on where the repository was downloaded to.
 
 3. **Set up a Virtual Environment:**
 
