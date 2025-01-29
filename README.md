@@ -211,7 +211,7 @@ Your path will depend on where the repository was downloaded to.
 
 1. **Input images:**
    - Place drawer images in the `drawers/fullsize` folder.
-   - JPG format only ❗ [may support other formats in future]
+   - JPG format only ❗ [currently updating code to work with tifs/pngs]
    - A consistent drawer naming scheme is helpful for keeping things organized.
 
 2. **Adjust Settings for Your Drawer Configuration (if needed):**
@@ -249,7 +249,7 @@ Your path will depend on where the repository was downloaded to.
   TRANSCRIBE_TAXONOMY = 'N'
   ```
   
-  Additionally, switch the trayfinder model:
+  Additionally, switch to non-label trayfinder model:
   
   ```python
    DRAWER_MODEL_ENDPOINT = 'trayfinder-base' #switch from trayfinder-labeled to trayfinder-base
@@ -260,49 +260,88 @@ Your path will depend on where the repository was downloaded to.
 
 You have three options for processing images:
 
-1. **Use Public FMNH Roboflow Models** (DEFAULT)
+---
 
-    - Model names/versions are pre-filled
-    - All toggles are set to default
-    - Only requires Roboflow & Anthropic API inputs
+#### 1️⃣ **Use Public FMNH Roboflow Models** (DEFAULT)
 
-    **Simply Input APIs in `process_images.py`:**
-  
-    ```sh
-    # Replace YOUR_API_HERE and YOUR_ROBOFLOW_API_HERE
-    
-    ANTHROPIC_KEY = 'YOUR_API_HERE'
-    API_KEY = 'YOUR_ROBOFLOW_API_HERE'
-    ```
+- Model names/versions are pre-filled  
+- All toggles are set to default  
+- Only requires Roboflow & Anthropic API inputs  
 
-    **All FMNH Models (⭐ = pipeline default)**
+##### **Simply Input APIs in `process_images.py`:**  
+```sh
+# Replace YOUR_API_HERE and YOUR_ROBOFLOW_API_HERE
 
-   | Model Name            | Description   | Current Version   |
-   | --------------------- | ------------- | ----------------- |
-   | trayfinder-base | detects trays in drawers  | 1 |
-   | ⭐ trayfinder-labels  | detects trays (with tray labels) in drawers  | 17 |
-   | ⭐ labelfinder  | detects tray label components  | 5 |
-   | ⭐ bugfinder-kdn9e | detects specimens  | 9 |
-   | ⭐ bugmasker-base | outlines specimen bodies (not taxon specific)  | 9 |
-   | bugmasker-tigerbeetle | outlines specimen bodies (specailized)  | 11 |
-   | bugmasker-pimeliinae | outlines specimen bodies (specialized)  | 1 |
-   | ⭐ pinmasker | outlines specimen pins | 5 |
+ANTHROPIC_KEY = 'YOUR_API_HERE'
+API_KEY = 'YOUR_ROBOFLOW_API_HERE'
+```
+
+**All FMNH Models (⭐ = default)**
+
+   | Model Name            | Description   | Current Version   | mAP |
+   | --------------------- | ------------- | ----------------- | --- |
+   | trayfinder-base | detects trays in drawers  | 1 | 99.5% |
+   | ⭐ trayfinder-labels  | detects trays (with tray labels) in drawers  | 17 | 99.5% |
+   | ⭐ labelfinder  | detects tray label components  | 5 | 98.1% |
+   | ⭐ bugfinder-kdn9e | detects specimens  | 9 | 86.8% |
+   | ⭐ bugmasker-base | outlines specimen bodies (not taxon specific)  | 9 | 97.5% |
+   | bugmasker-tigerbeetle | outlines specimen bodies (specailized)  | 11 | 98.1% |
+   | bugmasker-pimeliinae | outlines specimen bodies (specialized)  | 1 | 98.2% |
+   | ⭐ pinmasker | outlines specimen pins | 5 | 94.7% |
 
    Table is up-to-date as of: **1/24/2025**
    
-3. **Create Your Own Roboflow Models** ❗ [coming soon]
+#### 2️⃣ **Create Your Own Roboflow Models**
 
-    - Input API keys
-    - Change workspace
-    - Change models/versions
-    - Updates scripts to account for any changes in classes etc.
+You can integrate your own custom Roboflow models into DrawerDissect by:  
+- Creating a [Roboflow account](https://roboflow.com)  
+- Annotating and training models with your own images  
+- Editing `process_images.py`:  
 
-4. **Build Custom Models Using Our Training Data** ❗ [coming soon]
+```sh
+ANTHROPIC_KEY = 'YOUR_API_HERE' # replace with your Anthropic API key
+API_KEY = 'YOUR_ROBOFLOW_API_HERE' # replace with your Roboflow API key
+WORKSPACE = 'YOUR_WORKSPACE' # replace 'field-museum' with your workspace ID
 
-    - Access our training data and annotations through Google Drive to build your own models. 
-    - Can also recommend other open-source methods for OCR
-    - Processing script would have to be substantially modified
-    - List specific function scripts that would also need to be modified
+# Edit these model inputs:
+DRAWER_MODEL_ENDPOINT = 'your_model'  # replace with your desired object detection model
+DRAWER_MODEL_VERSION = 1  # add version number
+TRAY_MODEL_ENDPOINT = 'your_model'  # replace with your desired object detection model
+TRAY_MODEL_VERSION = 1  # add version number
+LABEL_MODEL_ENDPOINT = 'your_model'  # replace with your desired object detection model
+LABEL_MODEL_VERSION = 1  # add version number
+MASK_MODEL_ENDPOINT = 'your_model'  # replace with your desired segmentation model
+MASK_MODEL_VERSION = 1  # add version number
+PIN_MODEL_ENDPOINT = 'your_model'  # replace with your desired segmentation model
+PIN_MODEL_VERSION = 1  # add version number
+```
+
+---
+
+#### 3️⃣ **Use Open-Source Models with Our Training Data** ❗ [Coming Soon]
+
+Our pipeline currently relies on **Roboflow** (for object detection) and **Anthropic** (for text transcription), which require paid accounts. However, many **free, open-source** AI models exist for image processing and transcription. These often require a GPU but eliminate subscription costs. While we don’t yet support an easy toggle between methods, you’re welcome to modify our code to integrate open-source alternatives.
+
+##### 🔧 **What You’d Need to Modify**
+- **Roboflow-dependent scripts** (object detection & segmentation):
+  - `script`
+  - `script`
+  - `script`
+  - `script`
+  - `script`
+- **Anthropic-dependent scripts** (OCR/transcription):
+  - `script`
+  - `script`
+  - `script`
+- **Other adjustments**
+  - Our **cropping and mask-generation scripts** rely on Roboflow-generated `.json` files—these may need modifications for different output formats.
+  - **Main processing script**: `process_images.py`
+
+##### 📂 **Train Your Own Models with Our Data**
+- We provide **all FMNH model training data** for you to build custom models.
+- Access the data here: ❗ [COMING SOON]
+- **Data structure details**: ❗ [COMING SOON]
+
 
 ### Step 3. Run the Processing Script 
 
@@ -318,7 +357,7 @@ You have three options for processing images:
 
   ❗ **Script not working? Check that you have...**
   - [x] Cloned or downloaded the repository
-  - [x] Navigated to the `DrawerDissect` directory in a command-line program
+  - [x] Navigated to the `DrawerDissect` directory
   - [x] Created and activated a virtual environment with the required packages
   - [x] Decided on a model approach 
   - [x] Edited (and saved) `process_images.py` accordingly
