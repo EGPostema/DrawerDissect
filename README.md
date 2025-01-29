@@ -224,23 +224,11 @@ Your path will depend on where the repository was downloaded to.
 
   **For different drawer setups, simply adjust `process_images.py`:**
 
-  **<ins>Default, barcodes and taxonomy:</ins>**
+  **<ins>Trays with barcode AND/OR taxonomy:</ins>**
 
   ```python
-  TRANSCRIBE_BARCODES = 'Y' #default setting
-  TRANSCRIBE_TAXONOMY = 'Y' #default setting
-  ```
-
-  **<ins>Trays with barcodes only:</ins>**
-  ```python
-  TRANSCRIBE_BARCODES = 'Y'
-  TRANSCRIBE_TAXONOMY = 'N'
-  ```
-
-  **<ins>Trays with taxonomy only:</ins>**
-  ```python
-  TRANSCRIBE_BARCODES = 'N'
-  TRANSCRIBE_TAXONOMY = 'Y'
+  TRANSCRIBE_BARCODES = 'Y' #default setting, switch to 'N' if no barcodes
+  TRANSCRIBE_TAXONOMY = 'Y' #default setting, switch to 'N' if no taxonomy
   ```
 
   **<ins>Trays with NO LABELS:</ins>**
@@ -249,7 +237,7 @@ Your path will depend on where the repository was downloaded to.
   TRANSCRIBE_TAXONOMY = 'N'
   ```
   
-  Additionally, switch to non-label trayfinder model:
+  Additionally, for better performance, use the non-label trayfinder model:
   
   ```python
    DRAWER_MODEL_ENDPOINT = 'trayfinder-base' #switch from trayfinder-labeled to trayfinder-base
@@ -268,7 +256,7 @@ You have three options for processing images:
 - All toggles are set to default  
 - Only requires Roboflow & Anthropic API inputs  
 
-##### **Simply Input APIs in `process_images.py`:**  
+**Simply Input APIs in `process_images.py`:**  
 ```sh
 # Replace YOUR_API_HERE and YOUR_ROBOFLOW_API_HERE
 
@@ -320,7 +308,7 @@ PIN_MODEL_VERSION = 1  # add version number
 
 #### 3️⃣ **Use Open-Source Models with Our Training Data** ❗ [Coming Soon]
 
-Our pipeline currently relies on **Roboflow** (for object detection) and **Anthropic** (for text transcription), which require paid accounts. However, many **free, open-source** AI models exist for image processing and transcription. These often require a GPU but eliminate subscription costs. While we don’t yet support an easy toggle between methods, you’re welcome to modify our code to integrate open-source alternatives.
+Our pipeline currently relies on **Roboflow** (for object detection/segmentation) and **Anthropic** (for text transcription), which require paid accounts. However, many **free, open-source** AI models exist for image processing and transcription. These often require a GPU but eliminate subscription costs. While we don’t yet support an easy toggle between methods, you’re welcome to modify our code to integrate open-source alternatives.
 
 ##### 🔧 **What You’d Need to Modify**
 - **Roboflow-dependent scripts** (object detection & segmentation):
@@ -335,7 +323,27 @@ Our pipeline currently relies on **Roboflow** (for object detection) and **Anthr
   - `script`
 - **Other adjustments**
   - Our **cropping and mask-generation scripts** rely on Roboflow-generated `.json` files—these may need modifications for different output formats.
+  - Additional dependencies for configuring the python virtual env
   - **Main processing script**: `process_images.py`
+
+##### 🌎 **Possible Open-Source Alternatives**
+
+   | Model Type | Name | Could Replace... |
+   | ---------- | --- | ---------- |
+   | Detection | YOLOv8 | ROBOFLOW: trayfinder, labelfinder, bugfinder |
+   | Detection | Detectron2 | ROBOFLOW: trayfinder, labelfinder, bugfinder |
+   | Detection | mmdetection | ROBOFLOW: trayfinder, labelfinder, bugfinder |
+   | Detection | TensorFlow Object Detection API | ROBOFLOW: trayfinder, labelfinder, bugfinder |
+   | Detection | OpenCV DNN Module | ROBOFLOW: trayfinder, labelfinder, bugfinder |
+   | Segmentation | YOLOv8-seg | ROBOFLOW: bugmasker, pinmasker |
+   | Segmentation | Detectron2 | ROBOFLOW: bugmasker, pinmasker |
+   | Segmentation | DeepLabV3+ | ROBOFLOW: bugmasker, pinmasker |
+   | Segmentation | SAM (Segment Anything Model) | ROBOFLOW: bugmasker, pinmasker |
+   | Segmentation | OpenCV GrabCut | ROBOFLOW: bugmasker, pinmasker |
+   | Transcription (OCR) | TrOCR (Transformer OCR) | ANTHROPIC: steps that transcribe taxonomy/barcode |
+   | Transcription (OCR) | Tesseract OCR | ANTHROPIC: steps that transcribe taxonomy/barcode |
+   | Transcription (OCR) | EasyOCR | ANTHROPIC: steps that transcribe taxonomy/barcode |
+   | Large Language (LLM) | LLaVa | ANTHROPIC: steps that transcribe & reconstruct label locations |
 
 ##### 📂 **Train Your Own Models with Our Data**
 - We provide **all FMNH model training data** for you to build custom models.
