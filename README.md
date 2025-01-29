@@ -314,42 +314,33 @@ PIN_MODEL_VERSION = 1  # add version number
 
 Our pipeline currently relies on **Roboflow** (for object detection/segmentation) and **Anthropic** (for text transcription), which require paid accounts. However, many **free, open-source** AI models exist for image processing and transcription. While we don’t yet support an easy toggle between methods, you’re welcome to modify our code to integrate open-source alternatives!
 
-##### 🔧 **What You’d Need to Modify**
-**Roboflow-dependent scripts** (object detection & segmentation):
+**What You’d Need to Modify**
+
+<ins>Roboflow-dependent scripts (object detection & segmentation):</ins>
 
    `infer_drawers`, `infer_trays`, `infer_beetles`, `infer_labels`, `infer_pins`
    
-**Anthropic-dependent scripts** (OCR/transcription):
+<ins>Anthropic-dependent scripts** (OCR/transcription):</ins>
 
    `ocr_header`, `ocer_label`, `ocr_validation`
    
-**Other adjustments**
-  - Our **cropping and mask-generation scripts** rely on Roboflow-generated `.json` files
+<ins>Other adjustments</ins>
+  - Our cropping and mask-generation scripts rely on Roboflow-generated `.json` files
      - These may need modifications for different models' output formats.
   - There will likely be additional dependencies to install
   - Our **main processing script** `process_images.py` will need to be adjusted
 
-##### 🌎 **Possible Open-Source Alternatives**
+🌎 **Possible Open-Source Alternatives**
 
-   | Model Type | Name | Model it Could Replace... |
+   | Model Function | Possible Alternatives | Model it Could Replace... |
    | ---------- | --- | ---------- |
-   | Detection | YOLOv8 | ROBOFLOW: trayfinder, labelfinder, bugfinder |
-   | Detection | Detectron2 | ROBOFLOW: trayfinder, labelfinder, bugfinder |
-   | Detection | mmdetection | ROBOFLOW: trayfinder, labelfinder, bugfinder |
-   | Detection | TensorFlow Object Detection API | ROBOFLOW: trayfinder, labelfinder, bugfinder |
-   | Detection | OpenCV DNN Module | ROBOFLOW: trayfinder, labelfinder, bugfinder |
-   | Segmentation | YOLOv8-seg | ROBOFLOW: bugmasker, pinmasker |
-   | Segmentation | Detectron2 | ROBOFLOW: bugmasker, pinmasker |
-   | Segmentation | DeepLabV3+ | ROBOFLOW: bugmasker, pinmasker |
-   | Segmentation | SAM (Segment Anything Model) | ROBOFLOW: bugmasker, pinmasker |
-   | Segmentation | OpenCV GrabCut | ROBOFLOW: bugmasker, pinmasker |
-   | Transcription (OCR) | TrOCR (Transformer OCR) | ANTHROPIC: steps that transcribe taxonomy/barcode |
-   | Transcription (OCR) | Tesseract OCR | ANTHROPIC: steps that transcribe taxonomy/barcode |
-   | Transcription (OCR) | EasyOCR | ANTHROPIC: steps that transcribe taxonomy/barcode |
-   | Large Language (LLM) | LLaVa | ANTHROPIC: steps that transcribe & reconstruct label locations |
+   | Detection | YOLOv8, Detectron2, mmdetection, TensorFlow Object Detection, OpenCV DNN Module | ROBOFLOW: trayfinder, labelfinder, bugfinder |
+   | Segmentation | YOLOv8-seg, Detectron2, DeepLabV3+, SAM (Segment Anything Model), OpenCV GrabCut | ROBOFLOW: bugmasker, pinmasker |
+   | Tray Label Transcription | LLaVa, TrOCR (Transformer OCR), Tesseract OCR, EasyOCR | ANTHROPIC |
+   | Collection Location Reconstruction | LLaVa | ANTHROPIC |
 
-##### 📂 **Train Your Own Models with Our Data**
-- We provide **all FMNH model training data** for you to build custom models.
+
+**We provide all FMNH model training data to help you build custom OD/Seg. models!**
 - Access the data here: ❗ [COMING SOON]
 - Data structure details: ❗ [COMING SOON]
 
