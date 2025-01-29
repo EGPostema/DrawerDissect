@@ -311,21 +311,26 @@ PIN_MODEL_VERSION = 1  # add version number
 
 #### 3️⃣ **Use Open-Source Models with Our Training Data** ❗ [Coming Soon]
 
-Our pipeline currently relies on **Roboflow** (for object detection/segmentation) and **Anthropic** (for text transcription), which require paid accounts. However, many **free, open-source** AI models exist for image processing and transcription. These often require a GPU but eliminate subscription costs. While we don’t yet support an easy toggle between methods, you’re welcome to modify our code to integrate open-source alternatives.
+Our pipeline currently relies on **Roboflow** (for object detection/segmentation) and **Anthropic** (for text transcription), which require paid accounts. However, many **free, open-source** AI models exist for image processing and transcription. While we don’t yet support an easy toggle between methods, you’re welcome to modify our code to integrate open-source alternatives!
 
 ##### 🔧 **What You’d Need to Modify**
-- **Roboflow-dependent scripts** (object detection & segmentation):
-  - `infer_drawers`, `infer_trays`, `infer_beetles`, `infer_labels`, `infer_pins`
-- **Anthropic-dependent scripts** (OCR/transcription):
-  - `ocr_header`, `ocer_label`, `ocr_validation`
-- **Other adjustments**
-  - Our **cropping and mask-generation scripts** rely on Roboflow-generated `.json` files—these may need modifications for different output formats.
-  - Additional dependencies for configuring the python virtual env
-  - **Main processing script**: `process_images.py`
+**Roboflow-dependent scripts** (object detection & segmentation):
+
+   `infer_drawers`, `infer_trays`, `infer_beetles`, `infer_labels`, `infer_pins`
+   
+**Anthropic-dependent scripts** (OCR/transcription):
+
+   `ocr_header`, `ocer_label`, `ocr_validation`
+   
+**Other adjustments**
+  - Our **cropping and mask-generation scripts** rely on Roboflow-generated `.json` files
+     - These may need modifications for different models' output formats.
+  - There will likely be additional dependencies to install
+  - Our **main processing script** `process_images.py` will need to be adjusted
 
 ##### 🌎 **Possible Open-Source Alternatives**
 
-   | Model Type | Name | Could Replace... |
+   | Model Type | Name | Model it Could Replace... |
    | ---------- | --- | ---------- |
    | Detection | YOLOv8 | ROBOFLOW: trayfinder, labelfinder, bugfinder |
    | Detection | Detectron2 | ROBOFLOW: trayfinder, labelfinder, bugfinder |
