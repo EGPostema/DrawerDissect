@@ -250,7 +250,7 @@ You have three options for processing images:
 
 ---
 
-#### 1️⃣ **Use Public FMNH Roboflow Models** (DEFAULT)
+#### 1️⃣ **Use Public FMNH Roboflow Models** (⭐ DEFAULT, RECOMMENDED)
 
 - Model names/versions are pre-filled  
 - All toggles are set to default  
