@@ -312,15 +312,9 @@ Our pipeline currently relies on **Roboflow** (for object detection/segmentation
 
 ##### 🔧 **What You’d Need to Modify**
 - **Roboflow-dependent scripts** (object detection & segmentation):
-  - `script`
-  - `script`
-  - `script`
-  - `script`
-  - `script`
+  - `infer_drawers`, `infer_trays`, `infer_beetles`, `infer_labels`, `infer_pins`
 - **Anthropic-dependent scripts** (OCR/transcription):
-  - `script`
-  - `script`
-  - `script`
+  - `ocr_header`, `ocer_label`, `ocr_validation`
 - **Other adjustments**
   - Our **cropping and mask-generation scripts** rely on Roboflow-generated `.json` files—these may need modifications for different output formats.
   - Additional dependencies for configuring the python virtual env
@@ -348,7 +342,7 @@ Our pipeline currently relies on **Roboflow** (for object detection/segmentation
 ##### 📂 **Train Your Own Models with Our Data**
 - We provide **all FMNH model training data** for you to build custom models.
 - Access the data here: ❗ [COMING SOON]
-- **Data structure details**: ❗ [COMING SOON]
+- Data structure details: ❗ [COMING SOON]
 
 
 ### Step 3. Run the Processing Script 
