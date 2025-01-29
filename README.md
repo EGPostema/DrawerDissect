@@ -304,6 +304,8 @@ PIN_MODEL_ENDPOINT = 'your_model'  # replace with your desired segmentation mode
 PIN_MODEL_VERSION = 1  # add version number
 ```
 
+[How to get your project ID / version in Roboflow](https://docs.roboflow.com/api-reference/workspace-and-project-ids)
+
 ---
 
 #### 3️⃣ **Use Open-Source Models with Our Training Data** ❗ [Coming Soon]
