@@ -320,7 +320,7 @@ Our pipeline currently relies on **Roboflow** (for object detection/segmentation
 
    `infer_drawers`, `infer_trays`, `infer_beetles`, `infer_labels`, `infer_pins`
    
-<ins>Anthropic-dependent scripts** (OCR/transcription):</ins>
+<ins>Anthropic-dependent scripts (OCR/transcription):</ins>
 
    `ocr_header`, `ocer_label`, `ocr_validation`
    
@@ -330,9 +330,9 @@ Our pipeline currently relies on **Roboflow** (for object detection/segmentation
   - There will likely be additional dependencies to install
   - Our **main processing script** `process_images.py` will need to be adjusted
 
-🌎 **Possible Open-Source Alternatives**
+**Possible Open-Source Alternatives**
 
-   | Model Function | Possible Alternatives | Model it Could Replace... |
+   | Model Function | Possible Alternatives | Model it Could Replace |
    | ---------- | --- | ---------- |
    | Detection | YOLOv8, Detectron2, mmdetection, TensorFlow Object Detection, OpenCV DNN Module | ROBOFLOW: trayfinder, labelfinder, bugfinder |
    | Segmentation | YOLOv8-seg, Detectron2, DeepLabV3+, SAM (Segment Anything Model), OpenCV GrabCut | ROBOFLOW: bugmasker, pinmasker |
