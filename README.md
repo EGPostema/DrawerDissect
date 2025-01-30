@@ -199,7 +199,7 @@ This will:
 
 ---
 
-## 📷 Processing Your Own Images
+## 📷 Process Your Own Images
 
 ### Step 0: Ensure you are in `DrawerDissect`
 
