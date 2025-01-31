@@ -142,11 +142,6 @@ Edit `process_images.py` to set specific models and toggles:
    PIPELINE_MODE = 'FMNH'
    ```
 
-**Your final edited script should look like this** (changes indicated with arrows):
-
-<img width="550" alt="Screenshot 2025-01-14 at 1 17 02 PM" src="https://github.com/user-attachments/assets/6d85767a-63b6-4609-8051-d88df7201890" />
-
-
 ### Step 4: Run the Script
 
 Execute the script:
@@ -217,8 +212,7 @@ Your path will depend on where the repository was downloaded to.
 
 1. **Input images:**
    - Place drawer images in the `drawers/fullsize` folder.
-   - JPG format only ❗ [currently updating code to work with tifs/pngs]
-   - A consistent drawer naming scheme is helpful for keeping things organized.
+   - Supported formats: tif/tiff, png, jpg/jpeg
 
 2. **Adjust Settings for Your Drawer Configuration (if needed):**
     - Standard FMNH drawers contain **unit trays** with labels (see below)
@@ -278,7 +272,7 @@ API_KEY = 'YOUR_ROBOFLOW_API_HERE'
    | ⭐ trayfinder-labels  | detects trays (with tray labels) in drawers  | 17 | 99.5% |
    | ⭐ labelfinder  | detects tray label components  | 5 | 98.1% |
    | ⭐ bugfinder-kdn9e | detects specimens  | 9 | 86.8% |
-   | ⭐ bugmasker-base | outlines specimen bodies (not taxon specific)  | 9 | 97.5% |
+   | ⭐ bugmasker-all | outlines specimen bodies (not taxon specific)  | 2 | 98.2% |
    | bugmasker-tigerbeetle | outlines specimen bodies (specailized)  | 11 | 98.1% |
    | bugmasker-pimeliinae | outlines specimen bodies (specialized)  | 1 | 98.2% |
    | ⭐ pinmasker | outlines specimen pins | 5 | 94.7% |
