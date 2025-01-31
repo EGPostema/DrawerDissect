@@ -14,6 +14,7 @@ from functions.infer_labels import infer_tray_labels
 from functions.crop_labels import crop_labels
 from functions.infer_trays import infer_tray_images
 from functions.crop_specimens import crop_specimens_from_trays
+from functions.specimen_guide import create_specimen_guides
 from functions.infer_beetles import infer_beetles
 from functions.create_masks import create_masks
 from functions.multipolygon_fixer import fix_mask
@@ -32,31 +33,28 @@ from functions.merge_data import merge_data
 base_dir = os.path.abspath(os.path.dirname(__file__))
 
 # User inputs for API keys **MAKE SURE TO MODIFY THIS!**
-ANTHROPIC_KEY = 'YOUR_API_HERE'
-API_KEY = 'YOUR_ROBOFLOW_API_HERE'
-WORKSPACE = 'field-museum'
+ANTHROPIC_KEY = 'ANTHROPIC_API_HERE'
+ROBOFLOW_KEY = 'ROBOFLOW_API_HERE'
 
 # Default FMNH roboflow models, up-to-date as of Jan-16-2025
-DRAWER_MODEL_ENDPOINT = 'trayfinder'
-DRAWER_MODEL_VERSION = 16 
-TRAY_MODEL_ENDPOINT = 'beetlefinder'
+WORKSPACE = 'field-museum'
+
+DRAWER_MODEL_ENDPOINT = 'trayfinder-labels'
+DRAWER_MODEL_VERSION = 17 
+TRAY_MODEL_ENDPOINT = 'bugfinder-kdn9e'
 TRAY_MODEL_VERSION = 9
 LABEL_MODEL_ENDPOINT = 'labelfinder'
 LABEL_MODEL_VERSION = 5
-MASK_MODEL_ENDPOINT = 'bugmasker-base'
+MASK_MODEL_ENDPOINT = 'bugmasker-all'
 MASK_MODEL_VERSION = 1
 PIN_MODEL_ENDPOINT = 'pinmasker'
 PIN_MODEL_VERSION = 5
 
-# Metadata toggle
+# Toggles
 PROCESS_METADATA = 'N'  # Default is N; set to Y for FMNH users with Gigamacro TXT files
-
-# Transcription toggles
 TRANSCRIBE_BARCODES = 'Y'  # Default is Y; set to N if your drawer images DON'T have trays with barcoded labels
 TRANSCRIBE_TAXONOMY = 'Y'  # Default is Y; set to N if your drawer images DON'T have trays seperated by taxon
-
-# Toggle Data-Merging Pipeline
-PIPELINE_MODE = 'Default' # For test FMNH image, use 'FMNH'
+PIPELINE_MODE = 'Default' # For the final data-merging pipeline; for test image, change to 'FMNH'
 
 # Define all directories
 directories = {
@@ -65,6 +63,7 @@ directories = {
     'resized': 'drawers/resized',
     'coordinates': 'drawers/resized/coordinates',
     'trays': 'drawers/trays',
+    'guides': 'drawers/guides',
     'resized_trays': 'drawers/resized_trays',
     'resized_trays_coordinates': 'drawers/resized_trays/coordinates',
     'label_coordinates': 'drawers/resized_trays/label_coordinates',
@@ -77,6 +76,7 @@ directories = {
     'pin_coordinates': 'drawers/masks/pin_coords',
     'full_masks': 'drawers/masks/full_masks',
     'transparencies': 'drawers/transparencies',
+    'whitebg_specimens': 'drawers/whitebg_specimens',
     'specimen_level': 'drawers/transcriptions/specimen_labels',
     'tray_level': 'drawers/transcriptions/tray_labels',
     'data': 'drawers/data'
@@ -92,7 +92,7 @@ for name, directory in directories.items():
 def get_roboflow_instance():
     if not hasattr(get_roboflow_instance, '_rf_instance'):
         print("Initializing Roboflow workspace (this should only happen once)")
-        get_roboflow_instance._rf_instance = roboflow.Roboflow(api_key=API_KEY)
+        get_roboflow_instance._rf_instance = roboflow.Roboflow(api_key=ROBOFLOW_KEY)
         get_roboflow_instance._workspace_instance = get_roboflow_instance._rf_instance.workspace(WORKSPACE)
     return get_roboflow_instance._rf_instance, get_roboflow_instance._workspace_instance
 
@@ -115,19 +115,19 @@ def run_step(step, directories, args, rf_instance, workspace_instance):
         else:
             print("Skipping metadata processing")
 
-    elif step == 'infer_drawers':
+    elif step == 'find_trays':
         infer_drawers(
             directories['resized'], 
             directories['coordinates'], 
             rf_instance,
-	    workspace_instance,  
+            workspace_instance, 
             DRAWER_MODEL_ENDPOINT, 
             DRAWER_MODEL_VERSION, 
             confidence=args.drawer_confidence, 
             overlap=args.drawer_overlap
         )
         print(f"Tray bounding boxes saved in {directories['coordinates']}")
-    
+
     elif step == 'crop_trays':
         crop_trays_from_fullsize(
             directories['fullsize'], 
@@ -137,21 +137,23 @@ def run_step(step, directories, args, rf_instance, workspace_instance):
         print(f"Cropped trays saved in {directories['trays']}")
     
     elif step == 'resize_trays':
-        resize_tray_images(directories['trays'], directories['resized_trays'])
+        resize_tray_images(directories['trays'], 
+        directories['resized_trays']
+        )
         print(f"Resized tray images saved in {directories['resized_trays']}")
 
-    elif step == 'infer_labels':
+    elif step == 'find_traylabels':
         infer_tray_labels(
             directories['resized_trays'], 
             directories['label_coordinates'], 
             rf_instance,
-	    workspace_instance, 
+            workspace_instance, 
             LABEL_MODEL_ENDPOINT, 
             LABEL_MODEL_VERSION, 
             confidence=args.label_confidence, 
             overlap=args.label_overlap
         )
-        print(f"Label bounding boxes for all trays saved in {directories['label_coordinates']}")
+        print(f"Tray label bounding boxes saved in {directories['label_coordinates']}")
 
     elif step == 'crop_labels':
         crop_labels(
@@ -162,19 +164,19 @@ def run_step(step, directories, args, rf_instance, workspace_instance):
         )
         print(f"Cropped labels saved in {directories['labels']}")
     
-    elif step == 'infer_trays':
+    elif step == 'find_specimens':
         infer_tray_images(
             directories['resized_trays'], 
             directories['resized_trays_coordinates'], 
             rf_instance,
-	    workspace_instance, 
+            workspace_instance, 
             TRAY_MODEL_ENDPOINT, 
             TRAY_MODEL_VERSION, 
             confidence=args.tray_confidence, 
             overlap=args.tray_overlap
         )
         print(f"Specimen bounding boxes for all trays saved in {directories['resized_trays_coordinates']}")
-    
+
     elif step == 'crop_specimens':
         crop_specimens_from_trays(
             directories['trays'], 
@@ -182,13 +184,21 @@ def run_step(step, directories, args, rf_instance, workspace_instance):
             directories['specimens']
         )
         print(f"Cropped specimens saved in {directories['specimens']}")
+
+    elif step == 'create_traymaps':
+        create_specimen_guides(
+            directories['trays'],
+            directories['resized_trays'],
+            directories['guides']
+        )
+        print(f"Specimen maps saved in {directories['guides']}")
     
-    elif step == 'infer_beetles':
+    elif step == 'outline_specimens':
         infer_beetles(
             directories['specimens'], 
             directories['mask_coordinates'], 
             rf_instance,
-	    workspace_instance, 
+            workspace_instance, 
             MASK_MODEL_ENDPOINT, 
             MASK_MODEL_VERSION, 
             confidence=args.beetle_confidence
@@ -202,13 +212,13 @@ def run_step(step, directories, args, rf_instance, workspace_instance):
         )
         print(f"Mask .png files saved in {directories['mask_png']}")
 
-    elif step == 'fix_mask':
+    elif step == 'fix_masks':
         fix_mask(
             directories['mask_png']
         )
-        print(f"Mask with duplicate polygons fixed and re-saved to {directories['mask_png']}")
+        print(f"Fixed masks saved in {directories['mask_png']}")
 
-    elif step == 'process_and_measure_images':
+    elif step == 'measure_specimens':
         sizeratios_path = os.path.join(directories['metadata'], 'sizeratios.csv')
         metadata_file = sizeratios_path if PROCESS_METADATA == 'Y' else None
 
@@ -219,15 +229,6 @@ def run_step(step, directories, args, rf_instance, workspace_instance):
             directories['measurements']
         )
 
-        # Visualize measurements for the first 10 rows
-        csv_path = os.path.join(directories['measurements'], 'measurements.csv')
-        visualize_measurements(
-            csv_path,
-            directories['mask_png'],
-            directories['measurements']
-        )
-        print(f"Measurements and visuals saved in {directories['measurements']}"
-
     elif step == 'censor_background':
         censor_background(
             directories['specimens'], 
@@ -237,18 +238,18 @@ def run_step(step, directories, args, rf_instance, workspace_instance):
         )
         print(f"Images with censored backgrounds saved in {directories['no_background']}")
         
-    elif step == 'infer_pins':
+    elif step == 'outline_pins':
         infer_pins(
             directories['no_background'], 
             directories['pin_coordinates'],
-            os.path.join(directories['measurements'], 'measurements.csv'),
+            os.path.join(directories['measurements'], 'measurements.csv'), 
             rf_instance,
-	    workspace_instance, 
+            workspace_instance, 
             PIN_MODEL_ENDPOINT, 
             PIN_MODEL_VERSION, 
             confidence=args.pin_confidence
         )
-        print(f"Pin mask coordinates saved in {directories['pin_coordinates']}")
+        print(f"Pin coordinates saved in {directories['pin_coordinates']}")
 
     elif step == 'create_pinmask':
         create_pinmask(
@@ -262,11 +263,12 @@ def run_step(step, directories, args, rf_instance, workspace_instance):
         create_transparency(
             directories['specimens'],
             directories['full_masks'],
-            directories['transparencies']
+            directories['transparencies'],
+            directories['whitebg_specimens']
         )
-        print(f"All specimen transparencies saved in {directories['transparencies']}")
+        print(f"All finished specimen photos saved in {directories['transparencies']} and {directories['whitebg_specimens']}")
 
-    elif step == 'transcribe_images':
+    elif step == 'transcribe_speclabels':
         asyncio.run(transcribe_images(
             directories['specimens'],
             os.path.join(directories['specimen_level'], 'location_frags.csv'),
@@ -274,7 +276,7 @@ def run_step(step, directories, args, rf_instance, workspace_instance):
         ))
         print(f"Label reconstruction completed. Results saved to {directories['specimen_level']}")
 
-    elif step == 'validate_transcription':
+    elif step == 'validate_speclabels':
         asyncio.run(validate_transcriptions(
             os.path.join(directories['specimen_level'], 'location_frags.csv'),
             os.path.join(directories['specimen_level'], 'location_checked.csv'),
@@ -282,7 +284,7 @@ def run_step(step, directories, args, rf_instance, workspace_instance):
         ))
         print(f"Location validation completed. Results saved to {directories['specimen_level']}/location_checked.csv")
 
-    elif step == 'process_barcodes':
+    elif step == 'transcribe_barcodes':
         if TRANSCRIBE_BARCODES == 'Y':
             asyncio.run(process_images(
                 directories['labels'],
@@ -293,7 +295,7 @@ def run_step(step, directories, args, rf_instance, workspace_instance):
             print(f"Barcode processing completed. Results saved to {directories['tray_level']}")
         else:
             print("Skipping barcode transcription as per configuration")
-    
+
     elif step == 'transcribe_taxonomy':
         if TRANSCRIBE_TAXONOMY == 'Y':
             asyncio.run(process_images(
@@ -328,11 +330,11 @@ def main():
     rf_instance, workspace_instance = get_roboflow_instance()
     
     all_steps = [
-        'resize_drawers', 'process_metadata', 'infer_drawers', 'crop_trays',
-        'resize_trays', 'infer_labels', 'crop_labels', 'infer_trays',
-        'crop_specimens', 'infer_beetles', 'create_masks', 'fix_mask',
-        'process_and_measure_images', 'censor_background', 'infer_pins',
-        'create_pinmask', 'create_transparency', 'transcribe_images', 'validate_transcription', 'process_barcodes', 
+        'resize_drawers', 'process_metadata', 'find_trays', 'crop_trays',
+        'resize_trays', 'find_traylabels', 'crop_labels', 'find_specimens',
+        'crop_specimens', 'create_traymaps', 'outline_specimens', 'create_masks', 'fix_masks',
+        'measure_specimens', 'censor_background', 'outline_pins',
+        'create_pinmask', 'create_transparency', 'transcribe_speclabels', 'validate_speclabels', 'transcribe_barcodes', 
         'transcribe_taxonomy', 'merge_data'
     ]
     
@@ -388,4 +390,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
