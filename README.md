@@ -25,7 +25,7 @@ DrawerDissect is ideal for digitizing large volumes of preserved insects, partic
 - [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) (not needed if downloading DrawerDissect directly)
 - [Roboflow account](https://roboflow.com) (for default script)
 - [Anthropic account](https://console.anthropic.com) (for default script)
-- Images! (tif, png, or jpg)
+- **Images: tif/tiff, png, jpg/jpeg**
 
 ### Installation
 
@@ -170,6 +170,10 @@ This will:
 
 <img width="666" alt="Screenshot 2025-01-14 at 4 22 16 PM" src="https://github.com/user-attachments/assets/8bb72f93-bea3-4eaf-b28f-2caa7ee06ce1" />
 
+🗺️ **Specimen Location Maps** 
+
+![image](https://github.com/user-attachments/assets/c2d29085-a1f3-4745-814b-9bcc85697a23)
+
 📷 **Individual Specimen Images** 
 
 <img width="678" alt="Screenshot 2025-01-14 at 4 37 46 PM" src="https://github.com/user-attachments/assets/937673ef-f733-468b-b016-7b8b87998ec3" />
@@ -182,7 +186,7 @@ This will:
 
 <img width="670" alt="Screenshot 2025-01-15 at 8 49 05 PM" src="https://github.com/user-attachments/assets/0752cad1-a299-4dff-9e8c-5e19fcff20cb" />
 
-📷 **Specimen Transparencies**
+📷 **Fully Masked Specimens (transparent & white background versiosn)**
 
 <img width="670" alt="Screenshot 2025-01-15 at 10 02 32 AM" src="https://github.com/user-attachments/assets/cdf044a5-e1e2-4cc7-beef-c113cd5cc276" />
 
