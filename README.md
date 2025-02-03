@@ -69,7 +69,7 @@ pip install pandas numpy Pillow opencv-python matplotlib roboflow anthropic aiof
 This file comes pre-filled and is in the main directory, `DrawerDissect`.
 
 #### 2. Update API Keys
-Modify `config.yaml`:
+Modify `config.yaml` with API keys - this is **required** for all object detection, segmentation, and transcription steps!
 ```yaml
 api_keys:
   anthropic: "YOUR_ANTHROPIC_KEY"  # Required
@@ -95,9 +95,8 @@ roboflow:
   workspace: "field-museum"
   models:
     drawer:
-      endpoint: "trayfinder-labels"  # Drawer → Trays
-      version: 17
-    # Additional models configured similarly
+      endpoint: "trayfinder-labels"  # obj detection, Drawer → Trays (with tray labels)
+      version: 17 # most recent version
 ```
 [For instructions on choosing a model approach, click here.](LINK)
 ### Running the Script
@@ -106,7 +105,7 @@ Simply place your images in `drawers/fullsize`, then run:
 ```bash
 python process_images.py all
 ```
-
+[More detailed instructions on processing your own images]()
 ### Custom Pipelines / Calling Individual Steps
 
 [See: Advanced Options](https://github.com/EGPostema/DrawerDissect?tab=readme-ov-file#-advanced-options)
@@ -152,7 +151,7 @@ Edit `config.yaml` to set test-specific models and toggles:
 
    ```yaml
     mask:
-      endpoint: "bugmasker-tigerbeetle" # replace 'bugmasker-all' with this model
+      endpoint: "bugmasker-tigerbeetle" # replace bugmasker-all with this model
       version: 11 # use most recent version
       confidence: 50
    ```
@@ -160,7 +159,7 @@ Edit `config.yaml` to set test-specific models and toggles:
    **Include Metadata Processing**
 
    The metadata .txt file for the test image is already present in `drawers/fullsize/capture_metadata`
-      - Setting `process_metadata` to `true` will use metadata to convert measurements from pixels to mm
+      - Setting `process_metadata` to `true` will use this to convert measurements from pixels to mm
 
    ```yaml
    processing:
