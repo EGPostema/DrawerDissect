@@ -112,27 +112,23 @@ Simply place your images in `drawers/fullsize`, then run:
 ```bash
 python process_images.py all
 ```
-[DETAILED instructions on how to process your own images](https://github.com/EGPostema/DrawerDissect/blob/main/README.md#-process-your-own-images)
-
-### Custom Pipelines / Calling Individual Steps
-
-[See: Advanced Options](https://github.com/EGPostema/DrawerDissect?tab=readme-ov-file#-advanced-options)
+For more detailed instructions, see:
+- [How to process your own images](https://github.com/EGPostema/DrawerDissect/blob/main/README.md#-process-your-own-images)
+- [Custom Pipelines & Running Individual Steps](https://github.com/EGPostema/DrawerDissect?tab=readme-ov-file#-advanced-options)
 
 ---
 
 ## 🧪 Process Test Image
 
-This is a good place to start to see how the pipeline works!
+This is a good place to start to see how the pipeline works, using an example drawer from the FMNH collection.
 
-### Step 0: Ensure you are in `DrawerDissect`
+### Navigate to `DrawerDissect`
 
   ```bash
   cd /path/to/DrawerDissect
   ```
 
-Your path will depend on where the repository was downloaded to.
-
-### Step 1: Download the Test Image
+### Download the Test Image
 
 [Download test image here!](https://drive.google.com/drive/folders/1NHV9MSR-sjmAW43KlyPfSB9Xr5ZTvJFt?usp=drive_link)
 
@@ -140,9 +136,15 @@ Place the image in `drawers/fullsize`
 
 <img width="353" alt="Screenshot 2025-01-15 at 11 45 44 AM" src="https://github.com/user-attachments/assets/1743ff86-f64a-469d-9722-942868ae096d" />
 
-### Step 2: Configure API Keys
+### Configuration
 
-Modify `config.yaml`:
+#### Step 1. Open the `config.yaml` file
+
+This file comes pre-filled and is in the main directory, `DrawerDissect`.
+
+#### Step 2. Update API Keys
+
+Modify `config.yaml` with API keys - this is **required** for all object detection, segmentation, and transcription steps!
 ```yaml
 api_keys:
   anthropic: "YOUR_ANTHROPIC_KEY"  # Required
@@ -151,9 +153,9 @@ api_keys:
 - [Get Anthropic API Key](https://support.anthropic.com/en/articles/8114521-how-can-i-access-the-anthropic-api)
 - [Get Roboflow API Key](https://docs.roboflow.com/api-reference/authentication)
 
-### Step 3: Tailor the Pipeline
+#### Step 3: Update Pipeline Settings
 
-Edit `config.yaml` to set test-specific models and toggles:
+Edit `config.yaml` in the following places:
 
    **Use Tiger Beetle-specific Mask Model**
 
@@ -162,21 +164,23 @@ Edit `config.yaml` to set test-specific models and toggles:
       endpoint: "bugmasker-tigerbeetle" # replace bugmasker-all with this model
       version: 11 # use most recent version
       confidence: 50
+
+   # all other models can stay the same
    ```
 
-   **Include Metadata Processing**
+   **Turn On Metadata Processing**
 
-   The metadata .txt file for the test image is already present in `drawers/fullsize/capture_metadata`
-      - Setting `process_metadata` to `true` will use this to convert measurements from pixels to mm
+   The metadata .txt file for the test image comes pre-downloaded in `drawers/fullsize/capture_metadata`
+      - Setting `process_metadata` to `true` will use this file to convert pixels to mm when measuring specimens
 
    ```yaml
    processing:
      process_metadata: true  # Change from false to true
    ```
 
-### Step 4: Run the Script
+###Run the Script
 
-Execute the script:
+Start processing with the command:
 
   ```bash
   python process_images.py all
@@ -234,22 +238,26 @@ This will:
 
 ## 📷 Process Your Own Images
 
-### Step 0: Ensure you are in `DrawerDissect`
+### Navigate to `DrawerDissect`
 
   ```bash
-  cd /path/to/DrawerDissect #replace with your path
+  cd /path/to/DrawerDissect
   ```
 
-Your path will depend on where the repository was downloaded to.
+### Add Images
 
-### Step 1: Image Preparation
-
-1. **Input images:**
-   - Place drawer images in the `drawers/fullsize` folder.
+Place drawer images in the `drawers/fullsize` folder.
    - Supported formats: tif/tiff, png, jpg/jpeg
 
-2. **Adjust Settings for Your Drawer Configuration (if needed):**
-    - Standard FMNH drawers contain **unit trays** with labels (see below)
+### Drawer Configuration
+
+#### Step 1. Open the `config.yaml` file
+
+This file comes pre-filled and is in the main directory, `DrawerDissect`.
+
+#### Step 2. Adjust Transcription Toggles
+
+Standard FMNH drawers contain **unit trays** with labels (see below)
     - By default, DrawerDissect crops and transcribes:
       - **barcodes**
       - **taxonomic IDs**
@@ -258,32 +266,13 @@ Your path will depend on where the repository was downloaded to.
 
   **For different drawer setups, simply adjust `config.yaml`:**
 
-  **<ins>Tray Label Toggles:</ins>**
-
   ```yaml
 processing:
   transcribe_barcodes: true  # Set false if no barcodes
   transcribe_taxonomy: true  # Set false if no taxonomic IDs
   ```
-
-  **<ins>Trays with NO LABELS:</ins>**
-  ```yaml
-  # use trayfinder model that doesn't look for tray labels, if using FMNH models
-  models:
-    drawer:
-      endpoint: "trayfinder-base" # obj detection, drawer to trays
-      version: 1
-      confidence: 50
-      overlap: 50
-  ```
-
-  ```yaml
-  # set both transcription toggles to false
-  transcribe_barcodes: false
-  transcribe_taxonomy: false
-  ```
   
-### Step 2. Choose Your Model Approach
+#### Step 3. Choose Your Model Approach
 
 You have three options for processing images:
 
@@ -291,11 +280,9 @@ You have three options for processing images:
 
 #### Option A: Use Public FMNH Roboflow Models (⭐ DEFAULT, RECOMMENDED)
 
-- Model names/versions are pre-filled  
-- All toggles are set to default  
-- Only requires Roboflow & Anthropic API inputs  
+The script is set up to use FMNH models (pre-filled in the config file) by default. 
 
-**Simply Input APIs in `config.yaml`:**  
+**Simply Input Your API Keys in `config.yaml`:**  
 ```yaml
 api_keys:
   anthropic: "YOUR_ANTHROPIC_KEY"  # Required
@@ -304,7 +291,7 @@ api_keys:
 - [Get Anthropic API Key](https://support.anthropic.com/en/articles/8114521-how-can-i-access-the-anthropic-api)
 - [Get Roboflow API Key](https://docs.roboflow.com/api-reference/authentication)
 
-**All FMNH Models (⭐ = default)**
+**All Available FMNH Models (⭐ = default)**
 
    | Model Name            | Description   | Current Version   | mAP |
    | --------------------- | ------------- | ----------------- | --- |
@@ -317,7 +304,12 @@ api_keys:
    | bugmasker-pimeliinae | outlines specimen bodies (specialized)  | 1 | 98.2% |
    | ⭐ pinmasker | outlines specimen pins | 5 | 94.7% |
 
-   Table is up-to-date as of: **1/24/2025**
+   Any of these models can be used as long as workspace is set to `field-museum`:
+
+   ```yaml
+roboflow:
+  workspace: "field-museum"
+  ```
    
 #### Option B: Create Your Own Roboflow Models
 
@@ -367,22 +359,15 @@ roboflow:
 
 Our pipeline currently relies on **Roboflow** (for object detection/segmentation) and **Anthropic** (for text transcription), which require paid accounts. However, many **free, open-source** AI models exist for image processing and transcription. While we don’t yet support an easy toggle between methods, you’re welcome to modify our code to integrate open-source alternatives!
 
-**What You’d Need to Modify**
+**What Would Need to be Modified**
 
-<ins>Roboflow-dependent scripts (object detection & segmentation):</ins>
-
-   `infer_drawers`, `infer_trays`, `infer_beetles`, `infer_labels`, `infer_pins`
-   
-<ins>Anthropic-dependent scripts (OCR/transcription):</ins>
-
-   `ocr_header`, `ocer_label`, `ocr_validation`
-   
-<ins>Other adjustments</ins>
-  - All cropping and mask-generation scripts rely on Roboflow-generated `.json` files
+1. All Roboflow-dependent scripts (object detection & segmentation)
+2. All Anthropic-dependent scripts (OCR/transcription)</ins>
+3. All cropping and mask-generation scripts rely on Roboflow-generated `.json` files
      - These may need to be modified for different models' output formats
-  - The **main processing script** `process_images.py` would need to be adjusted
-  - The **configuration files** `config.yaml` and `config.py` would need to be adjusted
-  - There would likely be additional dependencies to install
+4. The **main processing script** `process_images.py`
+5. The **configuration files** `config.yaml` and `config.py`
+6. There would likely be additional dependencies to install
 
 **Possible Open-Source Alternatives**
 
@@ -394,12 +379,12 @@ Our pipeline currently relies on **Roboflow** (for object detection/segmentation
    | Collection Location Reconstruction | LLaVa | ANTHROPIC |
 
 
-**We provide all FMNH model training data to help you build custom OD/Seg. models!**
+**We provide all FMNH model training data - feel free to use these to train your own custom models!**
 - Access the data here: ❗ [COMING SOON]
 - Data structure details: ❗ [COMING SOON]
 
 
-### Step 3. Run the Processing Script 
+### Run the Script 
 
    ```bash
    python process_images.py all
@@ -410,13 +395,6 @@ Our pipeline currently relies on **Roboflow** (for object detection/segmentation
    - Create organized output directories
    - Generate specimen images, masks, and a merged dataset
    - Skip any images that have already been processed (no overwriting)
-
-  ❗ **Script not working? Check that you have...**
-  - [x] Cloned or downloaded the repository
-  - [x] Navigated to the `DrawerDissect` directory
-  - [x] Created and activated a virtual environment with the required packages
-  - [x] Decided on a model approach 
-  - [x] Edited (and saved) `process_images.py` accordingly
 
 ---
 
@@ -521,4 +499,11 @@ python process_images.py find_specimens crop_specimens create_traymaps create_tr
 
 ## 📋 Troubleshooting
 
-❗ [coming soon]
+❗ **Script not working? Check that you have...**
+  - [x] Cloned or downloaded the repository
+  - [x] Navigated to the `DrawerDissect` directory
+  - [x] Created and activated a virtual environment with the required packages
+  - [x] Decided on a model approach 
+  - [x] Edited (and saved) `process_images.py` accordingly
+
+❗ More troubleshooting/tips to come...
