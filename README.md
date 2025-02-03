@@ -102,7 +102,7 @@ roboflow:
       endpoint: "trayfinder-labels"  # obj detection, Drawer → Trays (with tray labels)
       version: 17 # most recent version
 ```
-[For instructions on choosing a model approach, click here.](LINK)
+[DETAILED instructions on choosing a model approach](https://github.com/EGPostema/DrawerDissect/blob/main/README.md#step-2-choose-your-model-approach)
 
 ---
 
@@ -112,7 +112,7 @@ Simply place your images in `drawers/fullsize`, then run:
 ```bash
 python process_images.py all
 ```
-[More detailed instructions on processing your own images]()
+[DETAILED instructions on how to process your own images](https://github.com/EGPostema/DrawerDissect/blob/main/README.md#-process-your-own-images)
 
 ### Custom Pipelines / Calling Individual Steps
 
