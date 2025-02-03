@@ -114,7 +114,7 @@ python process_images.py all
 ```
 For more detailed instructions, see:
 - [How to process your own images](https://github.com/EGPostema/DrawerDissect/blob/main/README.md#-process-your-own-images)
-- [Custom Pipelines & Running Individual Steps](https://github.com/EGPostema/DrawerDissect?tab=readme-ov-file#-advanced-options)
+- [Custom Pipelines & Running Individual Steps](https://github.com/EGPostema/DrawerDissect/blob/main/README.md#step-3-choose-your-model-approach)
 
 ---
 
@@ -178,7 +178,7 @@ Edit `config.yaml` in the following places:
      process_metadata: true  # Change from false to true
    ```
 
-###Run the Script
+### Run the Script
 
 Start processing with the command:
 
@@ -278,7 +278,7 @@ You have three options for processing images:
 
 ---
 
-#### Option A: Use Public FMNH Roboflow Models (⭐ DEFAULT, RECOMMENDED)
+##### Option A: Use Public FMNH Roboflow Models (⭐ DEFAULT, RECOMMENDED)
 
 The script is set up to use FMNH models (pre-filled in the config file) by default. 
 
@@ -306,12 +306,12 @@ api_keys:
 
    Any of these models can be used as long as workspace is set to `field-museum`:
 
-   ```yaml
-roboflow:
-  workspace: "field-museum"
+  ```yaml
+  roboflow:
+    workspace: "field-museum"
   ```
    
-#### Option B: Create Your Own Roboflow Models
+##### Option B: Create Your Own Roboflow Models
 
 You can integrate your own custom Roboflow models into DrawerDissect by:  
 - Creating a [Roboflow account](https://roboflow.com)  
@@ -353,9 +353,7 @@ roboflow:
 
 [How to get your project ID / version in Roboflow](https://docs.roboflow.com/api-reference/workspace-and-project-ids)
 
----
-
-#### Option C: Use Open-Source Models with Our Training Data ❗ [Coming Soon]
+##### Option C: Use Open-Source Models with Our Training Data ❗ [Coming Soon]
 
 Our pipeline currently relies on **Roboflow** (for object detection/segmentation) and **Anthropic** (for text transcription), which require paid accounts. However, many **free, open-source** AI models exist for image processing and transcription. While we don’t yet support an easy toggle between methods, you’re welcome to modify our code to integrate open-source alternatives!
 
