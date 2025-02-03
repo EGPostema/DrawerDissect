@@ -116,7 +116,7 @@ roboflow:
 
 ## 🧪 Process Test Image
 
-This is a good place to start to see how the pipeline works, using an example drawer from the FMNH collection.
+This is a good place to start to see how the pipeline works, using an example drawer of tiger beetles from the FMNH collection.
 
 ### Navigate to `DrawerDissect`
 
@@ -167,7 +167,7 @@ Edit `config.yaml` in the following places:
    **Turn On Metadata Processing**
 
    The metadata .txt file for the test image comes pre-downloaded in `drawers/fullsize/capture_metadata`
-      - Setting `process_metadata` to `true` will use this file to convert pixels to mm when measuring specimens
+     - Setting `process_metadata` to `true` will use this file to convert pixels to mm when measuring specimens
 
    ```yaml
    processing:
@@ -254,9 +254,9 @@ This file comes pre-filled and is in the main directory, `DrawerDissect`.
 #### Step 2. Adjust Transcription Toggles
 
 Standard FMNH drawers contain **unit trays** with labels (see below)
-    - By default, DrawerDissect crops and transcribes:
-      - **barcodes**
-      - **taxonomic IDs**
+  - By default, DrawerDissect crops and transcribes:
+    - **barcodes**
+    - **taxonomic IDs**
 
 <img width="800" alt="Screenshot 2024-12-16 at 3 44 59 PM" src="https://github.com/user-attachments/assets/387e6413-375f-401a-a258-ffb46f6286e4" />
 
