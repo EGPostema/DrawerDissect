@@ -21,61 +21,91 @@ DrawerDissect is ideal for digitizing large volumes of preserved insects, partic
 ## 🚀 Quick Start Guide
 
 ### Prerequisites
-- [Python 3.x](https://www.python.org/downloads/)
-- [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) (not needed if downloading DrawerDissect directly)
-- [Roboflow account](https://roboflow.com) (for default script)
-- [Anthropic account](https://console.anthropic.com) (for default script)
-- **Images: tif/tiff, png, jpg/jpeg**
+- Python 3.x
+- Git (optional - only needed if cloning repository)
+- [Roboflow account & API key](roboflow.com), for object detection and segmentation
+- [Anthropic account & API key](anthropic.com), for transcription
+- Image formats: TIF/TIFF, PNG, JPG/JPEG
 
 ### Installation
 
-<ins>For Mac</ins>: enter the commands in **Terminal**
+#### Step 1: Get the Code
+**Option A: Clone Repository**
+```bash
+git clone https://github.com/EGPostema/DrawerDissect.git
+```
 
-<ins>For Windows</ins>: enter the commands in **PowerShell**
+**Option B: Download Directly**
+1. Download and unzip from GitHub
+2. Rename folder from `DrawerDissect-main` to `DrawerDissect`
 
-1. **Clone the DrawerDissect repository:**
+#### Step 2: Setup Environment
+Navigate to project folder:
+```bash
+cd path/to/DrawerDissect
+```
 
-   ```bash
-   git clone https://github.com/EGPostema/DrawerDissect.git
-   ```
-   **OR directly download and unzip the DrawerDissect repository:**
+Create and activate virtual environment:
+```bash
+# Create environment
+python -m venv drawerdissect
 
-   <img width="459" alt="Screenshot 2025-01-14 at 11 48 02 AM" src="https://github.com/user-attachments/assets/e60c552f-3aa3-4f17-adc7-09befeb28787" />
+# Activate environment
+## For Mac/Linux:
+source drawerdissect/bin/activate
+## For Windows (PowerShell):
+.\drawerdissect\Scripts\activate
+```
 
-   ❗ If downloading directly, be sure to change the filename from `DrawerDissect-main` to `DrawerDissect`
+Install dependencies:
+```bash
+pip install pandas numpy Pillow opencv-python matplotlib roboflow anthropic aiofiles pyyaml
+```
 
+### Configuration
 
-2. **Navigate to the Repository**
- 
-  ```bash
-  cd /path/to/DrawerDissect #replace with your path
-  ```
+#### 1. Open the `config.yaml` file
 
-   Your path will depend on where the repository was downloaded to.
+This file comes pre-filled and is in the main directory, `DrawerDissect`.
 
-3. **Set up a Virtual Environment:**
+#### 2. Update API Keys
+Modify `config.yaml`:
+```yaml
+api_keys:
+  anthropic: "YOUR_ANTHROPIC_KEY"  # Required
+  roboflow: "YOUR_ROBOFLOW_KEY"    # Required
+```
+- [Get Anthropic API Key](https://support.anthropic.com/en/articles/8114521-how-can-i-access-the-anthropic-api)
+- [Get Roboflow API Key](https://docs.roboflow.com/api-reference/authentication)
 
-   ```bash
-   python -m venv drawerdissect
-   ```
+#### 3. Processing Options
+Default settings work for most cases. Adjust if needed:
+```yaml
+processing:
+  process_metadata: false  # Set true if you have capture metadata .txt files
+  transcribe_barcodes: true  # Set false if no barcoded labels
+  transcribe_taxonomy: true  # Set false if no taxonomic labels
+```
 
-   **Activate Environment (Mac)**
+#### 4. Roboflow Model Settings
+By default, the script works with public FMNH models created in Roboflow. All models and versions are pre-filled.
+```yaml
+# Example of how models are configured
+roboflow:
+  workspace: "field-museum"
+  models:
+    drawer:
+      endpoint: "trayfinder-labels"  # Drawer → Trays
+      version: 17
+    # Additional models configured similarly
+```
+[For instructions on choosing a model approach, click here.](LINK)
+### Running the Script
 
-   ```sh
-   source drawerdissect/bin/activate
-    ```
-   
-   **Activate Environment (Windows Powershell)**
-
-   ```powershell
-   .\drawerdissect\Scripts\activate
-    ```
-   
-4. **Install required packages:**
-
-   ```bash
-   pip install pandas numpy Pillow opencv-python matplotlib roboflow anthropic aiofiles
-   ```
+Simply place your images in `drawers/fullsize`, then run:
+```bash
+python process_images.py all
+```
 
 ### Custom Pipelines / Calling Individual Steps
 
@@ -90,7 +120,7 @@ This is a good place to start to see how the pipeline works!
 ### Step 0: Ensure you are in `DrawerDissect`
 
   ```bash
-  cd /path/to/DrawerDissect #replace with your path
+  cd /path/to/DrawerDissect
   ```
 
 Your path will depend on where the repository was downloaded to.
@@ -105,41 +135,36 @@ Place the image in `drawers/fullsize`
 
 ### Step 2: Configure API Keys
 
-Edit `process_images.py` and replace placeholders with your API keys:
-
-
-   ```sh
-   # Replace YOUR_API_HERE and YOUR_ROBOFLOW_API_HERE
-   
-   ANTHROPIC_KEY = 'YOUR_API_HERE'
-   API_KEY = 'YOUR_ROBOFLOW_API_HERE'
-   ```
-
-
-- [Get Roboflow API key](https://docs.roboflow.com/api-reference/authentication)
-- [Get Anthropic API key](https://docs.anthropic.com/en/api/getting-started)
+Modify `config.yaml`:
+```yaml
+api_keys:
+  anthropic: "YOUR_ANTHROPIC_KEY"  # Required
+  roboflow: "YOUR_ROBOFLOW_KEY"    # Required
+```
+- [Get Anthropic API Key](https://support.anthropic.com/en/articles/8114521-how-can-i-access-the-anthropic-api)
+- [Get Roboflow API Key](https://docs.roboflow.com/api-reference/authentication)
 
 ### Step 3: Tailor the Pipeline
 
-Edit `process_images.py` to set specific models and toggles:
+Edit `config.yaml` to set test-specific models and toggles:
 
-   **Use Specialized Model for Masking**
+   **Use Tiger Beetle-specific Mask Model**
 
-   ```sh
-   MASK_MODEL_ENDPOINT = 'bugmasker-tigerbeetle' # replace 'bugmasker-base' with this model
-   MASK_MODEL_VERSION = 11  # use version 11
+   ```yaml
+    mask:
+      endpoint: "bugmasker-tigerbeetle" # replace 'bugmasker-all' with this model
+      version: 11 # use most recent version
+      confidence: 50
    ```
 
-   **Set PROCESS_METADATA to Y**
-   ```sh
-   # Default is N; set to Y for test image
-   PROCESS_METADATA = 'Y'
-   ```
+   **Include Metadata Processing**
 
-   **Set PIPELINE_MODE to FMNH**
-   ```sh
-   # Replace 'Default' with 'FMNH' for test image
-   PIPELINE_MODE = 'FMNH'
+   The metadata .txt file for the test image is already present in `drawers/fullsize/capture_metadata`
+      - Setting `process_metadata` to `true` will use metadata to convert measurements from pixels to mm
+
+   ```yaml
+   processing:
+     process_metadata: true  # Change from false to true
    ```
 
 ### Step 4: Run the Script
@@ -222,26 +247,31 @@ Your path will depend on where the repository was downloaded to.
 
 <img width="800" alt="Screenshot 2024-12-16 at 3 44 59 PM" src="https://github.com/user-attachments/assets/387e6413-375f-401a-a258-ffb46f6286e4" />
 
-  **For different drawer setups, simply adjust `process_images.py`:**
+  **For different drawer setups, simply adjust `config.yaml`:**
 
-  **<ins>Trays with barcode AND/OR taxonomy:</ins>**
+  **<ins>Tray Label Toggles:</ins>**
 
-  ```python
-  TRANSCRIBE_BARCODES = 'Y' #default setting, switch to 'N' if no barcodes
-  TRANSCRIBE_TAXONOMY = 'Y' #default setting, switch to 'N' if no taxonomy
+  ```yaml
+processing:
+  transcribe_barcodes: true  # Set false if no barcodes
+  transcribe_taxonomy: true  # Set false if no taxonomic IDs
   ```
 
   **<ins>Trays with NO LABELS:</ins>**
-  ```python
-  TRANSCRIBE_BARCODES = 'N'
-  TRANSCRIBE_TAXONOMY = 'N'
+  ```yaml
+  # use trayfinder model that doesn't look for tray labels, if using FMNH models
+  models:
+    drawer:
+      endpoint: "trayfinder-base" # obj detection, drawer to trays
+      version: 1
+      confidence: 50
+      overlap: 50
   ```
-  
-  Additionally, for better performance, use the non-label trayfinder model:
-  
-  ```python
-   DRAWER_MODEL_ENDPOINT = 'trayfinder-base' #switch from trayfinder-labeled to trayfinder-base
-   DRAWER_MODEL_VERSION = 1 
+
+  ```yaml
+  # set both transcription toggles to false
+  transcribe_barcodes: false
+  transcribe_taxonomy: false
   ```
   
 ### Step 2. Choose Your Model Approach
