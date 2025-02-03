@@ -21,139 +21,85 @@ DrawerDissect is ideal for digitizing large volumes of preserved insects, partic
 ## 🚀 Quick Start Guide
 
 ### Prerequisites
+
 - Python 3.x
-- Git (optional - only needed if cloning repository)
-- [Roboflow account & API key](roboflow.com), for object detection and segmentation
-- [Anthropic account & API key](anthropic.com), for transcription
-- Image formats: TIF/TIFF, PNG, JPG/JPEG
+- API keys from:
+  - [Roboflow](roboflow.com) - for detecting and measuring specimens
+  - [Anthropic](anthropic.com) - for reading tray and specimen labels
+- Supported image formats: TIF/TIFF, PNG, JPG/JPEG
 
 ---
 
 ### Installation
 
-#### Step 1: Get the Code
-**Option A: Clone Repository**
+1. **Get the Code**
+
+Option A
+
 ```bash
+# Option A: Using Git
 git clone https://github.com/EGPostema/DrawerDissect.git
+
+# Option B: Download and unzip from GitHub
 ```
 
-**Option B: Download Directly**
+Option B
+
 1. Download and unzip from GitHub
 2. Rename folder from `DrawerDissect-main` to `DrawerDissect`
 
-#### Step 2: Setup Environment
-Navigate to project folder:
-```bash
-cd path/to/DrawerDissect
-```
+2. **Setup Environment**
 
-Create and activate virtual environment:
 ```bash
-# Create environment
+# Navigate to project folder (change '/your/path/to/')
+cd /your/path/to/DrawerDissect
+
+# Create and activate virtual environment
 python -m venv drawerdissect
 
 # Activate environment
-## For Mac/Linux:
-source drawerdissect/bin/activate
-## For Windows (PowerShell):
-.\drawerdissect\Scripts\activate
-```
+source drawerdissect/bin/activate  # Use this command for Mac/Linux
+.\drawerdissect\Scripts\activate   # Use this command for Windows
 
-Install dependencies:
-```bash
+# Install dependencies (be patient, this make take a minute)
 pip install pandas numpy Pillow opencv-python matplotlib roboflow anthropic aiofiles pyyaml
 ```
 
----
+3. **Configure API Keys**
 
-### Configuration
-
-#### Step 1. Open the `config.yaml` file
-
-This file comes pre-filled and is in the main directory, `DrawerDissect`.
-
-#### Step 2. Update API Keys
-Modify `config.yaml` with API keys - this is **required** for all object detection, segmentation, and transcription steps!
+Open `config.yaml` and add your API keys:
 ```yaml
 api_keys:
-  anthropic: "YOUR_ANTHROPIC_KEY"  # Required
-  roboflow: "YOUR_ROBOFLOW_KEY"    # Required
+  anthropic: "YOUR_ANTHROPIC_KEY" # replace YOUR_ANTHROPIC_KEY with your key
+  roboflow: "YOUR_ROBOFLOW_KEY" # replace YOUR_ROBOFLOW_KEY with your key
 ```
+
 - [Get Anthropic API Key](https://support.anthropic.com/en/articles/8114521-how-can-i-access-the-anthropic-api)
 - [Get Roboflow API Key](https://docs.roboflow.com/api-reference/authentication)
 
-#### Step 3. Pipeline Settings
-These are the default pipeline settings. Default settings work for most cases, so no need to alter these (unless desired).
-```yaml
-processing:
-  process_metadata: false  # Only set to true if you have GIGAMacro metadata .txt files or similar
-  transcribe_barcodes: true  # Set to false if no barcoded labels
-  transcribe_taxonomy: true  # Set to false if no taxonomic labels
-```
-
-#### Step 4. Roboflow Model Settings
-By default, the script works with public `field-museum` models created in Roboflow. All models and versions are pre-filled.
-```yaml
-# Example of how models are configured
-roboflow:
-  workspace: "field-museum"
-  models:
-    drawer:
-      endpoint: "trayfinder-labels"  # obj detection, Drawer → Trays (with tray labels)
-      version: 17 # most recent version
-```
-[DETAILED instructions on alternate model options](https://github.com/EGPostema/DrawerDissect/blob/main/README.md#step-2-choose-your-model-approach)
+This step is <ins>REQUIRED</ins> for all object detection, segmentation, and transcription steps to run.
 
 ---
 
-### Running the Script
+## 🧪 Run the Pipeline
 
-- [With a Test Image](https://github.com/EGPostema/DrawerDissect/blob/main/README.md#-process-test-image)
-- [With Your Own Images](https://github.com/EGPostema/DrawerDissect/blob/main/README.md#-process-your-own-images)
-- [Custom Pipelines & Running Individual Steps](https://github.com/EGPostema/DrawerDissect/blob/main/README.md#step-3-choose-your-model-approach)
-
----
-
-## 🧪 Process Test Image
-
-This is a good place to start to see how the pipeline works, using an example drawer of tiger beetles from the FMNH collection.
-
-### Navigate to `DrawerDissect`
-
-  ```bash
-  cd /path/to/DrawerDissect
-  ```
-
-### Download the Test Image
-
-[Download test image here!](https://drive.google.com/drive/folders/1NHV9MSR-sjmAW43KlyPfSB9Xr5ZTvJFt?usp=drive_link)
-
-Place the image in `drawers/fullsize`
+### Start by Processing A Test Image
+1. [Download the test image](https://drive.google.com/drive/folders/1NHV9MSR-sjmAW43KlyPfSB9Xr5ZTvJFt?usp=drive_link)
+2. Place it in `drawers/fullsize`
 
 <img width="353" alt="Screenshot 2025-01-15 at 11 45 44 AM" src="https://github.com/user-attachments/assets/1743ff86-f64a-469d-9722-942868ae096d" />
 
-### Configuration
+3. Check that `config.yaml` contains your API keys
+4. Edit `config.yaml` to enable metadata processing
 
-#### Step 1. Open the `config.yaml` file
+  ```yaml
+  processing:
+    process_metadata: true # default is false
+  ```
 
-This file comes pre-filled and is in the main directory, `DrawerDissect`.
+Our imaging system produces a metadata .txt file. This file can be used to convert pixel:mm, if process_metadata is toggled on.
 
-#### Step 2. Update API Keys
-
-Modify `config.yaml` with API keys - this is **required** for all object detection, segmentation, and transcription steps!
-```yaml
-api_keys:
-  anthropic: "YOUR_ANTHROPIC_KEY"  # Required
-  roboflow: "YOUR_ROBOFLOW_KEY"    # Required
-```
-- [Get Anthropic API Key](https://support.anthropic.com/en/articles/8114521-how-can-i-access-the-anthropic-api)
-- [Get Roboflow API Key](https://docs.roboflow.com/api-reference/authentication)
-
-#### Step 3: Update Pipeline Settings
-
-Edit `config.yaml` in the following places:
-
-   **Use Tiger Beetle-specific Mask Model**
+5. Edit `config.yaml` to use a more specialized masking model
 
    ```yaml
     mask:
@@ -164,128 +110,41 @@ Edit `config.yaml` in the following places:
    # all other models can stay the same
    ```
 
-   **Turn On Metadata Processing**
-
-   The metadata .txt file for the test image comes pre-downloaded in `drawers/fullsize/capture_metadata`
-     - Setting `process_metadata` to `true` will use this file to convert pixels to mm when measuring specimens
-
-   ```yaml
-   processing:
-     process_metadata: true  # Change from false to true
-   ```
-
-### Run the Script
-
-Start processing with the command:
+6. Run the Script
 
   ```bash
+  # this command runs all steps in the pipeline
   python process_images.py all
   ```
 
-This will:
-- Start the processing pipeline on the test image in `fullsize`
-- Automatically generate all outputs and directories
-- Skip any images that have already been processed (no overwriting)
+[Click Here to see Example Outputs!](LINK)
 
 ---
 
-### Example Outputs
+### Process Your Own Images
 
-**Generated Directory** 🗂️
-
-<img width="668" alt="Screenshot 2025-01-14 at 4 20 30 PM" src="https://github.com/user-attachments/assets/2a5261ff-0de3-48d9-85ad-4ca4f5fe7559" />
-
-📷 **Individual Tray Images** 
-
-<img width="666" alt="Screenshot 2025-01-14 at 4 22 16 PM" src="https://github.com/user-attachments/assets/8bb72f93-bea3-4eaf-b28f-2caa7ee06ce1" />
-
-🗺️ **Specimen Location Maps** 
-
-![image](https://github.com/user-attachments/assets/c2d29085-a1f3-4745-814b-9bcc85697a23)
-
-📷 **Individual Specimen Images** 
-
-<img width="678" alt="Screenshot 2025-01-14 at 4 37 46 PM" src="https://github.com/user-attachments/assets/937673ef-f733-468b-b016-7b8b87998ec3" />
-
-📏 **Measurement CSV + Sample Size Visualizations**
-
-<img width="660" alt="Screenshot 2025-01-21 at 3 19 56 PM" src="https://github.com/user-attachments/assets/f3c354d3-8fd6-4990-9f3f-c4d8197d0380" />
-
-🏁 **Binary Masks**
-
-<img width="670" alt="Screenshot 2025-01-15 at 8 49 05 PM" src="https://github.com/user-attachments/assets/0752cad1-a299-4dff-9e8c-5e19fcff20cb" />
-
-📷 **Fully Masked Specimens (transparent & white background versiosn)**
-
-<img width="670" alt="Screenshot 2025-01-15 at 10 02 32 AM" src="https://github.com/user-attachments/assets/cdf044a5-e1e2-4cc7-beef-c113cd5cc276" />
-
-📋 **Merged Dataset**
-
-<img width="289" alt="Screenshot 2025-01-15 at 11 49 00 AM" src="https://github.com/user-attachments/assets/889065e9-0f81-46f8-8961-4f87fa042df2" />
-
-<ins>Dataset Fields:</ins>
-   - Drawer, Tray, and Specimen-level IDs and filenames
-   - Tray-level label text (barcode, taxonomy)
-   - Specimen length1/length2 and area (in pixels & mm)
-   - Mask/measurement checks
-   - Specimen-level location reconstructions, with confidence notes
+1. Place drawer images in `drawers/fullsize`
+2. Check that `config.yaml` contains your API keys
+3. Decide your model approach:
 
 ---
 
-## 📷 Process Your Own Images
+#### Option A: Use Public FMNH Roboflow Models (⭐ DEFAULT, RECOMMENDED)
 
-### Navigate to `DrawerDissect`
+The script is set up to use FMNH models by default, defined in `config.yaml`
 
-  ```bash
-  cd /path/to/DrawerDissect
-  ```
-
-### Add Images
-
-Place drawer images in the `drawers/fullsize` folder.
-   - Supported formats: tif/tiff, png, jpg/jpeg
-
-### Drawer Configuration
-
-#### Step 1. Open the `config.yaml` file
-
-This file comes pre-filled and is in the main directory, `DrawerDissect`.
-
-#### Step 2. Adjust Transcription Toggles
-
-Standard FMNH drawers contain **unit trays** with labels (see below)
-  - By default, DrawerDissect crops and transcribes:
-    - **barcodes**
-    - **taxonomic IDs**
-
-<img width="800" alt="Screenshot 2024-12-16 at 3 44 59 PM" src="https://github.com/user-attachments/assets/387e6413-375f-401a-a258-ffb46f6286e4" />
-
-  **For different drawer setups, simply adjust `config.yaml`:**
-
-  ```yaml
-processing:
-  transcribe_barcodes: true  # Set false if no barcodes
-  transcribe_taxonomy: true  # Set false if no taxonomic IDs
-  ```
-  
-#### Step 3. Choose Your Model Approach
-
-You have three options for processing images:
-
----
-
-##### Option A: Use Public FMNH Roboflow Models (⭐ DEFAULT, RECOMMENDED)
-
-The script is set up to use FMNH models (pre-filled in the config file) by default. 
-
-**Simply Input Your API Keys in `config.yaml`:**  
 ```yaml
-api_keys:
-  anthropic: "YOUR_ANTHROPIC_KEY"  # Required
-  roboflow: "YOUR_ROBOFLOW_KEY"    # Required
+# Example of how our models are configured
+
+roboflow:
+  workspace: "field-museum" # FMNH workspace default, can change to your own
+  models:
+    drawer:
+      endpoint: "trayfinder-labels" # obj detection, drawer to trays
+      version: 17
+      confidence: 50 
+      overlap: 50
 ```
-- [Get Anthropic API Key](https://support.anthropic.com/en/articles/8114521-how-can-i-access-the-anthropic-api)
-- [Get Roboflow API Key](https://docs.roboflow.com/api-reference/authentication)
 
 **All Available FMNH Models (⭐ = default)**
 
@@ -300,27 +159,15 @@ api_keys:
    | bugmasker-pimeliinae | outlines specimen bodies (specialized)  | 1 | 98.2% |
    | ⭐ pinmasker | outlines specimen pins | 5 | 94.7% |
 
-   Any of these models can be used as long as workspace is set to `field-museum`:
+   Any of these models can be swapped in/out as long as workspace is set to `field-museum`
 
-  ```yaml
-  roboflow:
-    workspace: "field-museum"
-  ```
-   
-##### Option B: Create Your Own Roboflow Models
+#### Option B: Use Your Own Roboflow Models
 
-You can integrate your own custom Roboflow models into DrawerDissect by:  
-- Creating a [Roboflow account](https://roboflow.com)  
-- Annotating and training models with your own images  
-- Fill in the `config.yaml`:  
+You can integrate your own custom Roboflow models into DrawerDissect via the `config.yaml` file:
 
 ```yaml
-api_keys:
-  anthropic: "YOUR_ANTHROPIC_KEY"  # Required
-  roboflow: "YOUR_ROBOFLOW_KEY"    # Required
-
 roboflow:
-  workspace: "YOUR_WORKSPACE" # Fill in your roboflow workspace
+  workspace: "YOUR_WORKSPACE" # Fill in with your own roboflow workspace
   models:
     drawer:
       endpoint: "DRAWER_TO_TRAY_MODEL" # Fill in with obj detection model here
@@ -349,21 +196,11 @@ roboflow:
 
 [How to get your project ID / version in Roboflow](https://docs.roboflow.com/api-reference/workspace-and-project-ids)
 
-##### Option C: Use Open-Source Models with Our Training Data ❗ [Coming Soon]
+#### Option C: Use Open-Source Models with Our Training Data
 
-Our pipeline currently relies on **Roboflow** (for object detection/segmentation) and **Anthropic** (for text transcription), which require paid accounts. However, many **free, open-source** AI models exist for image processing and transcription. While we don’t yet support an easy toggle between methods, you’re welcome to modify our code to integrate open-source alternatives!
+Many **free, open-source** AI models exist for image processing and transcription. While we don’t currently support these architectures, you’re welcome to modify our code to integrate open-source alternatives!
 
-**What Would Need to be Modified**
-
-1. All Roboflow-dependent scripts (object detection & segmentation)
-2. All Anthropic-dependent scripts (OCR/transcription)</ins>
-3. All cropping and mask-generation scripts rely on Roboflow-generated `.json` files
-     - These may need to be modified for different models' output formats
-4. The **main processing script** `process_images.py`
-5. The **configuration files** `config.yaml` and `config.py`
-6. There would likely be additional dependencies to install
-
-**Possible Open-Source Alternatives**
+**Possible Free Alternatives**
 
    | Model Function | Possible Alternatives | Model it Could Replace |
    | ---------- | --- | ---------- |
@@ -373,22 +210,75 @@ Our pipeline currently relies on **Roboflow** (for object detection/segmentation
    | Collection Location Reconstruction | LLaVa | ANTHROPIC |
 
 
-**We provide all FMNH model training data - feel free to use these to train your own custom models!**
+**We provide all FMNH model training data - feel free to use these to train your own models with your preferred architectures!**
 - Access the data here: ❗ [COMING SOON]
 - Data structure details: ❗ [COMING SOON]
 
+---
 
-### Run the Script 
+4. Configure the pipeline
 
-   ```bash
-   python process_images.py all
-   ```
+Standard FMNH drawers contain **unit trays** with labels (see below)
 
-   The script will:
-   - Process images in `fullsize`
-   - Create organized output directories
-   - Generate specimen images, masks, and a merged dataset
-   - Skip any images that have already been processed (no overwriting)
+<img width="800" alt="Screenshot 2024-12-16 at 3 44 59 PM" src="https://github.com/user-attachments/assets/387e6413-375f-401a-a258-ffb46f6286e4" />
+
+By default, DrawerDissect crops and transcribes:
+  - **barcodes**
+  - **taxonomic IDs**
+
+**For different drawer setups, simply adjust `config.yaml`:**
+
+```yaml
+processing:
+  process_metadata: false  # Set to true if metadata txt file is present
+  transcribe_barcodes: true  # Set to false if no barcodes
+  transcribe_taxonomy: true  # Set to false if no taxonomic IDs
+```
+5. Run the Script
+
+  ```bash
+  # this command runs all steps in the pipeline
+  python process_images.py all
+  ```
+
+---
+
+## 📊 Example Outputs
+
+📷 **Individual Tray Images** 
+
+<img width="666" alt="Screenshot 2025-01-14 at 4 22 16 PM" src="https://github.com/user-attachments/assets/8bb72f93-bea3-4eaf-b28f-2caa7ee06ce1" />
+
+🗺️ **Specimen Location Guides** 
+
+![image](https://github.com/user-attachments/assets/c2d29085-a1f3-4745-814b-9bcc85697a23)
+
+📷 **Individual Specimen Images** 
+
+<img width="678" alt="Screenshot 2025-01-14 at 4 37 46 PM" src="https://github.com/user-attachments/assets/937673ef-f733-468b-b016-7b8b87998ec3" />
+
+📏 **Measurement CSV + 10 Example Size Visualizations**
+
+<img width="660" alt="Screenshot 2025-01-21 at 3 19 56 PM" src="https://github.com/user-attachments/assets/f3c354d3-8fd6-4990-9f3f-c4d8197d0380" />
+
+🏁 **Binary Masks**
+
+<img width="670" alt="Screenshot 2025-01-15 at 8 49 05 PM" src="https://github.com/user-attachments/assets/0752cad1-a299-4dff-9e8c-5e19fcff20cb" />
+
+📷 **Fully Masked Specimens**
+
+<img width="670" alt="Screenshot 2025-01-15 at 10 02 32 AM" src="https://github.com/user-attachments/assets/cdf044a5-e1e2-4cc7-beef-c113cd5cc276" />
+
+📋 **Merged Dataset**
+
+<img width="289" alt="Screenshot 2025-01-15 at 11 49 00 AM" src="https://github.com/user-attachments/assets/889065e9-0f81-46f8-8961-4f87fa042df2" />
+
+<ins>Dataset Fields:</ins>
+   - Drawer, Tray, and Specimen-level IDs and filenames
+   - Tray-level label text (barcode, taxonomy)
+   - Specimen length1/length2 and area
+   - Mask/measurement checks
+   - Specimen-level location reconstructions, with confidence notes
 
 ---
 
@@ -439,7 +329,7 @@ If you have a set of **individual specimen photos** you want masked, measured, a
 
 1. Create folder `drawers/specimens`
 2. Add all specimen images to `drawers/specimens`
-3. Configure config.yaml with API keys
+3. Configure `config.yaml` with API keys
 4. Run the command:
    
 ```sh
@@ -452,22 +342,23 @@ For simply detecting and cropping individual specimens from images.
 
 1. Create folder `drawers/trays`
 2. Add image(s) with multiple specimens to `drawers/trays`
-3. Add API keys to config.yaml
+3. Configure `config.yaml` with API keys
 4. Run the command:
 
 ```sh
 python process_images.py find_specimens crop_specimens create_traymaps
 ```
 
-#### Example 3: Processing Drawers With NO Tray Labels ❗ (I think I need to edit some scripts to make this work)
+#### Example 3: Processing Drawers With NO Tray Labels
 
 1. Create folder `drawers/trays`
 2. Add drawers to `drawers/trays` instead of `drawers/fullsize`
-3. Add API keys to config.yaml
+3. Configure `config.yaml` with API keys
 4. Edit config.yaml as follows:
 
   ```yaml
-  # use trayfinder model that doesn't look for tray labels, if using FMNH models
+  # use model that doesn't look for tray labels, if using FMNH models
+
   models:
     drawer:
       endpoint: "trayfinder-base" # obj detection, drawer to trays
