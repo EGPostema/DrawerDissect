@@ -33,20 +33,17 @@ DrawerDissect is ideal for digitizing large volumes of preserved insects, partic
 ### Installation
 
 1. **Get the Code**
+  
+  ```bash
+  # Using git
+  git clone https://github.com/EGPostema/DrawerDissect.git
+  ```
 
-Option A
-
-```bash
-# Option A: Using Git
-git clone https://github.com/EGPostema/DrawerDissect.git
-
-# Option B: Download and unzip from GitHub
-```
-
-Option B
-
-1. Download and unzip from GitHub
-2. Rename folder from `DrawerDissect-main` to `DrawerDissect`
+  OR, Download the zipped folder directly
+  
+  <img width="420" alt="Screenshot 2025-02-03 at 5 49 32 PM" src="https://github.com/user-attachments/assets/8b2fe830-f6bc-4c5f-ac32-284ec174887e" />
+  
+  Unzip, then rename folder from `DrawerDissect-main` to `DrawerDissect`
 
 2. **Setup Environment**
 
@@ -67,7 +64,8 @@ pip install pandas numpy Pillow opencv-python matplotlib roboflow anthropic aiof
 
 3. **Configure API Keys**
 
-Open `config.yaml` and add your API keys:
+Open `config.yaml` in the main directory, and add your API keys:
+
 ```yaml
 api_keys:
   anthropic: "YOUR_ANTHROPIC_KEY" # replace YOUR_ANTHROPIC_KEY with your key
