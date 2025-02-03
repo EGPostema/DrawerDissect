@@ -83,12 +83,12 @@ api_keys:
 - [Get Roboflow API Key](https://docs.roboflow.com/api-reference/authentication)
 
 #### Step 3. Pipeline Settings
-Default settings work for most cases. Adjust if needed:
+These are the default pipeline settings. Default settings work for most cases, so no need to alter these (unless desired).
 ```yaml
 processing:
-  process_metadata: false  # Set true if you have GIGAMacro metadata .txt files or similar
-  transcribe_barcodes: true  # Set false if no barcoded labels
-  transcribe_taxonomy: true  # Set false if no taxonomic labels
+  process_metadata: false  # Only set to true if you have GIGAMacro metadata .txt files or similar
+  transcribe_barcodes: true  # Set to false if no barcoded labels
+  transcribe_taxonomy: true  # Set to false if no taxonomic labels
 ```
 
 #### Step 4. Roboflow Model Settings
@@ -102,18 +102,14 @@ roboflow:
       endpoint: "trayfinder-labels"  # obj detection, Drawer → Trays (with tray labels)
       version: 17 # most recent version
 ```
-[DETAILED instructions on choosing a model approach](https://github.com/EGPostema/DrawerDissect/blob/main/README.md#step-2-choose-your-model-approach)
+[DETAILED instructions on alternate model options](https://github.com/EGPostema/DrawerDissect/blob/main/README.md#step-2-choose-your-model-approach)
 
 ---
 
 ### Running the Script
 
-Simply place your images in `drawers/fullsize`, then run:
-```bash
-python process_images.py all
-```
-For more detailed instructions, see:
-- [How to process your own images](https://github.com/EGPostema/DrawerDissect/blob/main/README.md#-process-your-own-images)
+- [With a Test Image](https://github.com/EGPostema/DrawerDissect/blob/main/README.md#-process-test-image)
+- [With Your Own Images](https://github.com/EGPostema/DrawerDissect/blob/main/README.md#-process-your-own-images)
 - [Custom Pipelines & Running Individual Steps](https://github.com/EGPostema/DrawerDissect/blob/main/README.md#step-3-choose-your-model-approach)
 
 ---
