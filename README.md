@@ -354,7 +354,7 @@ For simply detecting and cropping individual specimens from images.
 python process_images.py find_specimens crop_specimens create_traymaps
 ```
 
-#### Example 3: Processing Drawers With NO Tray Labels
+#### Example 3: Processing Drawers With NO Trays
 
 1. Create folder `drawers/trays`
 2. Add drawers to `drawers/trays` instead of `drawers/fullsize`
