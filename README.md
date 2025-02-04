@@ -82,11 +82,8 @@ This step is <ins>REQUIRED</ins> for all object detection, segmentation, and tra
 ## 🧪 Run the Pipeline
 
 ### Start by Processing A Test Image
-1. [Download the test image](https://drive.google.com/drive/folders/1NHV9MSR-sjmAW43KlyPfSB9Xr5ZTvJFt?usp=drive_link)
+1. [Download the test image](https://drive.google.com/drive/folders/1NHV9MSR-sjmAW43KlyPfSB9Xr5ZTvJFt?usp=drive_link) (large image, be patient!)
 2. Place it in `drawers/fullsize`
-
-<img width="353" alt="Screenshot 2025-01-15 at 11 45 44 AM" src="https://github.com/user-attachments/assets/1743ff86-f64a-469d-9722-942868ae096d" />
-
 3. Check that `config.yaml` contains your API keys
 4. Edit `config.yaml` to enable metadata processing
 
