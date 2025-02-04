@@ -91,9 +91,10 @@ This step is <ins>REQUIRED</ins> for all object detection, segmentation, and tra
 
 ### Start by Processing A Test Image
 1. [Download the test image](https://drive.google.com/drive/folders/1NHV9MSR-sjmAW43KlyPfSB9Xr5ZTvJFt?usp=drive_link) (large image, be patient!)
-2. Place it in `drawers/fullsize`
-3. Check that `config.yaml` contains your API keys
-4. Edit `config.yaml` to enable metadata processing
+2. Make sure you have installed DrawerDissect & set up the virtual environment
+3. Place it in `drawers/fullsize`
+4. Check that `config.yaml` contains your API keys
+5. Edit `config.yaml` to enable metadata processing
 
   ```yaml
   processing:
@@ -102,7 +103,7 @@ This step is <ins>REQUIRED</ins> for all object detection, segmentation, and tra
 
 Our imaging system produces a metadata .txt file. This file can be used to convert pixel:mm, if process_metadata is toggled on.
 
-5. Edit `config.yaml` to use a more specialized masking model
+6. Edit `config.yaml` to use a more specialized masking model
 
    ```yaml
     mask:
@@ -113,7 +114,7 @@ Our imaging system produces a metadata .txt file. This file can be used to conve
    # all other models can stay the same
    ```
 
-6. Run the Script
+7. Run the Script
 
   ```bash
   # this command runs all steps in the pipeline
@@ -126,9 +127,10 @@ Our imaging system produces a metadata .txt file. This file can be used to conve
 
 ### Process Your Own Images
 
-1. Place drawer images in `drawers/fullsize`
-2. Check that `config.yaml` contains your API keys
-3. Decide your model approach:
+1. Make sure you have installed DrawerDissect & set up the virtual environment
+2. Place drawer images in `drawers/fullsize`
+3. Check that `config.yaml` contains your API keys
+4. Decide your model approach:
 
 ---
 
