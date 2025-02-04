@@ -1,0 +1,59 @@
+api_keys:
+  anthropic: "YOUR_ANTHROPIC_KEY" # replace YOUR_ANTHROPIC_KEY with your key
+  roboflow: "YOUR_ROBOFLOW_KEY" # replace YOUR_ROBOFLOW_KEY with your key
+
+roboflow:
+  workspace: "field-museum" # FMNH workspace is default
+  models:
+    drawer:
+      endpoint: "trayfinder-labels" # obj detection, finds trays in drawers
+      version: 17
+      confidence: 50
+      overlap: 50
+    tray:
+      endpoint: "bugfinder-kdn9e" # obj detection, finds specimens in trays
+      version: 9
+      confidence: 50
+      overlap: 50
+    label:
+      endpoint: "labelfinder" # obj detection, finds label parts
+      version: 5
+      confidence: 50
+      overlap: 50
+    mask:
+      endpoint: "bugmasker-all"  # segmentation, outlines specimen bodies
+      version: 1 
+      confidence: 50
+    pin:
+      endpoint: "pinmasker" # segmentation, outlines pin
+      version: 5
+      confidence: 50
+
+processing:
+  process_metadata: false  # Set true if FMNH-style metadata is present
+  transcribe_barcodes: true  # Set to false if no barcodes
+  transcribe_taxonomy: true  # Set to false if no taxonomic IDs
+
+directories:
+  fullsize: "drawers/fullsize"
+  metadata: "drawers/fullsize/capture_metadata"
+  resized: "drawers/resized"
+  coordinates: "drawers/resized/coordinates"
+  trays: "drawers/trays"
+  guides: "drawers/guides"
+  resized_trays: "drawers/resized_trays"
+  resized_trays_coordinates: "drawers/resized_trays/coordinates"
+  label_coordinates: "drawers/resized_trays/label_coordinates"
+  labels: "drawers/labels"
+  specimens: "drawers/specimens"
+  mask_coordinates: "drawers/masks/mask_coordinates"
+  mask_png: "drawers/masks/mask_png"
+  measurements: "drawers/measurements"
+  no_background: "drawers/masks/no_background"
+  pin_coordinates: "drawers/masks/pin_coords"
+  full_masks: "drawers/masks/full_masks"
+  transparencies: "drawers/transparencies"
+  whitebg_specimens: "drawers/whitebg_specimens"
+  specimen_level: "drawers/transcriptions/specimen_labels"
+  tray_level: "drawers/transcriptions/tray_labels"
+  data: "drawers/data"
