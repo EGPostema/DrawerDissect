@@ -50,14 +50,20 @@ DrawerDissect is ideal for digitizing large volumes of preserved insects, partic
 ```bash
 # Navigate to project folder (change '/your/path/to/')
 cd /your/path/to/DrawerDissect
+```
 
-# Create and activate virtual environment
+```bash
+# Create the virtual environment
 python -m venv drawerdissect
+```
 
+```bash
 # Activate environment
 source drawerdissect/bin/activate  # Use this command for Mac/Linux
 .\drawerdissect\Scripts\activate   # Use this command for Windows
+```
 
+```bash
 # Install dependencies (be patient, this make take a minute)
 pip install pandas numpy Pillow opencv-python matplotlib roboflow anthropic aiofiles pyyaml
 ```
