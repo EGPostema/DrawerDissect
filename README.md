@@ -115,7 +115,7 @@ Our imaging system produces a metadata .txt file. This file can be used to conve
   python process_images.py all
   ```
 
-[Click Here to see Example Outputs!](LINK)
+[Click Here to see Examples of Outputs!](https://github.com/EGPostema/DrawerDissect/blob/main/README.md#-example-outputs)
 
 ---
 
