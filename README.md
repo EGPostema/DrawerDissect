@@ -24,7 +24,7 @@ DrawerDissect is ideal for digitizing large volumes of preserved insects, partic
 
 - Python 3.x
 - API keys from:
-  - [Roboflow](roboflow.com) - for detecting and measuring specimens
+  - [Roboflow](roboflow.com) - for detecting and segmenting specimens
   - [Anthropic](anthropic.com) - for reading tray and specimen labels
 - Supported image formats: TIF/TIFF, PNG, JPG/JPEG
 
