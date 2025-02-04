@@ -47,6 +47,8 @@ DrawerDissect is ideal for digitizing large volumes of preserved insects, partic
 
 2. **Setup Environment**
 
+In a command-line interface (Terminal, Powershell, etc)...
+
 ```bash
 # Navigate to project folder (change '/your/path/to/')
 cd /your/path/to/DrawerDissect
