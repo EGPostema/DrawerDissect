@@ -9,12 +9,12 @@
 DrawerDissect is ideal for digitizing large volumes of preserved insects, particularly from natural history collections. It can extract:
 
 - 📷  Individual specimen photos
-- 📏  Specimen size data
 - 🐞  Taxonomic information
 - 🌈  Masked specimens (ImageJ compatible)
 - 🌎  Specimen-level location estimates (when visible)
+- 📏  Specimen size data (body area, lenght/width)
 
-<img width="1000" alt="Screenshot 2025-01-29 at 4 12 05 PM" src="https://github.com/user-attachments/assets/2568c5af-a22b-42b3-b0c5-e070b9995db8" />
+<img width="1000" alt="Screenshot 2025-02-06 at 11 08 53 AM" src="https://github.com/user-attachments/assets/5f27e287-e6c9-44eb-a2ad-cba05a4153b8" />
 
 ---
 
