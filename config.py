@@ -50,3 +50,9 @@ class DrawerDissectConfig:
         base_dir = self._config.get('base_directory', '')
         dirs = self._config['directories']
         return {k: os.path.join(base_dir, v) for k, v in dirs.items()}
+
+    @property
+    def prompts(self) -> Dict[str, Dict[str, str]]:
+        """Get prompt configurations."""
+        return self._config.get('prompts', {})
+
