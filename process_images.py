@@ -34,14 +34,12 @@ from functions.merge_data import merge_data
 # Activate roboflow
 def get_roboflow_instance(config):
     if not hasattr(get_roboflow_instance, '_rf_instance'):
-        print("Initializing Roboflow workspace")
         get_roboflow_instance._rf_instance = roboflow.Roboflow(api_key=config.api_keys['roboflow'])
         get_roboflow_instance._workspace_instance = get_roboflow_instance._rf_instance.workspace(config.workspace)
     return get_roboflow_instance._rf_instance, get_roboflow_instance._workspace_instance
 
 # Define steps
 def run_step(step, config, args, rf_instance, workspace_instance):
-    print(f"Running step: {step}")
     
     if step == 'resize_drawers':
         resize_drawer_images(config.directories['fullsize'], config.directories['resized'])
