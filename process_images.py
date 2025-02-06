@@ -196,11 +196,12 @@ def run_step(step, config, args, rf_instance, workspace_instance):
     
     elif step == 'transcribe_speclabels':
         if config.processing_flags['transcribe_specimen_labels']:
+            # Instead of restructuring, just pass the relevant prompts directly
             prompts = {
-                'system': config.prompts['specimen_label']['system'],
-                'user': config.prompts['specimen_label']['user']
+                'transcription': config.prompts['specimen_label'],
+                'location': config.prompts['location']
             }
-            asyncio.run(transcribe_images(
+            asyncio.run(process_specimen_labels(
                 config.directories['specimens'],
                 os.path.join(config.directories['specimen_level'], 'location_frags.csv'),
                 config.api_keys['anthropic'],
