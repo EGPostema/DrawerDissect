@@ -41,7 +41,8 @@ prompts:
       You are a barcode reading tool. You should output only the number 
       (or letter-number string) found in the image. If no valid barcode 
       is found, output 'none'.
-    user: "Read the barcode number. Output only the number, no explanations."
+    user: |
+      Read the barcode number. Output only the number, no explanations.
   
   taxonomy: # prompt for transcribing and organizing taxonomic IDs
     system: |
@@ -59,7 +60,7 @@ prompts:
         'taxonomy': 'only taxonomic name (Genus (Subgenus) species subspecies)', 
         'authority': 'author, year'
       }
-    user: >
+    user: |
       Transcribe this taxonomic label, preserving the exact text and extracting 
       the taxonomic name and authority. Output only the dictionary, no explanations.
   
@@ -74,7 +75,7 @@ prompts:
           3. Do not interpret, correct, or standardize any text
           4. Do not skip any text, even if it seems unimportant
           5. Most text will be horizontal, read left-to-right. Occasionally, text may be vertical or upside-down.
-    user: >
+    user: |
       Transcribe any visible text. Output 'no text found' if none visible. 
       Transcribe text verbatim. No explanations, descriptions, or commentary.
   
@@ -94,7 +95,7 @@ prompts:
          - Include only explicitly stated or unambiguously implied locations
       4. Handle special cases:
          - Historical place names: use historical name, add modern name in brackets
-    user: >
+    user: |
       Extract geographic location from this text: {text}. Format: largest to 
       smallest unit, comma-separated. Output 'no location found' if none present. 
       No explanations or notes.
