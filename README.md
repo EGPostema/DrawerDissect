@@ -55,6 +55,8 @@ In a command-line interface (Terminal, Powershell, etc)...
 cd /your/path/to/DrawerDissect
 ```
 
+❗ Need instructions for Windows, with weird subfolder issue
+
 ```bash
 # Create the virtual environment
 python -m venv drawerdissect
