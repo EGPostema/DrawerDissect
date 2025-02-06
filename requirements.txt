@@ -1,0 +1,9 @@
+pandas
+numpy
+Pillow
+opencv-python
+matplotlib
+roboflow
+anthropic
+aiofiles
+pyyaml
