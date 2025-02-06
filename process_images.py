@@ -210,22 +210,20 @@ def run_step(step, config, args, rf_instance, workspace_instance):
             config.api_keys['anthropic']
         ))
     
-    elif step == 'transcribe_barcodes':
-        if config.processing_flags['transcribe_barcodes']:
-            asyncio.run(process_images(
-                config.directories['labels'],
-                os.path.join(config.directories['tray_level'], 'unit_barcodes.csv'),
-                config.api_keys['anthropic'],
-                BARCODE_CONFIG
+    elif step == 'transcribe_speclabels':
+        if config.processing_flags['transcribe_specimen_labels']:
+            asyncio.run(transcribe_images(
+                config.directories['specimens'],
+                os.path.join(config.directories['specimen_level'], 'location_frags.csv'),
+                config.api_keys['anthropic']
             ))
     
-    elif step == 'transcribe_taxonomy':
-        if config.processing_flags['transcribe_taxonomy']:
-            asyncio.run(process_images(
-                config.directories['labels'],
-                os.path.join(config.directories['tray_level'], 'taxonomy.csv'),
-                config.api_keys['anthropic'],
-                LABEL_CONFIG
+    elif step == 'validate_speclabels':
+        if config.processing_flags['transcribe_specimen_labels']:
+            asyncio.run(validate_transcriptions(
+                os.path.join(config.directories['specimen_level'], 'location_frags.csv'),
+                os.path.join(config.directories['specimen_level'], 'location_checked.csv'),
+                config.api_keys['anthropic']
             ))
     
     elif step == 'merge_data':
