@@ -313,29 +313,34 @@ python process_images.py resize_drawers
 Or in unique combinations:
 
 ```bash
-# subset of steps to just go from drawers -> trays
 python process_images.py resize_drawers find_trays crop_trays
 ```
 
 To run a step and all steps after, use `--from`
 
 ```bash
+# runs create_masks and all following steps
 python process_images.py --from create_masks
 ```
 
 To run all steps up to a specific step, use `--until`
 
 ```bash
+# runs all steps up to create_transparency (including create_transparency)
 python process_images.py --until create_transparency
 ```
 
 Finally, `--from` and `--until` can be combined to run sets of steps in order:
 
 ```bash
+# runs all steps between create_masks and create_transparency
 python process_images.py --from create_masks --until create_transparency
 
-# other specific steps not in the from-until range can also be added
+# runs resize_trays and then find_specimens through to validate_speclabels
 python process_images.py resize_trays --from find_specimens --until validate_speclabels
+
+# runs resize_trays, then find_specimens and all steps after
+python process_images.py resize_trays --from find_specimens
 ```
 
 **Steps Available:**
@@ -371,7 +376,7 @@ merge_data
 
 #### Example 1: Specimen Masking / Measuring Only
 
-If you have a set of **individual specimen photos** you want masked, measured, and turned into transparent PNGs:
+If you have a set of **individual specimen photos** you want masked, measured, and turned into backgroundless images:
 
 1. Create folder `drawers/specimens`
 2. Add all specimen images to `drawers/specimens`
