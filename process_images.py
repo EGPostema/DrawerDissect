@@ -257,6 +257,8 @@ def main():
     
     parser = argparse.ArgumentParser(description="Process drawer images")
     parser.add_argument('steps', nargs='+', choices=all_steps + ['all'])
+    parser.add_argument('--from', dest='from_step', choices=all_steps, 
+                        help='Run this step and all subsequent steps')
     
     for model in ['drawer', 'tray', 'label', 'beetle', 'pin']:
         parser.add_argument(f'--{model}_confidence', type=int)
@@ -264,7 +266,15 @@ def main():
             parser.add_argument(f'--{model}_overlap', type=int)
     
     args = parser.parse_args()
-    steps_to_run = all_steps if 'all' in args.steps else args.steps
+    if args.from_step and 'all' not in args.steps:
+        start_idx = all_steps.index(args.from_step)
+        requested_steps = set(args.steps)
+        steps_to_run = [step for step in all_steps[start_idx:] if step in requested_steps]
+    elif args.from_step:
+        start_idx = all_steps.index(args.from_step)
+        steps_to_run = all_steps[start_idx:]
+    else:
+        steps_to_run = all_steps if 'all' in args.steps else args.steps
 
     for step in steps_to_run:
         step_start = time.time()
