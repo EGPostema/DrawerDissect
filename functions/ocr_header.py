@@ -163,7 +163,7 @@ class ImageTranscriber:
             base64_image = await self.encode_image(filepath)
     
             response = await self.api_call_with_retry(
-                model="claude-3-5-sonnet-20241022",
+                model="claude-3-5-sonnet",
                 max_tokens=1000,
                 system=prompts['system'],
                 messages=[{
