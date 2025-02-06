@@ -50,26 +50,29 @@ DrawerDissect is ideal for digitizing large volumes of preserved insects, partic
 
 In a command-line interface (Terminal, Powershell, etc)...
 
+**Navigate to project folder (change '/your/path/to/')**
+
 ```bash
-# Navigate to project folder (change '/your/path/to/')
 cd /your/path/to/DrawerDissect
 ```
 
 ❗ Need instructions for Windows, with weird subfolder issue
 
+**Create the virtual environment**
+
 ```bash
-# Create the virtual environment
 python -m venv drawerdissect
 ```
 
+**Activate environment**
+
 ```bash
-# Activate environment
 source drawerdissect/bin/activate  # Use this command for Mac/Linux
 .\drawerdissect\Scripts\activate   # Use this command for Windows
 ```
 
+**Install packages**
 ```bash
-# Install packages
 pip install -r requirements.txt
 ```
 
