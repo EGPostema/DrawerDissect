@@ -35,6 +35,126 @@ processing:
   transcribe_taxonomy: true  # Set to false if no taxonomic IDs
   transcribe_specimen_labels: true  # Set to false to skip specimen label transcription
 
+api_keys:
+  anthropic: "YOUR_ANTHROPIC_KEY" # replace YOUR_ANTHROPIC_KEY with your key
+  roboflow: "YOUR_ROBOFLOW_KEY" # replace YOUR_ROBOFLOW_KEY with your key
+
+roboflow:
+  workspace: "field-museum" # FMNH workspace is default
+  models:
+    drawer:
+      endpoint: "trayfinder-labels" # obj detection, finds trays in drawers
+      version: 17
+      confidence: 50 # adjustable, set from 1-99
+      overlap: 50 # adjustable, set from 1-99
+    tray:
+      endpoint: "bugfinder-kdn9e" # obj detection, finds specimens in trays
+      version: 9
+      confidence: 50
+      overlap: 50
+    label:
+      endpoint: "labelfinder" # obj detection, finds label parts
+      version: 5
+      confidence: 50
+      overlap: 50
+    mask:
+      endpoint: "bugmasker-all"  # segmentation, outlines specimen bodies
+      version: 1 
+      confidence: 50
+    pin:
+      endpoint: "pinmasker" # segmentation, outlines pin
+      version: 5
+      confidence: 50
+
+processing:
+  process_metadata: false  # Set true if FMNH-style metadata is present
+  transcribe_barcodes: true  # Set to false if no barcodes
+  transcribe_taxonomy: true  # Set to false if no taxonomic IDs
+  transcribe_specimen_labels: true  # Set to false to skip specimen label transcription
+
+prompts:
+  barcode: # prompt for transcribing barcodes
+    system: |
+      You are a barcode reading tool. You should output only the number 
+      (or letter-number string) found in the image. If no valid barcode 
+      is found, output 'none'.
+    user: "Read the barcode number. Output only the number, no explanations."
+  
+  taxonomy: # prompt for transcribing and organizing taxonomic IDs
+    system: |
+      You are a taxonomic label transcription tool specializing in natural 
+      history specimens. Your task is to:
+      1. Provide a complete transcription of the entire label
+      2. Extract the taxonomic name, including any genus, subgenus, species, 
+         and subspecies information
+      3. Extract the taxonomic authority (author and year)
+
+      For missing elements, output 'none'. Format your response as a structured 
+      dictionary with these three keys:
+      {
+        'full_transcription': 'complete text as shown',
+        'taxonomy': 'only taxonomic name (Genus (Subgenus) species subspecies)', 
+        'authority': 'author, year'
+      }
+    user: >
+      Transcribe this taxonomic label, preserving the exact text and extracting 
+      the taxonomic name and authority. Output only the dictionary, no explanations.
+  
+  specimen_label: # prompt for transcribing any visible text, verbatim, from specimen labels
+    system: |
+      You are a label transcription tool. You may encounter fragmented or 
+      handwritten text. Output text only, no descriptions or commentary.
+    user: >
+      Transcribe any visible text. Output 'no text found' if none visible. 
+      Transcribe text verbatim. No explanations, descriptions, or commentary.
+  
+  location: # prompt for estimating locations from verbatim text
+    system: |
+      You are a geographic data extractor, reconstructing locations from 
+      fragments of text. Output locations only, no explanations.
+    user: >
+      Extract geographic location from this text: {text}. Format: largest to 
+      smallest unit, comma-separated. Output 'no location found' if none present. 
+      No explanations or notes.
+  
+  validation: # prompt for evaluating whether verbatim text and estimated location are a good match
+    system: |
+      You are a geographic data validator specializing in museum specimen labels. 
+      Your task is to:
+      1. Examine the transcribed text and interpreted location to evaluate whether they are a good match
+      2. Make a final location determination considering:
+         - The verbatim transcribed text
+         - The proposed location interpretation
+         - Your knowledge of geographic conventions in natural history collections
+         - Historical place names and abbreviations
+         - Locations derived from 'Field Museum' or 'FMNH' or 'Chicago Field Museum' 
+           are UNRELIABLE, as this is where the specimens are housed
+
+      Respond with a dictionary containing exactly these fields:
+      {
+        'verbatim_text': # Raw text exactly as transcribed from the original image
+        'proposed_location': # The location string being validated
+        'validation_status': # One of these values:
+            - 'VERIFIED': Text and location match well, geographic information is clear and sufficient
+            - 'UNRELIABLE': Proposed location appears to over-interpret limited data or misinterpret non-geographic terms
+                           (e.g., reading 'Det.' as Detroit or 'Col.' as Colorado)
+            - 'UNKNOWN': No clear location can be determined from the text
+        'final_location': # One of:
+            - A standardized location string from largest to smallest unit if VERIFIED
+            - 'UNKNOWN' for UNRELIABLE or UNKNOWN status
+        'confidence_notes': # Concise 1-2 sentences explaining the validation decision, specifically noting any misinterpreted abbreviations
+      }
+
+      Consider:
+      - State/country abbreviations (e.g., IL = Illinois)
+      - Common collector shorthand (e.g., 'Co.' = County)
+      - Historical place names
+      - Level of certainty needed for scientific records
+    user: |
+      Validate this location data:
+      Transcribed text: {text}
+      Proposed location: {location}
+
 directories:
   fullsize: "drawers/fullsize"
   metadata: "drawers/fullsize/capture_metadata"
