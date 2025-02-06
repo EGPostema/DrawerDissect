@@ -84,7 +84,7 @@ class LocationValidator:
         
         try:
             response = await self.api_call_with_retry(
-                model="claude-3-5-sonnet",
+                model="claude-3-5-sonnet-20241022",
                 max_tokens=1000,
                 system=prompts['system'],
                 messages=[{
