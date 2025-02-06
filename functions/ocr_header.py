@@ -30,8 +30,6 @@ class TranscriptionResult:
 @dataclass
 class TranscriptionConfig:
     file_suffix: str
-    system_prompt: str
-    user_prompt: str
     csv_fields: List[str]
     validation_func: Optional[callable] = None
 
@@ -39,20 +37,15 @@ class TranscriptionConfig:
 class ImageTranscriber:
     def __init__(self, api_key: str, max_retries: int = 7, retry_delay: float = 5.0):
         self.client = Anthropic(api_key=api_key)
-        self.SONNET_RATE = 0.00025
         self.max_retries = max_retries
         self.retry_delay = retry_delay
         self.semaphore = asyncio.Semaphore(1)
         self.processed_files = set()
         
-        # Suppress verbose logs from external libraries
+        # Suppress all external logging
         logging.getLogger('anthropic').setLevel(logging.WARNING)
         logging.getLogger('httpx').setLevel(logging.WARNING)
         logging.getLogger('httpcore').setLevel(logging.WARNING)
-
-        # Setup basic logging for our application
-        self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.INFO)
     
     def load_processed_files(self, csv_path: str) -> None:
         """Load list of already processed files from existing CSV."""
@@ -63,18 +56,15 @@ class ImageTranscriber:
             with open(csv_path, 'r', newline='', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
-                    # For barcode files
                     if 'unit_barcode' in row and row['unit_barcode'] != 'ERROR':
                         self.processed_files.add(f"{row['tray_id']}_barcode.jpg")
-                    # For label files
                     if 'full_transcription' in row and row['full_transcription'] != 'ERROR':
                         self.processed_files.add(f"{row['tray_id']}_label.jpg")
-            
-            self.logger.info(f"Loaded {len(self.processed_files)} previously processed files")
         except Exception as e:
-            self.logger.warning(f"Error loading processed files from CSV: {e}")
+            print(f"Error loading processed files: {e}")
 
     def find_images(self, folder_path: str, suffix: str) -> List[str]:
+        """Find all images with given suffix in folder and subfolders."""
         if not os.path.exists(folder_path):
             raise ValueError(f"Folder path does not exist: {folder_path}")
             
@@ -92,38 +82,35 @@ class ImageTranscriber:
                     image_files.append(full_path)
         
         if not image_files:
-            self.logger.warning(f"No images with suffix {suffix} found in {folder_path}")
+            print(f"No images with suffix {suffix} found in {folder_path}")
         
-        return sorted(image_files)
+        return image_files
 
     def extract_tray_id(self, filepath: str, suffix: str) -> str:
+        """Extract tray ID from filename, handling both barcode and label files."""
         try:
             filename = os.path.basename(filepath)
             if '_tray_' in filename:
-                # Split on either '_barcode.jpg' or '_label.jpg'
-                parts = filename.replace('_barcode.jpg', '').replace('_label.jpg', '')
-                return parts
+                parts = filename.split('_tray_')[-1]  # Get everything after 'tray_'
+                tray_id = parts.replace('_barcode.jpg', '').replace('_label.jpg', '')
+                return tray_id
             return "unknown_tray"
         except Exception as e:
-            self.logger.error(f"Error extracting tray ID from {filepath}: {str(e)}")
+            print(f"Error extracting tray ID from {filepath}: {e}")
             return "unknown_tray"
 
     async def encode_image(self, image_path: str) -> str:
+        """Encode and optimize image for API transmission."""
         try:
             with Image.open(image_path) as img:
-                # Auto-rotate based on EXIF data
                 img = ImageOps.exif_transpose(img)
-    
-                # Convert to grayscale
                 img = img.convert('L')
                 
-                # Enhance contrast
                 enhancer = ImageEnhance.Contrast(img)
-                img = enhancer.enhance(2.0)  # Increase contrast
+                img = enhancer.enhance(2.0)
                 
-                # Enhance brightness slightly
                 brightness = ImageEnhance.Brightness(img)
-                img = brightness.enhance(1.2)  # Slight brightness increase
+                img = brightness.enhance(1.2)
     
                 if max(img.size) > 1024:
                     ratio = 1024 / max(img.size)
@@ -142,10 +129,10 @@ class ImageTranscriber:
             raise ValueError(f"Error processing image {image_path}: {str(e)}")
     
     async def api_call_with_retry(self, **kwargs) -> dict:
+        """Make API call with exponential backoff retry logic."""
         for attempt in range(self.max_retries):
             try:
                 async with self.semaphore:
-                    # Run the API call synchronously in a thread pool
                     response = await asyncio.get_event_loop().run_in_executor(
                         None,
                         lambda: self.client.messages.create(**kwargs)
@@ -162,12 +149,13 @@ class ImageTranscriber:
                     raise
                 await asyncio.sleep(self.retry_delay * (2 ** attempt))
             except Exception as e:
-                self.logger.error(f"Unexpected error in API call: {str(e)}")
+                print(f"Unexpected error in API call: {e}")
                 if attempt == self.max_retries - 1:
                     raise
                 await asyncio.sleep(self.retry_delay * (2 ** attempt))
     
-    async def process_single_image(self, filepath: str, config: TranscriptionConfig) -> TranscriptionResult:
+    async def process_single_image(self, filepath: str, config: TranscriptionConfig, prompts: dict) -> TranscriptionResult:
+        """Process a single image through Claude API and format the response."""
         start_time = asyncio.get_event_loop().time()
         tray_id = self.extract_tray_id(filepath, config.file_suffix)
     
@@ -177,13 +165,13 @@ class ImageTranscriber:
             response = await self.api_call_with_retry(
                 model="claude-3-5-sonnet-20241022",
                 max_tokens=1000,
-                system=config.system_prompt,
+                system=prompts['system'],
                 messages=[{
                     "role": "user",
                     "content": [
                         {
                             "type": "text",
-                            "text": config.user_prompt
+                            "text": prompts['user']
                         },
                         {
                             "type": "image",
@@ -197,28 +185,19 @@ class ImageTranscriber:
                 }]
             )
     
-            # Get raw response and clean up any style tags
             raw_content = response.content[0].text.strip()
             content = raw_content.replace('<userStyle>Normal</userStyle>', '').strip()
             
-            # For barcode processing
             if config.file_suffix == '_barcode.jpg':
                 if config.validation_func:
                     content = config.validation_func(content)
-                content = {
-                    'tray_id': tray_id,
-                    **content  # This will add the unit_barcode field
-                }
+                content = {'tray_id': tray_id, **content}
     
-            # For label processing
-            if config.file_suffix == '_label.jpg':
+            elif config.file_suffix == '_label.jpg':
                 try:
                     import ast
                     content = ast.literal_eval(content)
-                    content = {
-                        'tray_id': tray_id,
-                        **content  # This adds full_transcription, taxonomy, and authority
-                    }
+                    content = {'tray_id': tray_id, **content}
                 except:
                     content = {
                         'tray_id': tray_id,
@@ -227,16 +206,15 @@ class ImageTranscriber:
                         'authority': 'ERROR'
                     }
     
-            processing_time = asyncio.get_event_loop().time() - start_time
             return TranscriptionResult(
                 tray_id=tray_id,
                 content=content,
-                processing_time=processing_time
+                processing_time=asyncio.get_event_loop().time() - start_time
             )
     
         except Exception as e:
             error_msg = f"Error processing {filepath}: {str(e)}"
-            self.logger.error(error_msg)
+            print(error_msg)
             return TranscriptionResult(
                 tray_id=tray_id,
                 content={
@@ -247,6 +225,7 @@ class ImageTranscriber:
             )
 
     def write_results(self, result: TranscriptionResult, output_csv: str, fields: List[str]):
+        """Write transcription results to CSV file."""
         file_exists = os.path.exists(output_csv)
         
         with open(output_csv, 'a', newline='', encoding='utf-8') as f:
@@ -255,97 +234,70 @@ class ImageTranscriber:
                 writer.writeheader()
             writer.writerow({field: result.content.get(field, '') for field in fields})
 
-    async def process_images(self, folder_path: str, output_csv: str, config: TranscriptionConfig) -> Tuple[List[TranscriptionResult], int]:
-        # Load already processed files at start
+    async def process_images(self, folder_path: str, output_csv: str, config: TranscriptionConfig, prompts: dict) -> Tuple[List[TranscriptionResult], int]:
+        """Process all images in a folder through Claude API."""
         self.load_processed_files(output_csv)
-        
         image_files = self.find_images(folder_path, config.file_suffix)
         total_images = len(image_files)
         results = []
         skipped = 0
         
+        print(f"\nProcessing {total_images} images...")
+        
         for i, filepath in enumerate(image_files, 1):
             filename = os.path.basename(filepath)
             
-            # Skip if already processed
             if filename in self.processed_files:
-                self.logger.info(f"Skipping already processed image {i}/{total_images}: {filename}")
                 skipped += 1
                 continue
                 
-            self.logger.info(f"Processing image {i}/{total_images}: {filepath}")
+            print(f"Image {i}/{total_images}", end='\r')
             
             try:
-                result = await self.process_single_image(filepath, config)
+                result = await self.process_single_image(filepath, config, prompts)
                 results.append(result)
-
+    
                 if not result.error:
-                    self.logger.info(
-                        f"Image processed in {result.processing_time:.2f}s | "
-                        f"Tray: {result.tray_id}"
-                    )
-                    self.processed_files.add(filename)  # Add to processed set after successful processing
+                    self.processed_files.add(filename)
                 else:
-                    self.logger.error(f"Failed to process {filepath}: {result.error}")
-
+                    print(f"\nError processing {filename}: {result.error}")
+    
                 self.write_results(result, output_csv, config.csv_fields)
-
+    
             except Exception as e:
-                self.logger.error(f"Unexpected error processing {filepath}: {str(e)}")
+                print(f"\nUnexpected error processing {filename}: {e}")
                 results.append(TranscriptionResult(
                     tray_id=self.extract_tray_id(filepath, config.file_suffix),
                     content={field: "ERROR" for field in config.csv_fields if field != 'tray_id'},
                     error=str(e)
                 ))
-
+    
         successful = len([r for r in results if not r.error])
-        self.logger.info(f"Processing complete. Successfully processed {successful}/{total_images} images")
-        self.logger.info(f"Processed {len(results)} new images, skipped {skipped} previously processed images")
+        print(f"\nComplete: {successful} processed, {skipped} skipped")
         return results, successful
 
-# Example configs (you can modify the prompts as needed)
-BARCODE_CONFIG = TranscriptionConfig(
-    file_suffix='_barcode.jpg',
-    system_prompt="You are a barcode reading tool. You should output only the number (or letter-number string) found in the image. If no valid barcode is found, output 'none'.",
-    user_prompt="Read the barcode number. Output only the number, no explanations.",
-    csv_fields=['tray_id', 'unit_barcode'],
-    validation_func=lambda x: {'unit_barcode': 'no_barcode' if x.lower() == 'none' else x}
-)
 
-LABEL_CONFIG = TranscriptionConfig(
-    file_suffix='_label.jpg',
-    system_prompt="""You are a taxonomic label transcription tool specializing in natural history specimens. Your task is to:
-1. Provide a complete transcription of the entire label
-2. Extract the taxonomic name, including any genus, subgenus, species, and subspecies information
-3. Extract the taxonomic authority (author and year)
-
-For missing elements, output 'none'. Format your response as a structured dictionary with these three keys:
-{
-'full_transcription': 'complete text as shown',
-'taxonomy': 'only taxonomic name (Genus (Subgenus) species subspecies)', 
-'authority': 'author, year'
-}""",
-    user_prompt="Transcribe this taxonomic label, preserving the exact text and extracting the taxonomic name and authority. Output only the dictionary, no explanations.",
-    csv_fields=['tray_id', 'full_transcription', 'taxonomy', 'authority']
-)
-
-
-async def process_images(folder_path: str, output_csv: str, api_key: str, config: TranscriptionConfig) -> Tuple[List[TranscriptionResult], int]:
+async def process_image_folder(folder_path: str, output_csv: str, api_key: str, prompts: dict) -> Tuple[List[TranscriptionResult], int]:
     """
-    Wrapper function to process a folder of images using Claude.
+    Process a folder of images using Claude API.
     
     Args:
         folder_path: Path to folder containing images
         output_csv: Path to output CSV file
         api_key: Anthropic API key
-        config: TranscriptionConfig object specifying processing parameters
+        prompts: Dictionary containing system and user prompts
     
     Returns:
         Tuple containing list of TranscriptionResult objects and count of successful reads
     """
     try:
         processor = ImageTranscriber(api_key)
-        return await processor.process_images(folder_path, output_csv, config)
+        config = TranscriptionConfig(
+            file_suffix='_barcode.jpg' if 'barcode' in output_csv else '_label.jpg',
+            csv_fields=['tray_id', 'unit_barcode'] if 'barcode' in output_csv else ['tray_id', 'full_transcription', 'taxonomy', 'authority'],
+            validation_func=lambda x: {'unit_barcode': 'no_barcode' if x.lower() == 'none' else x} if 'barcode' in output_csv else None
+        )
+        return await processor.process_images(folder_path, output_csv, config, prompts)
     except Exception as e:
-        logging.error(f"Failed to process images: {str(e)}")
+        print(f"Failed to process images: {e}")
         raise
