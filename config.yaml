@@ -8,8 +8,8 @@ roboflow:
     drawer:
       endpoint: "trayfinder-labels" # obj detection, finds trays in drawers
       version: 17
-      confidence: 50 # adjustable, set from 1-99
-      overlap: 50 # adjustable, set from 1-99
+      confidence: 50 # adjustable, set from 1-99 (higher # = greater threshold for predictions)
+      overlap: 50 # adjustable, set from 1-99 (higher # = higher expected overlap between bounding boxes)
     tray:
       endpoint: "bugfinder-kdn9e" # obj detection, finds specimens in trays
       version: 9
