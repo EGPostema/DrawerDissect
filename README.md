@@ -116,10 +116,10 @@ roboflow:
   workspace: "field-museum" # FMNH workspace default, can change to your own
   models:
     drawer:
-      endpoint: "trayfinder-labels" # obj detection, drawer to trays
-      version: 17
-      confidence: 50 
-      overlap: 50
+      endpoint: "trayfinder-labels" # model name goes here
+      version: 17 # can update versions as needed
+      confidence: 50 # adjustable, set from 1-99 (higher # = greater threshold for predictions)
+      overlap: 50 # adjustable, set from 1-99 (higher # = higher expected overlap between bounding boxes)
 ```
 
 **All Available FMNH Models (⭐ = default)**
