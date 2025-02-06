@@ -37,19 +37,23 @@ def resize_image(args):
 
 def resize_tray_images(input_dir, output_dir, new_width=1000):
     start_time = time.time()
+    
     supported_formats = ('.jpg', '.jpeg', '.tif', '.tiff', '.png')
     file_paths = []
-    for root, _, files in os.walk(input_dir):
+    
+    for root, dirs, files in os.walk(input_dir):
         for filename in files:
+            full_path = os.path.join(root, filename)
             if filename.lower().endswith(supported_formats):
-                file_paths.append(os.path.join(root, filename))
-
+                file_paths.append(full_path)
+    
+    print(f"Total images found: {len(file_paths)}")
+    
     args = [(file_path, output_dir, new_width, input_dir) for file_path in file_paths]
-
     with Pool(cpu_count()) as pool:
         pool.map(resize_image, args)
-
     print(f"Tray resizing complete. Total time: {time.time() - start_time:.2f} seconds.")
+
 
 
 
