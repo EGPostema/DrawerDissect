@@ -86,45 +86,13 @@ api_keys:
 
 This step is <ins>REQUIRED</ins> for all object detection, segmentation, and transcription steps to run.
 
+From here, you can either:
+- [Try processing your own images](https://github.com/EGPostema/DrawerDissect/edit/main/README.md#process-your-own-images)
+- [OR try processing a test image](https://github.com/EGPostema/DrawerDissect/edit/main/README.md#try-a-test-image) (⭐ Recommended )
+
 ---
 
 ## 🧪 Run the Pipeline
-
-### Start by Processing A Test Image
-1. [Download the test image](https://drive.google.com/drive/folders/1NHV9MSR-sjmAW43KlyPfSB9Xr5ZTvJFt?usp=drive_link) (large image, be patient!)
-2. Make sure you have installed DrawerDissect & set up the virtual environment
-3. Place it in `drawers/fullsize`
-4. Check that `config.yaml` contains your API keys
-5. Edit `config.yaml` to enable metadata processing
-
-  ```yaml
-  processing:
-    process_metadata: true # default is false
-  ```
-
-Our imaging system produces a metadata .txt file. This file can be used to convert pixel:mm, if process_metadata is toggled on.
-
-6. Edit `config.yaml` to use a more specialized masking model
-
-   ```yaml
-    mask:
-      endpoint: "bugmasker-tigerbeetle" # replace bugmasker-all with this model
-      version: 11 # use most recent version
-      confidence: 50
-
-   # all other models can stay the same
-   ```
-
-7. Run the Script
-
-  ```bash
-  # this command runs all steps in the pipeline
-  python process_images.py all
-  ```
-
-[Click Here to see Examples of Outputs!](https://github.com/EGPostema/DrawerDissect/blob/main/README.md#-example-outputs)
-
----
 
 ### Process Your Own Images
 
@@ -222,7 +190,7 @@ Many **free, open-source** AI models exist for image processing and transcriptio
 
 ---
 
-4. Configure the pipeline
+5. Configure the pipeline
 
 Standard FMNH drawers contain **unit trays** with labels (see below)
 
@@ -232,20 +200,62 @@ By default, DrawerDissect crops and transcribes:
   - **barcodes**
   - **taxonomic IDs**
 
-**For different drawer setups, simply adjust `config.yaml`:**
+DrawerDissect also has the option to:
+  - **transcribe visible specimen labels**
+  - **estimate collection location from that text**
+
+**For different drawer setups / desired outputs, simply adjust `config.yaml`:**
 
 ```yaml
 processing:
   process_metadata: false  # Set to true if metadata txt file is present
   transcribe_barcodes: true  # Set to false if no barcodes
   transcribe_taxonomy: true  # Set to false if no taxonomic IDs
+  transcribe_specimen_labels: true  # Set to false to skip specimen label transcription/estimation
 ```
-5. Run the Script
+6. Run the Script
 
   ```bash
   # this command runs all steps in the pipeline
   python process_images.py all
   ```
+
+[How to run individual steps](https://github.com/EGPostema/DrawerDissect/edit/main/README.md#calling-individual-steps)
+
+---
+### Try a Test Image
+1. [Download the test image](https://drive.google.com/drive/folders/1NHV9MSR-sjmAW43KlyPfSB9Xr5ZTvJFt?usp=drive_link) (large image, be patient!)
+2. Make sure you have installed DrawerDissect & set up the virtual environment
+3. Place it in `drawers/fullsize`
+4. Check that `config.yaml` contains your API keys
+5. Edit `config.yaml` to enable metadata processing
+
+  ```yaml
+  processing:
+    process_metadata: true # default is false
+  ```
+
+Our imaging system produces a metadata .txt file. This file can be used to convert pixel:mm, if process_metadata is toggled on.
+
+6. Edit `config.yaml` to use a more specialized masking model
+
+   ```yaml
+    mask:
+      endpoint: "bugmasker-tigerbeetle" # replace bugmasker-all with this model
+      version: 11 # use most recent version
+      confidence: 50
+
+   # all other models can stay the same
+   ```
+
+7. Run the Script
+
+  ```bash
+  # this command runs all steps in the pipeline
+  python process_images.py all
+  ```
+
+See example outputs below!
 
 ---
 
