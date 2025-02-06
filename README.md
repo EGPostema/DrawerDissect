@@ -333,6 +333,9 @@ Finally, `--from` and `--until` can be combined to run sets of steps in order:
 
 ```bash
 python process_images.py --from create_masks --until create_transparency
+
+# other specific steps not in the from-until range can also be added
+python process_images.py resize_trays --from find_specimens --until validate_speclabels
 ```
 
 **Steps Available:**
@@ -420,7 +423,7 @@ processing:
 5. Run the command:
 
 ```sh
-python process_images.py --from --until validate_speclabels
+python process_images.py resize_trays --from find_specimens --until validate_speclabels
 ```
 
 ### Tuning LLM Prompts
