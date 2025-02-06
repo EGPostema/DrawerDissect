@@ -118,7 +118,7 @@ roboflow:
     drawer:
       endpoint: "trayfinder-labels" # model name goes here
       version: 17 # can update versions as needed
-      confidence: 50 # adjustable, set from 1-99 (higher # = greater threshold for predictions)
+      confidence: 50 # adjustable, set from 1-99 (higher # = greater threshold for model to return predictions)
       overlap: 50 # adjustable, set from 1-99 (higher # = higher expected overlap between bounding boxes)
 ```
 
