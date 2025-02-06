@@ -336,7 +336,7 @@ python process_images.py --from create_masks --until create_transparency
 **Steps Available:**
 
 ```sh
-all # to run full script
+all # to run all steps, in the order below
 resize_drawers
 process_metadata # if metadata TXT file present
 find_trays
@@ -374,7 +374,7 @@ If you have a set of **individual specimen photos** you want masked, measured, a
 4. Run the command:
    
 ```sh
-python process_images.py outline_specimens create_masks fix_masks measure_specimens censor_background outline_pins create_pinmask create_transparency
+python process_images.py --from outline_specimens --until create_transparency
 ```
 
 #### Example 2: Specimen Detection and Cropping Only
@@ -418,7 +418,7 @@ processing:
 5. Run the command:
 
 ```sh
-python process_images.py find_specimens crop_specimens create_traymaps create_traymaps outline_specimens create_masks fix_masks measure_specimens censor_background outline_pins create_pinmask create_transparency transcribe_speclabels validate_speclabels
+python process_images.py --from --until validate_speclabels
 ```
 
 ---
