@@ -281,6 +281,8 @@ def main():
     parser.add_argument('steps', nargs='+', choices=all_steps + ['all'])
     parser.add_argument('--from', dest='from_step', choices=all_steps, 
                         help='Run this step and all subsequent steps')
+    parser.add_argument('--until', dest='until_step', choices=all_steps,
+                        help='Run all steps up to and including this step')
     
     for model in ['drawer', 'tray', 'label', 'beetle', 'pin']:
         parser.add_argument(f'--{model}_confidence', type=int)
@@ -288,21 +290,38 @@ def main():
             parser.add_argument(f'--{model}_overlap', type=int)
     
     args = parser.parse_args()
-    if args.from_step and 'all' not in args.steps:
+    if args.from_step and args.until_step:
         start_idx = all_steps.index(args.from_step)
-        requested_steps = set(args.steps)
-        steps_to_run = [step for step in all_steps[start_idx:] if step in requested_steps]
+        end_idx = all_steps.index(args.until_step) + 1
+        range_steps = all_steps[start_idx:end_idx]
+        if 'all' in args.steps:
+            steps_to_run = range_steps
+        else:
+            # Combine explicit steps and range steps
+            explicit_steps = set(step for step in args.steps if step != 'all')
+            steps_to_run = list(explicit_steps.union(set(range_steps)))
+            # Sort according to original order
+            steps_to_run.sort(key=lambda x: all_steps.index(x))
     elif args.from_step:
         start_idx = all_steps.index(args.from_step)
-        steps_to_run = all_steps[start_idx:]
+        if 'all' in args.steps:
+            steps_to_run = all_steps[start_idx:]
+        else:
+            explicit_steps = set(step for step in args.steps if step != 'all')
+            range_steps = set(all_steps[start_idx:])
+            steps_to_run = list(explicit_steps.union(range_steps))
+            steps_to_run.sort(key=lambda x: all_steps.index(x))
+    elif args.until_step:
+        end_idx = all_steps.index(args.until_step) + 1
+        if 'all' in args.steps:
+            steps_to_run = all_steps[:end_idx]
+        else:
+            explicit_steps = set(step for step in args.steps if step != 'all')
+            range_steps = set(all_steps[:end_idx])
+            steps_to_run = list(explicit_steps.union(range_steps))
+            steps_to_run.sort(key=lambda x: all_steps.index(x))
     else:
         steps_to_run = all_steps if 'all' in args.steps else args.steps
-
-    for step in steps_to_run:
-        step_start = time.time()
-        run_step(step, config, args, rf_instance, workspace_instance)
-        step_time = time.time() - step_start
-        print(f"{step} completed in {step_time:.2f} seconds")
 
     total_time = time.time() - start_time
     hours = int(total_time // 3600)
