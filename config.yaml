@@ -143,8 +143,8 @@ prompts:
         }
     user: |
       Validate this location data:
-      Transcribed text: {text}
-      Proposed location: {location}
+      Transcribed text: {transcribed_text}
+      Proposed location: {proposed_location}
 
 directories:
   fullsize: "drawers/fullsize"
