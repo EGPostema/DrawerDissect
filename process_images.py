@@ -278,7 +278,8 @@ def main():
     ]
     
     parser = argparse.ArgumentParser(description="Process drawer images")
-    parser.add_argument('steps', nargs='+', choices=all_steps + ['all'])
+    parser.add_argument('steps', nargs='*', choices=all_steps + ['all'], 
+                        help='Steps to run')
     parser.add_argument('--from', dest='from_step', choices=all_steps, 
                         help='Run this step and all subsequent steps')
     parser.add_argument('--until', dest='until_step', choices=all_steps,
@@ -290,38 +291,35 @@ def main():
             parser.add_argument(f'--{model}_overlap', type=int)
     
     args = parser.parse_args()
-    if args.from_step and args.until_step:
-        start_idx = all_steps.index(args.from_step)
-        end_idx = all_steps.index(args.until_step) + 1
-        range_steps = all_steps[start_idx:end_idx]
-        if 'all' in args.steps:
-            steps_to_run = range_steps
-        else:
-            # Combine explicit steps and range steps
-            explicit_steps = set(step for step in args.steps if step != 'all')
-            steps_to_run = list(explicit_steps.union(set(range_steps)))
-            # Sort according to original order
-            steps_to_run.sort(key=lambda x: all_steps.index(x))
-    elif args.from_step:
-        start_idx = all_steps.index(args.from_step)
-        if 'all' in args.steps:
+    
+    # If no steps specified, but from/until are provided
+    if not args.steps and (args.from_step or args.until_step):
+        if args.from_step and args.until_step:
+            start_idx = all_steps.index(args.from_step)
+            end_idx = all_steps.index(args.until_step) + 1
+            steps_to_run = all_steps[start_idx:end_idx]
+        elif args.from_step:
+            start_idx = all_steps.index(args.from_step)
             steps_to_run = all_steps[start_idx:]
-        else:
-            explicit_steps = set(step for step in args.steps if step != 'all')
-            range_steps = set(all_steps[start_idx:])
-            steps_to_run = list(explicit_steps.union(range_steps))
-            steps_to_run.sort(key=lambda x: all_steps.index(x))
-    elif args.until_step:
-        end_idx = all_steps.index(args.until_step) + 1
-        if 'all' in args.steps:
+        elif args.until_step:
+            end_idx = all_steps.index(args.until_step) + 1
             steps_to_run = all_steps[:end_idx]
+    
+    # If steps are provided
+    elif args.steps:
+        if 'all' in args.steps:
+            steps_to_run = all_steps
         else:
-            explicit_steps = set(step for step in args.steps if step != 'all')
-            range_steps = set(all_steps[:end_idx])
-            steps_to_run = list(explicit_steps.union(range_steps))
-            steps_to_run.sort(key=lambda x: all_steps.index(x))
+            steps_to_run = args.steps
+    
+    # If no steps specified at all
     else:
-        steps_to_run = all_steps if 'all' in args.steps else args.steps
+        parser.error("Please specify steps to run")
+    
+    # Run each step
+    for step in steps_to_run:
+        print(f"\nRunning step: {step}")
+        run_step(step, config, args, rf_instance, workspace_instance)
 
     total_time = time.time() - start_time
     hours = int(total_time // 3600)
