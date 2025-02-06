@@ -84,7 +84,7 @@ class LocationValidator:
         
         try:
             response = await self.api_call_with_retry(
-                model="claude-3-5-sonnet-20241022",
+                model="claude-3-5-sonnet",
                 max_tokens=1000,
                 system=prompts['system'],
                 messages=[{
@@ -95,10 +95,13 @@ class LocationValidator:
                     )
                 }]
             )
-
+    
             try:
-                # New approach to parse the response
+                # Parse the response, but preserve original transcription and location
                 content = eval(response.content[0].text.strip())
+                # Ensure original values are maintained
+                content['verbatim_text'] = transcription
+                content['proposed_location'] = location
             except:
                 content = {
                     'verbatim_text': transcription,
@@ -107,14 +110,14 @@ class LocationValidator:
                     'final_location': 'ERROR',
                     'confidence_notes': 'Failed to parse validation response'
                 }
-
+    
             processing_time = asyncio.get_event_loop().time() - start_time
             return ValidationResult(
                 filename=filename,
                 **content,
                 processing_time=processing_time
             )
-
+    
         except Exception as e:
             error_msg = f"Error validating {filename}: {str(e)}"
             print(error_msg)
