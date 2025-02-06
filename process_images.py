@@ -26,9 +26,9 @@ from functions.censor_background import censor_background
 from functions.infer_pins import infer_pins
 from functions.create_pinmask import create_pinmask
 from functions.create_transparency import create_transparency
-from functions.ocr_label import transcribe_images, ImageProcessor, ProcessingResult
-from functions.ocr_validation import validate_transcriptions
 from functions.ocr_header import process_image_folder, TranscriptionConfig
+from functions.ocr_label import process_specimen_labels, ImageProcessor, ProcessingResult
+from functions.ocr_validation import validate_transcriptions
 from functions.merge_data import merge_data
 
 # Activate roboflow
