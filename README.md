@@ -423,6 +423,12 @@ processing:
 python process_images.py --from --until validate_speclabels
 ```
 
+### Tuning LLM Prompts
+
+We use the large language model, Claude, to transcribe text from images. The prompts fed to Claude can be adjusted:
+
+❗ make edit-able prompts in config file!
+
 ---
 
 ## 📋 Troubleshooting
