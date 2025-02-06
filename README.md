@@ -430,6 +430,6 @@ python process_images.py --from --until validate_speclabels
   - [x] Navigated to the `DrawerDissect` directory
   - [x] Created and activated a virtual environment with the required packages
   - [x] Decided on a model approach 
-  - [x] Edited (and saved) `process_images.py` accordingly
+  - [x] Edited (and saved) `config.yaml` accordingly
 
 ❗ More troubleshooting/tips to come...
