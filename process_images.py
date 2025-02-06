@@ -28,7 +28,7 @@ from functions.create_pinmask import create_pinmask
 from functions.create_transparency import create_transparency
 from functions.ocr_label import transcribe_images, ImageProcessor, ProcessingResult
 from functions.ocr_validation import validate_transcriptions
-from functions.ocr_header import process_images, TranscriptionConfig, BARCODE_CONFIG, LABEL_CONFIG
+from functions.ocr_header import process_image_folder, TranscriptionConfig
 from functions.merge_data import merge_data
 
 # Activate roboflow
@@ -228,7 +228,7 @@ def run_step(step, config, args, rf_instance, workspace_instance):
                 'system': config.prompts['barcode']['system'],
                 'user': config.prompts['barcode']['user']
             }
-            asyncio.run(process_images(
+            asyncio.run(process_image_folder(
                 config.directories['labels'],
                 os.path.join(config.directories['tray_level'], 'unit_barcodes.csv'),
                 config.api_keys['anthropic'],
@@ -241,7 +241,7 @@ def run_step(step, config, args, rf_instance, workspace_instance):
                 'system': config.prompts['taxonomy']['system'],
                 'user': config.prompts['taxonomy']['user']
             }
-            asyncio.run(process_images(
+            asyncio.run(process_image_folder(
                 config.directories['labels'],
                 os.path.join(config.directories['tray_level'], 'taxonomy.csv'),
                 config.api_keys['anthropic'],
