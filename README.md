@@ -33,17 +33,18 @@ DrawerDissect is ideal for digitizing large volumes of preserved insects, partic
 ### Installation
 
 1. **Get the Code**
+
+  Using Git:
   
   ```bash
-  # Using git
   git clone https://github.com/EGPostema/DrawerDissect.git
   ```
 
-  OR, Download the zipped folder directly
+  OR, Download the zipped folder directly:
   
-  <img width="420" alt="Screenshot 2025-02-03 at 5 49 32 PM" src="https://github.com/user-attachments/assets/8b2fe830-f6bc-4c5f-ac32-284ec174887e" />
+  <img width="300" alt="Screenshot 2025-02-03 at 5 49 32 PM" src="https://github.com/user-attachments/assets/8b2fe830-f6bc-4c5f-ac32-284ec174887e" />
   
-  Unzip, then rename folder from `DrawerDissect-main` to `DrawerDissect`
+  Unzip, then rename folder `DrawerDissect`
 
 2. **Setup Environment**
 
@@ -66,8 +67,8 @@ source drawerdissect/bin/activate  # Use this command for Mac/Linux
 ```
 
 ```bash
-# Install dependencies (be patient, this make take a minute)
-pip install pandas numpy Pillow opencv-python matplotlib roboflow anthropic aiofiles pyyaml
+# Install packages
+pip install -r requirements.txt
 ```
 
 3. **Configure API Keys**
