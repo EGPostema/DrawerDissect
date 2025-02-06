@@ -87,8 +87,8 @@ api_keys:
 This step is <ins>REQUIRED</ins> for all object detection, segmentation, and transcription steps to run.
 
 From here, you can either:
-- [Process your own images](https://github.com/EGPostema/DrawerDissect/main/README.md#process-your-own-images)
-- [OR try processing a test image first](https://github.com/EGPostema/DrawerDissect/main/README.md#try-a-test-image) (⭐ Recommended )
+- [Process your own images](https://github.com/EGPostema/DrawerDissect/blob/main/README.md#process-your-own-images)
+- [OR try processing a test image first](https://github.com/EGPostema/DrawerDissect/blob/main/README.md#try-a-test-image) (⭐ Recommended )
 
 ---
 
@@ -220,7 +220,7 @@ processing:
   python process_images.py all
   ```
 
-[How to run individual steps](https://github.com/EGPostema/DrawerDissect/main/README.md#calling-individual-steps)
+[How to run individual steps](https://github.com/EGPostema/DrawerDissect/blob/main/README.md#calling-individual-steps)
 
 ---
 ### Try a Test Image
