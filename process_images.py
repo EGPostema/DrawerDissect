@@ -197,33 +197,55 @@ def run_step(step, config, args, rf_instance, workspace_instance):
         )
     
     elif step == 'transcribe_speclabels':
-        asyncio.run(transcribe_images(
-            config.directories['specimens'],
-            os.path.join(config.directories['specimen_level'], 'location_frags.csv'),
-            config.api_keys['anthropic']
-        ))
-    
-    elif step == 'validate_speclabels':
-        asyncio.run(validate_transcriptions(
-            os.path.join(config.directories['specimen_level'], 'location_frags.csv'),
-            os.path.join(config.directories['specimen_level'], 'location_checked.csv'),
-            config.api_keys['anthropic']
-        ))
-    
-    elif step == 'transcribe_speclabels':
         if config.processing_flags['transcribe_specimen_labels']:
+            prompts = {
+                'system': config.prompts['specimen_label']['system'],
+                'user': config.prompts['specimen_label']['user']
+            }
             asyncio.run(transcribe_images(
                 config.directories['specimens'],
                 os.path.join(config.directories['specimen_level'], 'location_frags.csv'),
-                config.api_keys['anthropic']
+                config.api_keys['anthropic'],
+                prompts=prompts
             ))
     
     elif step == 'validate_speclabels':
         if config.processing_flags['transcribe_specimen_labels']:
+            prompts = {
+                'system': config.prompts['validation']['system'],
+                'user': config.prompts['validation']['user']
+            }
             asyncio.run(validate_transcriptions(
                 os.path.join(config.directories['specimen_level'], 'location_frags.csv'),
                 os.path.join(config.directories['specimen_level'], 'location_checked.csv'),
-                config.api_keys['anthropic']
+                config.api_keys['anthropic'],
+                prompts=prompts
+            ))
+
+    elif step == 'transcribe_barcodes':
+        if config.processing_flags['transcribe_barcodes']:
+            prompts = {
+                'system': config.prompts['barcode']['system'],
+                'user': config.prompts['barcode']['user']
+            }
+            asyncio.run(process_images(
+                config.directories['labels'],
+                os.path.join(config.directories['tray_level'], 'unit_barcodes.csv'),
+                config.api_keys['anthropic'],
+                prompts=prompts
+            ))
+
+    elif step == 'transcribe_taxonomy':
+        if config.processing_flags['transcribe_taxonomy']:
+            prompts = {
+                'system': config.prompts['taxonomy']['system'],
+                'user': config.prompts['taxonomy']['user']
+            }
+            asyncio.run(process_images(
+                config.directories['labels'],
+                os.path.join(config.directories['tray_level'], 'taxonomy.csv'),
+                config.api_keys['anthropic'],
+                prompts=prompts
             ))
     
     elif step == 'merge_data':
