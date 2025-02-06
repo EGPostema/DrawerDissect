@@ -35,21 +35,22 @@ def resize_image(args):
         print(f"Error processing {filename}: {e}")
 
 def resize_drawer_images(input_dir, output_dir):
-    start_time = time.time()  # Start the timer
+    start_time = time.time()
     supported_formats = ('.jpg', '.jpeg', '.tif', '.tiff', '.png')
-    file_paths = [
-        os.path.join(input_dir, filename) 
-        for filename in os.listdir(input_dir) 
-        if filename.lower().endswith(supported_formats)
-    ]
+    file_paths = []
+    completed_files = set()
     
-    completed_files = set(os.listdir(output_dir))
+    for root, dirs, files in os.walk(input_dir):
+        for filename in files:
+            full_path = os.path.join(root, filename)
+            if filename.lower().endswith(supported_formats):
+                file_paths.append(full_path)
+    
+    print(f"Total images found: {len(file_paths)}")
+    
     args = [(file_path, output_dir, completed_files) for file_path in file_paths]
-    
     with Pool(cpu_count()) as pool:
         pool.map(resize_image, args)
-
-    elapsed_time = time.time() - start_time
-    print(f"Drawer resizing complete. Total time: {elapsed_time:.2f} seconds.")
+    print(f"Drawer resizing complete. Total time: {time.time() - start_time:.2f} seconds.")
 
 
