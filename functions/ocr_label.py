@@ -27,6 +27,7 @@ class ProcessingResult:
             for field in self.__dataclass_fields__
         }
 
+
 class ImageProcessor:
     def __init__(self, api_key: str, max_retries: int = 7, retry_delay: float = 5.0):
         self.client = Anthropic(api_key=api_key)
@@ -36,14 +37,10 @@ class ImageProcessor:
         self.semaphore = asyncio.Semaphore(1)
         self.processed_files = set()
         
-        # Suppress verbose logs from external libraries
+        # Suppress external logging
         logging.getLogger('anthropic').setLevel(logging.WARNING)
         logging.getLogger('httpx').setLevel(logging.WARNING)
         logging.getLogger('httpcore').setLevel(logging.WARNING)
-
-        # Setup basic logging for our application
-        self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.INFO)
 
     def load_processed_files(self, csv_path: str) -> None:
         """Load list of already processed files from existing CSV."""
@@ -54,14 +51,13 @@ class ImageProcessor:
             with open(csv_path, 'r', newline='', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
-                    if row['error'] is None or row['error'] == '':  # Only count successfully processed files
+                    if row['error'] is None or row['error'] == '':
                         self.processed_files.add(row['filename'])
-            
-            self.logger.info(f"Loaded {len(self.processed_files)} previously processed files")
         except Exception as e:
-            self.logger.warning(f"Error loading processed files from CSV: {e}")
+            print(f"Error loading processed files: {e}")
         
     def find_images(self, folder_path: str) -> List[str]:
+        """Find all image files in folder and subfolders."""
         if not os.path.exists(folder_path):
             raise ValueError(f"Folder path does not exist: {folder_path}")
             
@@ -73,17 +69,15 @@ class ImageProcessor:
                     image_files.append(full_path)
         
         if not image_files:
-            self.logger.warning(f"No image files found in {folder_path}")
+            print(f"No image files found in {folder_path}")
         
         return image_files
 
     async def encode_image(self, image_path: str) -> str:
+        """Encode and optimize image for API transmission."""
         try:
             with Image.open(image_path) as img:
-                # Auto-rotate based on EXIF data
                 img = ImageOps.exif_transpose(img)
-
-                # Convert RGBA to RGB if necessary
                 if img.mode == 'RGBA':
                     img = img.convert('RGB')
 
@@ -104,10 +98,10 @@ class ImageProcessor:
             raise ValueError(f"Error processing image {image_path}: {str(e)}")
 
     async def api_call_with_retry(self, **kwargs) -> dict:
+        """Make API call with exponential backoff retry logic."""
         for attempt in range(self.max_retries):
             try:
                 async with self.semaphore:
-                    # Run the API call synchronously in a thread pool
                     response = await asyncio.get_event_loop().run_in_executor(
                         None,
                         lambda: self.client.messages.create(**kwargs)
@@ -120,11 +114,12 @@ class ImageProcessor:
             except APIError as e:
                 if attempt == self.max_retries - 1:
                     raise
-                if e.status_code < 500:  # Don't retry client errors
+                if e.status_code < 500:
                     raise
                 await asyncio.sleep(self.retry_delay * (2 ** attempt))
 
-    async def process_single_image(self, filepath: str) -> ProcessingResult:
+    async def process_single_image(self, filepath: str, prompts: dict) -> ProcessingResult:
+        """Process a single image through Claude API for transcription and location."""
         start_time = asyncio.get_event_loop().time()
         filename = os.path.basename(filepath)
 
@@ -134,13 +129,13 @@ class ImageProcessor:
             transcription_response = await self.api_call_with_retry(
                 model="claude-3-5-sonnet-20241022",
                 max_tokens=1000,
-                system="You are a label transcription tool. You may encounter fragmented or handwritten text. Output text only, no descriptions or commentary.",
+                system=prompts['transcription']['system'],
                 messages=[{
                     "role": "user",
                     "content": [
                         {
                             "type": "text",
-                            "text": "Transcribe any visible text. Output 'no text found' if none visible. Transcribe text verbatim. No explanations, descriptions, or commentary."
+                            "text": prompts['transcription']['user']
                         },
                         {
                             "type": "image",
@@ -170,29 +165,28 @@ class ImageProcessor:
             location_response = await self.api_call_with_retry(
                 model="claude-3-5-sonnet-20241022",
                 max_tokens=1000,
-                system="You are a geographic data extractor, reconstructing locations from fragments of text. Output locations only, no explanations.",
+                system=prompts['location']['system'],
                 messages=[{
                     "role": "user",
-                    "content": f"Extract geographic location from this text: {transcription}. Format: largest to smallest unit, comma-separated. Output 'no location found' if none present. No explanations or notes."
+                    "content": prompts['location']['user'].format(text=transcription)
                 }]
             )
             
             location = location_response.content[0].text.strip()
             location_tokens = location_response.usage.output_tokens
 
-            processing_time = asyncio.get_event_loop().time() - start_time
             return ProcessingResult(
                 filename=filename,
                 transcription=transcription,
                 location=location,
                 transcription_tokens=transcription_tokens,
                 location_tokens=location_tokens,
-                processing_time=processing_time
+                processing_time=asyncio.get_event_loop().time() - start_time
             )
 
         except Exception as e:
             error_msg = f"Error processing {filepath}: {str(e)}"
-            self.logger.error(error_msg)
+            print(error_msg)
             return ProcessingResult(
                 filename=filename,
                 transcription="ERROR",
@@ -201,6 +195,7 @@ class ImageProcessor:
             )
 
     def write_results(self, result: ProcessingResult, output_csv: str):
+        """Write processing results to CSV file."""
         file_exists = os.path.exists(output_csv)
         
         with open(output_csv, 'a', newline='', encoding='utf-8') as f:
@@ -209,50 +204,44 @@ class ImageProcessor:
                 'transcription_tokens', 'location_tokens',
                 'processing_time', 'error'
             ])
-            if not file_exists:  # Write header only if file is new
+            if not file_exists:
                 writer.writeheader()
             writer.writerow(result.to_dict())
 
-    async def transcribe_images(self, folder_path: str, output_csv: str) -> Tuple[List[ProcessingResult], float]:
-        # Load already processed files at start
+    async def transcribe_images(self, folder_path: str, output_csv: str, prompts: dict) -> Tuple[List[ProcessingResult], float]:
+        """Process all images in a folder through Claude API."""
         self.load_processed_files(output_csv)
-        
         image_files = self.find_images(folder_path)
         total_images = len(image_files)
         results = []
-        total_cost = 0
         skipped = 0
+        total_cost = 0
 
+        print(f"\nProcessing {total_images} images...")
+        
         for i, filepath in enumerate(image_files, 1):
             filename = os.path.basename(filepath)
             
-            # Skip if already processed
             if filename in self.processed_files:
-                self.logger.info(f"Skipping already processed image {i}/{total_images}: {filename}")
                 skipped += 1
                 continue
                 
-            self.logger.info(f"Processing image {i}/{total_images}: {filepath}")
+            print(f"Image {i}/{total_images}", end='\r')
             
             try:
-                result = await self.process_single_image(filepath)
+                result = await self.process_single_image(filepath, prompts)
                 results.append(result)
 
                 if not result.error:
                     total_cost += (result.transcription_tokens + result.location_tokens) * self.SONNET_RATE
-                    self.logger.info(
-                        f"Image processed in {result.processing_time:.2f}s | "
-                        f"Tokens: {result.transcription_tokens + result.location_tokens} | "
-                        f"Cost: ${(result.transcription_tokens + result.location_tokens) * self.SONNET_RATE:.3f}"
-                    )
-                    self.processed_files.add(filename)  # Add to processed set after successful processing
+                    self.processed_files.add(filename)
                 else:
-                    self.logger.error(f"Failed to process {filepath}: {result.error}")
+                    print(f"\nError processing {filename}: {result.error}")
 
                 self.write_results(result, output_csv)
 
             except Exception as e:
-                self.logger.error(f"Unexpected error processing {filepath}: {str(e)}")
+                print(f"\nUnexpected error processing {filename}: {e}")
                 results.append(ProcessingResult(
                     filename=filename,
                     transcription="ERROR",
@@ -260,27 +249,28 @@ class ImageProcessor:
                     error=str(e)
                 ))
 
-        self.logger.info(f"Processing complete. Total cost: ${total_cost:.2f}")
-        self.logger.info(f"Processed {len(results)} new images, skipped {skipped} previously processed images")
+        successful = len([r for r in results if not r.error])
+        print(f"\nComplete: {successful} processed, {skipped} skipped (${total_cost:.2f})")
         return results, total_cost
 
 
-async def transcribe_images(folder_path: str, output_csv: str, api_key: str) -> Tuple[List[ProcessingResult], float]:
+async def process_specimen_labels(folder_path: str, output_csv: str, api_key: str, prompts: dict) -> Tuple[List[ProcessingResult], float]:
     """
-    Wrapper function to process a folder of images and transcribe text using Claude.
+    Process a folder of specimen label images using Claude API.
     
     Args:
         folder_path: Path to folder containing images
         output_csv: Path to output CSV file
         api_key: Anthropic API key
+        prompts: Dictionary containing system and user prompts for transcription and location
     
     Returns:
         Tuple containing list of ProcessingResult objects and total cost
     """
     try:
         processor = ImageProcessor(api_key)
-        return await processor.transcribe_images(folder_path, output_csv)
+        return await processor.transcribe_images(folder_path, output_csv, prompts)
     except Exception as e:
-        logging.error(f"Failed to process images: {str(e)}")
+        print(f"Failed to process images: {e}")
         raise
 
