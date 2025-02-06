@@ -326,7 +326,7 @@ python process_images.py --from create_masks
 To run all steps up to a specific step, use `--until`
 
 ```bash
-python process_images.py --from create_masks
+python process_images.py --until create_transparency
 ```
 
 Finally, `--from` and `--until` can be combined to run sets of steps in order:
