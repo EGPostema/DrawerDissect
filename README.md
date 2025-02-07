@@ -552,7 +552,7 @@ prompts:
   ```
 
 In general, we recommend editing the **system** prompt (which is more descriptive) rather than the **user** prompt. 
-  - In the user prompt, objects in {curved brackets} are needed for the script
+  - Any text within {curved brackets} are needed defined objects needed for the script
   - Be sure to maintain standard tab formatting so that prompts are in the correct section!
 
 ---
