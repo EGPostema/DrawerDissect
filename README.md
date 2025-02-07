@@ -470,7 +470,7 @@ prompts:
   
   specimen_label: # prompt for transcribing any visible text, verbatim, from specimen labels
     system: |
-     You are a natural history specimen label transcription tool specializing in precise, verbatim transcription. Your task is to:
+      You are a natural history specimen label transcription tool specializing in precise, verbatim transcription. Your task is to:
           1. Transcribe ALL visible text exactly as it appears, including:
              - Punctuation, abbreviations, and special characters
              - Unclear or partially visible text
