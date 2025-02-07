@@ -43,8 +43,6 @@ DrawerDissect is ideal for digitizing large volumes of preserved insects, partic
   OR, Download the zipped folder directly:
   
   <img width="300" alt="Screenshot 2025-02-03 at 5 49 32 PM" src="https://github.com/user-attachments/assets/8b2fe830-f6bc-4c5f-ac32-284ec174887e" />
-  
-  Unzip, then rename folder `DrawerDissect`
 
 2. **Setup Environment**
 
@@ -53,22 +51,32 @@ In a command-line interface (Terminal, Powershell, etc)...
 **Navigate to project folder (change '/your/path/to/')**
 
 ```bash
+# if using git to clone project
 cd /your/path/to/DrawerDissect
+
+# if downloading zipped project (Mac)
+cd /your/path/to/DrawerDissect-main
+
+# if downloading zipped project (Windows)
+cd /your/path/to/DrawerDissect/DrawerDissect-main
 ```
 
-❗ Need instructions for Windows, with weird subfolder issue
+For <ins> Windows </ins> users, the unzipped folder is *nested*, so be sure you're in the correct folder before you start!
 
 **Create the virtual environment**
 
 ```bash
-python -m venv drawerdissect
+python -m venv dissectenv
 ```
 
 **Activate environment**
 
 ```bash
-source drawerdissect/bin/activate  # Use this command for Mac/Linux
-.\drawerdissect\Scripts\activate   # Use this command for Windows
+# Use this command for Mac/Linux
+source dissectenv/bin/activate
+
+# Use this command for Windows
+.\dissectenv\Scripts\activate
 ```
 
 **Install packages**
@@ -108,7 +116,7 @@ From here, you can either:
 
 ---
 
-#### Option A: Use Public FMNH Roboflow Models (⭐ DEFAULT, RECOMMENDED)
+#### Option A: Use Public Field Museum Roboflow Models (⭐ DEFAULT, RECOMMENDED)
 
 The script is set up to use FMNH models by default, defined in `config.yaml`
 
@@ -177,7 +185,7 @@ roboflow:
 
 #### Option C: Use Open-Source Models with Our Training Data
 
-Many **free, open-source** AI models exist for image processing and transcription. While we don’t currently support these architectures, you’re welcome to modify our code to integrate open-source alternatives!
+Many **free, open-source** AI models exist for image processing and transcription. While we don’t currently support these architectures, users are welcome to modify our code to integrate open-source alternatives. Note that open source models may have specific hardware/software requirements for GPU support.
 
 **Possible Free Alternatives**
 
@@ -189,7 +197,7 @@ Many **free, open-source** AI models exist for image processing and transcriptio
    | Collection Location Reconstruction | LLaVa | ANTHROPIC |
 
 
-**We provide all FMNH model training data - feel free to use these to train your own models with your preferred architectures!**
+**We provide all FMNH model training data - feel free to use these to train your own open source models!**
 - Access the data here: ❗ [COMING SOON]
 - Data structure details: ❗ [COMING SOON]
 
@@ -266,40 +274,48 @@ See example outputs below!
 
 ## 📊 Example Outputs
 
-📷 **Individual Tray Images** 
+📷 **Individual Tray Images** `drawers/trays`
 
 <img width="666" alt="Screenshot 2025-01-14 at 4 22 16 PM" src="https://github.com/user-attachments/assets/8bb72f93-bea3-4eaf-b28f-2caa7ee06ce1" />
 
-🗺️ **Specimen Location Guides** 
+🗺️ **Specimen Location Guides** `drawers/guides`
 
 ![image](https://github.com/user-attachments/assets/c2d29085-a1f3-4745-814b-9bcc85697a23)
 
-📷 **Individual Specimen Images** 
+📷 **Individual Specimen Images** `drawers/specimens`
 
 <img width="678" alt="Screenshot 2025-01-14 at 4 37 46 PM" src="https://github.com/user-attachments/assets/937673ef-f733-468b-b016-7b8b87998ec3" />
 
-📏 **Measurement CSV + 10 Example Size Visualizations**
+📏 **Measurements + Example Size Visualizations** `drawers/measurements`
 
 <img width="660" alt="Screenshot 2025-01-21 at 3 19 56 PM" src="https://github.com/user-attachments/assets/f3c354d3-8fd6-4990-9f3f-c4d8197d0380" />
 
-🏁 **Binary Masks**
+🏁 **Binary Masks** `drawers/masks/mask_png`
 
 <img width="670" alt="Screenshot 2025-01-15 at 8 49 05 PM" src="https://github.com/user-attachments/assets/0752cad1-a299-4dff-9e8c-5e19fcff20cb" />
 
-📷 **Fully Masked Specimens**
+📷 **Fully Masked Specimens** `drawers/transparencies` & `drawers/whitebg_specimens`
 
 <img width="670" alt="Screenshot 2025-01-15 at 10 02 32 AM" src="https://github.com/user-attachments/assets/cdf044a5-e1e2-4cc7-beef-c113cd5cc276" />
 
-📋 **Merged Dataset**
+📝 **Tray Label Transcriptions** `drawers/tramscriptions/tray_labels`
+
+[image here]
+
+📝 **Specimen Collection Location Estimates** `drawers/tramscriptions/specimen_labels`
+
+[image here]
+
+📋 **Merged Dataset** `drawers/data`
 
 <img width="289" alt="Screenshot 2025-01-15 at 11 49 00 AM" src="https://github.com/user-attachments/assets/889065e9-0f81-46f8-8961-4f87fa042df2" />
 
-<ins>Dataset Fields:</ins>
-   - Drawer, Tray, and Specimen-level IDs and filenames
-   - Tray-level label text (barcode, taxonomy)
-   - Specimen length1/length2 and area
+<ins>Merged Dataset Fields:</ins>
+   - Drawer, tray, and specimen-level image IDs
+   - Tray-level label text (barcodes, taxonomic ID)
+   - Specimen length1, length2 and area
    - Mask/measurement checks
-   - Specimen-level location reconstructions, with confidence notes
+   - Specimen-level location estimates & LLM confidence notes
 
 ---
 
@@ -322,14 +338,12 @@ python process_images.py resize_drawers find_trays crop_trays
 To run a step and all steps after, use `--from`
 
 ```bash
-# runs create_masks and all following steps
 python process_images.py --from create_masks
 ```
 
 To run all steps up to a specific step, use `--until`
 
 ```bash
-# runs all steps up to create_transparency (including create_transparency)
 python process_images.py --until create_transparency
 ```
 
@@ -436,7 +450,7 @@ python process_images.py resize_trays --from find_specimens --until validate_spe
 
 ### Tuning LLM Prompts
 
-We use the large language model, Claude, to transcribe text from images. The prompts fed to Claude can be edited in `config.yaml`:
+We use a large language model, Claude Sonnet 3.5, to transcribe text from images. The prompts fed to Claude can be edited in `config.yaml`:
 
 ```yaml
 prompts:
@@ -561,7 +575,7 @@ In general, we recommend editing the **system** prompt (which is more descriptiv
 
 ❗ **Script not working? Check that you have...**
   - [x] Cloned or downloaded the repository
-  - [x] Navigated to the `DrawerDissect` directory
+  - [x] Navigated to the correct directory, either `DrawerDissect` or `DrawerDissect-main`
   - [x] Created and activated a virtual environment with the required packages
   - [x] Decided on a model approach 
   - [x] Edited (and saved) `config.yaml` accordingly
