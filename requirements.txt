@@ -1,7 +1,7 @@
 pandas
 numpy
 Pillow
-opencv-python
+opencv-python-headless
 matplotlib
 roboflow
 anthropic
