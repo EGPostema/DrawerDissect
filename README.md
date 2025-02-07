@@ -58,10 +58,10 @@ cd /your/path/to/DrawerDissect
 cd /your/path/to/DrawerDissect-main
 
 # if downloading zipped project (Windows)
-cd /your/path/to/DrawerDissect/DrawerDissect-main
+cd /your/path/to/DrawerDissect-main/DrawerDissect-main
 ```
 
-For <ins> Windows </ins> users, the unzipped folder is *nested*, so be sure you're in the correct folder before you start!
+For <ins> Windows </ins> users, the unzipped folder is *nested*, so be sure you're in the correct directory before you start!
 
 **Create the virtual environment**
 
