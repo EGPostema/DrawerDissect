@@ -100,8 +100,8 @@ api_keys:
 This step is <ins>REQUIRED</ins> for all object detection, segmentation, and transcription steps to run.
 
 From here, you can either:
-- [Process your own images](https://github.com/EGPostema/DrawerDissect/blob/main/README.md#process-your-own-images)
-- [OR try processing a test image first](https://github.com/EGPostema/DrawerDissect/blob/main/README.md#try-a-test-image) (⭐ Recommended )
+- [Process your own images](https://github.com/EGPostema/DrawerDissect/tree/main?tab=readme-ov-file#process-your-own-images))
+- [OR try processing a test image first](https://github.com/EGPostema/DrawerDissect/tree/main?tab=readme-ov-file#try-a-test-image) (⭐ Recommended )
 
 ---
 
