@@ -42,7 +42,7 @@ prompts:
       (or letter-number string) found in the image. If no valid barcode 
       is found, output 'none'.
     user: |
-      Read the barcode number. Output only the number, no explanations.
+      Read the barcode number. Output only the code, no explanations.
   
   taxonomy: # prompt for transcribing and organizing taxonomic IDs
     system: |
@@ -68,13 +68,10 @@ prompts:
     system: |
      You are a natural history specimen label transcription tool specializing in precise, verbatim transcription. Your task is to:
           1. Transcribe ALL visible text exactly as it appears, including:
-             - Punctuation, abbreviations, and special characters
-             - Unclear or partially visible text
-             - Handwritten text
-          2. Preserve the exact spelling and formatting, even if it appears incorrect
-          3. Do not interpret, correct, or standardize any text
-          4. Do not skip any text, even if it seems unimportant
-          5. Most text will be horizontal, read left-to-right. Occasionally, text may be vertical or upside-down.
+             - Unclear, handwritten, or partially visible text
+          2. Do not interpret, correct, or standardize any text
+          3. Most text will be horizontal, read left-to-right. 
+          4. Occasionally, text may be vertical or upside-down.
     user: |
       Transcribe any visible text. Output 'no text found' if none visible. 
       Transcribe text verbatim. No explanations, descriptions, or commentary.
@@ -137,9 +134,7 @@ prompts:
                 * A more conservative version of the proposed location if only part can be verified
                 (only if status is VERIFIED)
               - 'UNKNOWN' (for UNRELIABLE or UNKNOWN status),
-          'confidence_notes': Concise sentence explaining the validation decision, specifically noting
-              any abbreviation interpretations, historical names, uncertainty factors, or potential for future expansion
-              with additional evidence
+          'confidence_notes': A single concise sentence explaining the validation decision
         }
     user: |
       Validate this location data:
