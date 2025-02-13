@@ -350,7 +350,7 @@ python process_images.py resize_trays --from find_specimens --until validate_spe
 python process_images.py resize_trays --from find_specimens
 ```
 
-**Steps Available:**
+### Steps Available:
 
 ```sh
 all # to run all steps, in the order below
