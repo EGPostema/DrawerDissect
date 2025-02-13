@@ -100,7 +100,7 @@ api_keys:
 This step is <ins>REQUIRED</ins> for all object detection, segmentation, and transcription steps to run.
 
 From here, you can either:
-- [Process your own images](https://github.com/EGPostema/DrawerDissect/tree/main?tab=readme-ov-file#process-your-own-images))
+- [Process your own images](https://github.com/EGPostema/DrawerDissect/tree/main?tab=readme-ov-file#process-your-own-images)
 - [OR try processing a test image first](https://github.com/EGPostema/DrawerDissect/tree/main?tab=readme-ov-file#try-a-test-image) (⭐ Recommended )
 
 ---
@@ -290,7 +290,7 @@ See example outputs below!
 
 <img width="660" alt="Screenshot 2025-01-21 at 3 19 56 PM" src="https://github.com/user-attachments/assets/f3c354d3-8fd6-4990-9f3f-c4d8197d0380" />
 
-🏁 **Binary Masks** `drawers/masks/mask_png`
+🏁 **Binary Masks** `drawers/masks/full_masks`
 
 <img width="670" alt="Screenshot 2025-01-15 at 8 49 05 PM" src="https://github.com/user-attachments/assets/0752cad1-a299-4dff-9e8c-5e19fcff20cb" />
 
@@ -298,25 +298,15 @@ See example outputs below!
 
 <img width="670" alt="Screenshot 2025-01-15 at 10 02 32 AM" src="https://github.com/user-attachments/assets/cdf044a5-e1e2-4cc7-beef-c113cd5cc276" />
 
-📝 **Tray Label Transcriptions** `drawers/tramscriptions/tray_labels`
+📝 **Organized Data in Timestamped Folders** `drawers/data`
 
-[image here]
+![data](https://github.com/user-attachments/assets/219db5f4-e612-49f4-8283-4cf0957d49a8)
 
-📝 **Specimen Collection Location Estimates** `drawers/tramscriptions/specimen_labels`
-
-[image here]
-
-📋 **Merged Dataset** `drawers/data`
-
-<img width="289" alt="Screenshot 2025-01-15 at 11 49 00 AM" src="https://github.com/user-attachments/assets/889065e9-0f81-46f8-8961-4f87fa042df2" />
-
-<ins>Merged Dataset Fields:</ins>
-   - Drawer, tray, and specimen-level image IDs
-   - Tray-level label text (barcodes, taxonomic ID)
-   - Specimen length1, length2 and area
-   - Mask/measurement checks
-   - Specimen-level location estimates & LLM confidence notes
-
+Contains:
+  - seperate CSVs,
+  - a merged data CSV,
+  - and a summary of drawer-level data.
+    
 ---
 
 ## 🔧 Advanced Options
