@@ -28,6 +28,12 @@ DrawerDissect is ideal for digitizing large volumes of preserved insects, partic
   - [Anthropic](anthropic.com) - for reading tray and specimen labels
 - Supported image formats: TIF/TIFF, PNG, JPG/JPEG
 
+DrawerDissect has been successfully used on:
+- Our Windows computers (describe)
+- My Mac (describe)
+- Kelton's computer (describe)
+
+
 ---
 
 ### Installation
@@ -556,7 +562,7 @@ prompts:
   ```
 
 In general, we recommend editing the **system** prompt (which is more descriptive) rather than the **user** prompt. 
-  - Any text within {curved brackets} are needed defined objects needed for the script
+  - Any text within {curved brackets} are **defined objects** needed for the script
   - Be sure to maintain standard tab formatting so that prompts are in the correct section!
 
 ---
