@@ -256,18 +256,7 @@ processing:
 
 Our imaging system produces a metadata .txt file. This file can be used to convert pixel:mm, if process_metadata is toggled on.
 
-6. Edit `config.yaml` to use a more specialized masking model
-
-   ```yaml
-    mask:
-      endpoint: "bugmasker-tigerbeetle" # replace bugmasker-all with this model
-      version: 11 # use most recent version
-      confidence: 50
-
-   # all other models can stay the same
-   ```
-
-7. Run the Script
+6. Run the Script
 
   ```bash
   # this command runs all steps in the pipeline
@@ -304,7 +293,7 @@ See example outputs below!
 
 <img width="670" alt="Screenshot 2025-01-15 at 10 02 32 AM" src="https://github.com/user-attachments/assets/cdf044a5-e1e2-4cc7-beef-c113cd5cc276" />
 
-📝 **Organized Data in Timestamped Folders** `drawers/data`
+📝 **Data in Timestamped Folders** `drawers/data`
 
 ![data](https://github.com/user-attachments/assets/219db5f4-e612-49f4-8283-4cf0957d49a8)
 
