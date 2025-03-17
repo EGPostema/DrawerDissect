@@ -146,13 +146,13 @@ roboflow:
    | trayfinder-base | detects trays in drawers  | 1 | 99.5% |
    | ⭐ trayfinder-labels  | detects trays (with tray labels) in drawers  | 17 | 99.5% |
    | ⭐ labelfinder  | detects tray label components  | 5 | 98.1% |
-   | ⭐ bugfinder-kdn9e | detects specimens  | 9 | 86.8% |
-   | ⭐ bugmasker-all | outlines specimen bodies (not taxon specific)  | 2 | 98.2% |
-   | bugmasker-tigerbeetle | outlines specimen bodies (specailized)  | 11 | 98.1% |
-   | bugmasker-pimeliinae | outlines specimen bodies (specialized)  | 1 | 98.2% |
+   | ⭐ bugfinder-kdn9e | detects specimens  | 11 | 99.4% |
+   | ⭐ bugmasker-all | outlines specimen bodies (not taxon specific)  | 2 | 98.6% |
+   | bugmasker-tigerbeetle | outlines specimen bodies (specailized)  | 13 | 98.2% |
+   | bugmasker-pimeliinae | outlines specimen bodies (specialized)  | 4 | 98.5% |
    | ⭐ pinmasker | outlines specimen pins | 5 | 94.7% |
 
-   Any of these models can be swapped in/out as long as workspace is set to `field-museum`
+   Any of these models can be swapped in/out as long as workspace is set to `field-museum` [up-to-date 3/17/25]
 
 #### Option B: Use Your Own Roboflow Models
 
