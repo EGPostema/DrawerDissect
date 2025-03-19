@@ -41,38 +41,58 @@ def infer_beetles(
     version: int,
     confidence: Optional[float] = 50
 ):
+    """
+    Args:
+        input_dir: Directory containing specimen images
+        output_dir: Directory to save JSON outputs
+        rf_instance: Roboflow instance
+        workspace_instance: Workspace instance from Roboflow
+        model_endpoint: Name of the model
+        version: Version number of the model
+        confidence: Confidence threshold (0-100)
+    """
+    # Initialize model
     project = workspace_instance.project(model_endpoint)
     model = project.version(version).model
     processed = errors = 0
     
     supported_formats = ('.jpg', '.jpeg', '.tif', '.tiff', '.png')
     
+    # Walk through the input directory
     for root, _, files in os.walk(input_dir):
+        # Filter for image files
         image_files = [f for f in files if f.lower().endswith(supported_formats)]
         if not image_files:
             continue
             
+        # Extract path information
         relative_path = os.path.relpath(root, input_dir)
         path_parts = relative_path.split(os.sep)
         
         if len(path_parts) < 2:
-            continue  # Silently skip invalid folder structures
+            continue  # Skip invalid folder structures
             
+        # Create output subfolder
         drawer_id, tray_number = path_parts[:2]
         output_subfolder = os.path.join(output_dir, drawer_id, tray_number)
         os.makedirs(output_subfolder, exist_ok=True)
         
+        # Process each image
         for file in image_files:
+            # Define output JSON path
             json_path = os.path.join(output_subfolder, os.path.splitext(file)[0] + '.json')
             
+            # Skip if already processed
             if os.path.exists(json_path):
-                continue  # Skip silently
+                continue
                 
             try:
+                # Run inference with temporary conversion if needed
                 file_path = os.path.join(root, file)
                 with temporary_jpg_if_needed(file_path) as inference_path:
                     prediction = model.predict(inference_path, confidence=confidence).json()
                 
+                # Save results
                 with open(json_path, 'w') as f:
                     json.dump(prediction, f, indent=2)
                 
@@ -84,50 +104,6 @@ def infer_beetles(
                 print(f"Error: {file} - {str(e)}")
                 continue
 
-    print(f"Complete. Processed: {processed}, Errors: {errors}")
-
-def infer_pins(input_dir, output_dir, csv_path, rf_instance, workspace_instance, model_endpoint, version, confidence=50):
-    data = pd.read_csv(csv_path)
-    filtered_data = data[data['mask_OK'] == 'Y']
-    valid_ids = set(filtered_data['full_id'])
-    
-    project = workspace_instance.project(model_endpoint)
-    model = project.version(version).model
-    processed = errors = 0
-    
-    for root, _, files in os.walk(input_dir):
-        for file in files:
-            if not file.endswith('_masked.png'):
-                continue
-                
-            full_id = file.replace('_masked.png', '')
-            if full_id not in valid_ids:
-                continue
-                
-            relative_path = os.path.relpath(root, input_dir)
-            output_subfolder = os.path.join(output_dir, relative_path)
-            os.makedirs(output_subfolder, exist_ok=True)
-            
-            json_filename = file.replace('.png', '.json')
-            json_path = os.path.join(output_subfolder, json_filename)
-            
-            if os.path.exists(json_path):
-                continue  # Skip silently
-                
-            file_path = os.path.join(root, file)
-            
-            try:
-                with temporary_jpg_if_needed(file_path) as inference_path:
-                    prediction = model.predict(inference_path, confidence=confidence).json()
-                
-                with open(json_path, 'w') as json_file:
-                    json.dump(prediction, json_file)
-                processed += 1
-                print(f"Processed: {file}")
-            except Exception as e:
-                errors += 1
-                print(f"Error: {file} - {str(e)}")
-    
     print(f"Complete. Processed: {processed}, Errors: {errors}")
 
 
