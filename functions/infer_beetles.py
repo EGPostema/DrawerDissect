@@ -2,7 +2,6 @@ import os
 import json
 import tempfile
 import logging
-import pandas as pd
 from PIL import Image
 from contextlib import contextmanager
 from typing import Optional
