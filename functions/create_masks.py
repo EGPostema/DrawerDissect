@@ -1,6 +1,5 @@
 import os
 import json
-import numpy as np
 from PIL import Image, ImageDraw
 from concurrent.futures import ThreadPoolExecutor
 import logging
