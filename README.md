@@ -38,7 +38,7 @@ DrawerDissect has been successfully used on:
 
 ### Installation
 
-1. **Set Up Project**
+1. **Set Up Project in a Python Environment**
 
 Unix systems (Mac, Linux)
 ```sh
