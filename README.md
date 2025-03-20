@@ -22,7 +22,7 @@ DrawerDissect is ideal for digitizing large volumes of preserved insects, partic
 
 ### Prerequisites
 
-- Python 3.x
+- [Python](https://www.python.org/downloads/) (ver. 3+)
 - [Git](https://git-scm.com/downloads)
 - API keys from:
   - [Roboflow](roboflow.com) - for detecting and segmenting specimens
