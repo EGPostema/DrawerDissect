@@ -23,6 +23,7 @@ DrawerDissect is ideal for digitizing large volumes of preserved insects, partic
 ### Prerequisites
 
 - Python 3.x
+- [Git](https://git-scm.com/downloads)
 - API keys from:
   - [Roboflow](roboflow.com) - for detecting and segmenting specimens
   - [Anthropic](anthropic.com) - for reading tray and specimen labels
@@ -33,64 +34,31 @@ DrawerDissect has been successfully used on:
 - My Mac (describe)
 - Kelton's computer (describe)
 
-
 ---
 
 ### Installation
 
-1. **Get the Code**
+1. **Set Up Project**
 
-  Using Git:
-  
-  ```bash
-  git clone https://github.com/EGPostema/DrawerDissect.git
-  ```
-
-  OR, Download the zipped folder directly:
-  
-  <img width="300" alt="Screenshot 2025-02-03 at 5 49 32 PM" src="https://github.com/user-attachments/assets/8b2fe830-f6bc-4c5f-ac32-284ec174887e" />
-
-2. **Setup Environment**
-
-In a command-line interface (Terminal, Powershell, etc)...
-
-**Navigate to project folder (change '/your/path/to/')**
-
-```bash
-# if using git to clone project
-cd /your/path/to/DrawerDissect
-
-# if downloading zipped project (Mac)
-cd /your/path/to/DrawerDissect-main
-
-# if downloading zipped project (Windows)
-cd /your/path/to/DrawerDissect-main/DrawerDissect-main
-```
-
-For <ins> Windows </ins> users, the unzipped folder is *nested*, so be sure you're in the correct directory before you start!
-
-**Create the virtual environment**
-
-```bash
+Unix systems (Mac, Linux)
+```sh
+git clone https://github.com/EGPostema/DrawerDissect.git
+cd DrawerDissect
 python -m venv dissectenv
-```
-
-**Activate environment**
-
-```bash
-# Use this command for Mac/Linux
-source dissectenv/bin/activate
-
-# Use this command for Windows
-.\dissectenv\Scripts\activate
-```
-
-**Install packages**
-```bash
+source ./dissectenv/bin/activate
 pip install -r requirements.txt
 ```
 
-3. **Configure API Keys**
+Windows
+```sh
+git clone https://github.com/EGPostema/DrawerDissect.git
+cd DrawerDissect
+python -m venv dissectenv
+.\dissectenv\Scripts\activate
+pip install -r requirements.txt
+```
+
+2. **Configure API Keys**
 
 Open `config.yaml` in the main directory, and add your API keys:
 
