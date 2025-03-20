@@ -71,11 +71,11 @@ api_keys:
 - [Get Anthropic API Key](https://support.anthropic.com/en/articles/8114521-how-can-i-access-the-anthropic-api)
 - [Get Roboflow API Key](https://docs.roboflow.com/api-reference/authentication)
 
-This step is <ins>REQUIRED</ins> for all object detection, segmentation, and transcription steps to run.
+❗This step is <ins>REQUIRED</ins> for the full pipeline to run.
 
-From here, you can either:
+Then, you can:
 - [Process your own images](https://github.com/EGPostema/DrawerDissect/tree/main?tab=readme-ov-file#process-your-own-images)
-- [OR try processing a test image first](https://github.com/EGPostema/DrawerDissect/tree/main?tab=readme-ov-file#try-a-test-image) (⭐ Recommended )
+- [OR try a test image first](https://github.com/EGPostema/DrawerDissect/tree/main?tab=readme-ov-file#try-a-test-image) (⭐ Recommended )
 
 ---
 
