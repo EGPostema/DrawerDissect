@@ -4,11 +4,10 @@ import time
 import argparse
 import roboflow
 import asyncio
-import aiofiles
-from pathlib import Path
 from functools import lru_cache
-from typing import Tuple
+from typing import Tuple, Dict, Any
 from config import DrawerDissectConfig
+from logging_utils import log, StepTimer
 from functions.resize_drawer import resize_drawer_images
 from functions.process_metadata import process_files
 from functions.infer_drawers import infer_drawers
@@ -23,54 +22,52 @@ from functions.infer_beetles import infer_beetles
 from functions.create_masks import create_masks
 from functions.multipolygon_fixer import fix_mask
 from functions.measure import generate_csv_with_measurements
-from functions.measure import visualize_measurements
 from functions.censor_background import censor_background
 from functions.infer_pins import infer_pins
 from functions.create_pinmask import create_pinmask
 from functions.create_transparency import create_transparency
-from functions.ocr_header import process_image_folder, TranscriptionConfig
-from functions.ocr_label import process_specimen_labels, ImageProcessor, ProcessingResult
+from functions.ocr_header import process_image_folder
+from functions.ocr_label import process_specimen_labels
 from functions.ocr_validation import validate_transcriptions
 from functions.merge_data import merge_data
 
 # Only activate roboflow when needed (lazy loading)
 @lru_cache(maxsize=1)
 def get_roboflow_instance(config) -> Tuple[roboflow.Roboflow, roboflow.Workspace]:
+    """Initialize Roboflow API connection."""
+    log("Initializing Roboflow API connection")
     rf_instance = roboflow.Roboflow(api_key=config.api_keys['roboflow'])
     workspace_instance = rf_instance.workspace(config.workspace)
     return rf_instance, workspace_instance
 
-# Tracking progress for each step
-def print_progress(step: str, current: int, total: int, file: str = None) -> None:
-    if file:
-        print(f"\r{step}: {current}/{total} - Processing {file}", end="", flush=True)
-    else:
-        print(f"\r{step}: {current}/{total} complete", end="", flush=True)
-
-# Timer for each step
-class StepTimer:
-    def __init__(self, step_name: str):
-        self.step_name = step_name
-        self.start_time = None
-
-    def __enter__(self):
-        self.start_time = time.time()
-        print(f"\nStarting {self.step_name}...")
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        duration = time.time() - self.start_time
-        print(f"\n{self.step_name} completed in {duration:.2f}s")
-
 # Defining steps
 def run_step(step, config, args, rf_instance=None, workspace_instance=None):
+    """Run a specific pipeline step with appropriate configuration."""
     with StepTimer(step):
+        # Get memory management settings for this step from config - STILL NEED TO INTEGRATE BETTER
+        mem_config = config.get_memory_config(step)
+        
+        # Command-line args override config settings
+        sequential = args.sequential if args.sequential is not None else mem_config.get('sequential', False)
+        max_workers = args.max_workers if args.max_workers is not None else mem_config.get('max_workers')
+        batch_size = args.batch_size if args.batch_size is not None else mem_config.get('batch_size')
+        
+        # Log memory management settings if they're non-default
+        if sequential or max_workers is not None or batch_size is not None:
+            log(f"Memory settings: sequential={sequential}, max_workers={max_workers}, batch_size={batch_size}")
+        
         if step in {'find_trays', 'find_traylabels', 'find_specimens', 
                     'outline_specimens', 'outline_pins'} and not rf_instance:
                 rf_instance, workspace_instance = get_roboflow_instance(config)
                 
         if step == 'resize_drawers':
-            resize_drawer_images(config.directories['fullsize'], config.directories['resized'])
+            resize_drawer_images(
+                config.directories['fullsize'], 
+                config.directories['resized'],
+                sequential=sequential,
+                max_workers=max_workers,
+                batch_size=batch_size
+            )
         
         elif step == 'process_metadata':
             if config.processing_flags['process_metadata']:
@@ -79,6 +76,8 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
                     config.directories['fullsize'],
                     os.path.join(config.directories['metadata'], 'sizeratios.csv')
                 )
+            else:
+                log("Metadata processing disabled in config - skipping")
         
         elif step == 'find_trays':
             drawer_model = config.roboflow_models['drawer']
@@ -97,7 +96,10 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
             crop_trays_from_fullsize(
                 config.directories['fullsize'],
                 config.directories['resized'],
-                config.directories['trays']
+                config.directories['trays'],
+                sequential=sequential,
+                max_workers=max_workers,
+                batch_size=batch_size
             )
         
         elif step == 'resize_trays':
@@ -162,7 +164,9 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
                 workspace_instance,
                 mask_model['endpoint'],
                 mask_model['version'],
-                confidence=args.beetle_confidence or mask_model['confidence']
+                confidence=args.beetle_confidence or mask_model['confidence'],
+                max_workers=max_workers,
+                sequential=sequential
             )
         
         elif step == 'create_masks':
@@ -189,8 +193,7 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
             censor_background(
                 config.directories['specimens'],
                 config.directories['mask_png'],
-                config.directories['no_background'],
-                os.path.join(config.directories['measurements'], 'measurements.csv')
+                config.directories['no_background']
             )
         
         elif step == 'outline_pins':
@@ -203,7 +206,9 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
                 workspace_instance,
                 pin_model['endpoint'],
                 pin_model['version'],
-                confidence=args.pin_confidence or pin_model['confidence']
+                confidence=args.pin_confidence or pin_model['confidence'],
+                sequential=sequential,
+                max_workers=max_workers
             )
         
         elif step == 'create_pinmask':
@@ -215,10 +220,13 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
         
         elif step == 'create_transparency':
             create_transparency(
-                config.directories['specimens'],
+                config.directories['no_background'],
                 config.directories['full_masks'],
                 config.directories['transparencies'],
-                config.directories['whitebg_specimens']
+                config.directories['whitebg_specimens'],
+                sequential=sequential,
+                max_workers=max_workers,
+                batch_size=batch_size
             )
         
         elif step == 'transcribe_speclabels':
@@ -233,6 +241,8 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
                     config.api_keys['anthropic'],
                     prompts=prompts
                 ))
+            else:
+                log("Specimen label transcription disabled in config - skipping")
         
         elif step == 'validate_speclabels':
             if config.processing_flags['transcribe_specimen_labels']:
@@ -246,6 +256,8 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
                     config.api_keys['anthropic'],
                     prompts=prompts
                 ))
+            else:
+                log("Specimen label validation skipped (transcription disabled)")
 
         elif step == 'transcribe_barcodes':
             if config.processing_flags['transcribe_barcodes']:
@@ -259,6 +271,8 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
                     config.api_keys['anthropic'],
                     prompts=prompts
                 ))
+            else:
+                log("Barcode transcription disabled in config - skipping")
 
         elif step == 'transcribe_taxonomy':
             if config.processing_flags['transcribe_taxonomy']:
@@ -272,6 +286,8 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
                     config.api_keys['anthropic'],
                     prompts=prompts
                 ))
+            else:
+                log("Taxonomy transcription disabled in config - skipping")
         
         elif step == 'merge_data':
             output_base_path = os.path.join(config.directories['data'], 'merged_data')
@@ -281,7 +297,7 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
                 os.path.join(config.directories['tray_level'], 'taxonomy.csv'),
                 os.path.join(config.directories['tray_level'], 'unit_barcodes.csv'),
                 output_base_path,
-                mode="FMNH" if config.processing_flags['process_metadata'] else "Default"
+                mode="FMNH" if config.processing_flags['process_metadata'] else "Default",
             )
 
 # Ordering steps, adding --from and --until
@@ -304,10 +320,30 @@ def parse_arguments():
     parser.add_argument('--until', dest='until_step', choices=all_steps,
                       help='Run all steps up to and including this step')
     
+    # Memory management options
+    memory_group = parser.add_argument_group('Memory Management')
+    sequential_group = memory_group.add_mutually_exclusive_group()
+    sequential_group.add_argument('--sequential', action='store_true', dest='sequential',
+                               help='Process images sequentially (one at a time)')
+    sequential_group.add_argument('--parallel', action='store_false', dest='sequential',
+                               help='Process images in parallel (default)')
+    
+    memory_group.add_argument('--max-workers', type=int, 
+                            help='Maximum number of parallel workers')
+    memory_group.add_argument('--batch-size', type=int,
+                            help='Process images in batches of this size')
+    
+    # Set defaults to None to allow config to decide
+    parser.set_defaults(sequential=None)
+    
+    # Model confidence and overlap parameters
+    model_group = parser.add_argument_group('Model Parameters')
     for model in ['drawer', 'tray', 'label', 'beetle', 'pin']:
-        parser.add_argument(f'--{model}_confidence', type=float)
+        model_group.add_argument(f'--{model}_confidence', type=float,
+                               help=f'Confidence threshold for {model} detection')
         if model not in ['beetle', 'pin']:
-            parser.add_argument(f'--{model}_overlap', type=float)
+            model_group.add_argument(f'--{model}_overlap', type=float,
+                                   help=f'Overlap threshold for {model} detection')
     
     return parser.parse_args()
 
@@ -351,9 +387,14 @@ def main():
         args = parse_arguments()
         steps_to_run = determine_steps(args, all_steps)
     except ValueError as e:
-        print(f"Error: {e}")
+        log(f"Error: {e}")
         return
 
+    # Log startup information - STILL NEED TO INTEGRATE BETTER
+    log("DrawerDissect Pipeline")
+    log("=====================")
+    log(f"Running steps: {', '.join(steps_to_run)}")
+    
     rf_instance = workspace_instance = None
     roboflow_steps = {'find_trays', 'find_traylabels', 'find_specimens', 
                     'outline_specimens', 'outline_pins'}
@@ -361,14 +402,26 @@ def main():
         rf_instance, workspace_instance = get_roboflow_instance(config)
     
     for step in steps_to_run:
-        print(f"\nRunning step: {step}")
+        log(f"\nRunning step: {step}")
         run_step(step, config, args, rf_instance, workspace_instance)
 
+    # Final timing report
     total_time = time.time() - start_time
     hours = int(total_time // 3600)
     minutes = int((total_time % 3600) // 60)
     seconds = total_time % 60
-    print(f"\nTotal processing time: {hours}h {minutes}m {seconds:.2f}s")
+    
+    if hours > 0:
+        time_str = f"{hours}h {minutes}m {seconds:.2f}s"
+    elif minutes > 0:
+        time_str = f"{minutes}m {seconds:.2f}s"
+    else:
+        time_str = f"{seconds:.2f}s"
+        
+    log("\n" + "=" * 50)
+    log(f"Pipeline completed successfully")
+    log(f"Total processing time: {time_str}")
+    log("=" * 50)
 
 if __name__ == '__main__':
     main()
