@@ -377,17 +377,6 @@ python process_images.py find_specimens crop_specimens create_traymaps
 3. Configure `config.yaml` with API keys
 4. Edit config.yaml as follows:
 
-  ```yaml
-  # use model that doesn't look for tray labels, if using FMNH models
-
-  models:
-    drawer:
-      endpoint: "trayfinder-base" # obj detection, drawer to trays
-      version: 1
-      confidence: 50
-      overlap: 50
-  ```
-
 ```yaml
 processing:
   process_metadata: false  # Set to false
