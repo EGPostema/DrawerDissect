@@ -53,7 +53,7 @@ roboflow:
       overlap: 50
     mask:
       endpoint: "bugmasker-all"  # segmentation, outlines specimen bodies
-      version: 1 
+      version: 2 
       confidence: 50
     pin:
       endpoint: "pinmasker" # segmentation, outlines pin
