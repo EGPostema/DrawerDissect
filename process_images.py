@@ -44,7 +44,7 @@ def get_roboflow_instance(config) -> Tuple[roboflow.Roboflow, roboflow.Workspace
 def run_step(step, config, args, rf_instance=None, workspace_instance=None):
     """Run a specific pipeline step with appropriate configuration."""
     with StepTimer(step):
-        # Get memory management settings for this step from config - STILL NEED TO INTEGRATE BETTER
+        # Get memory management settings for this step from config
         mem_config = config.get_memory_config(step)
         
         # Command-line args override config settings
@@ -290,14 +290,29 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
                 log("Taxonomy transcription disabled in config - skipping")
         
         elif step == 'merge_data':
+            specimens_dir = config.directories['specimens']
+            measurements_path = os.path.join(config.directories['measurements'], 'measurements.csv')
+            location_checked_path = os.path.join(config.directories['specimen_level'], 'location_checked.csv')
+            taxonomy_path = os.path.join(config.directories['tray_level'], 'taxonomy.csv')
+            unit_barcodes_path = os.path.join(config.directories['tray_level'], 'unit_barcodes.csv')
+            labels_dir = config.directories['labels']
             output_base_path = os.path.join(config.directories['data'], 'merged_data')
+            
+            # Add sizeratios path if metadata processing is enabled
+            sizeratios_path = None
+            if config.processing_flags['process_metadata']:
+                sizeratios_path = os.path.join(config.directories['metadata'], 'sizeratios.csv')
+            
+            # Run the merge_data function with all available inputs
             merge_data(
-                os.path.join(config.directories['measurements'], 'measurements.csv'),
-                os.path.join(config.directories['specimen_level'], 'location_checked.csv'),
-                os.path.join(config.directories['tray_level'], 'taxonomy.csv'),
-                os.path.join(config.directories['tray_level'], 'unit_barcodes.csv'),
-                output_base_path,
-                mode="FMNH" if config.processing_flags['process_metadata'] else "Default",
+                specimens_dir=specimens_dir,
+                measurements_path=measurements_path if os.path.exists(measurements_path) else None,
+                location_checked_path=location_checked_path if os.path.exists(location_checked_path) else None,
+                taxonomy_path=taxonomy_path if os.path.exists(taxonomy_path) else None,
+                unit_barcodes_path=unit_barcodes_path if os.path.exists(unit_barcodes_path) else None,
+                sizeratios_path=sizeratios_path if sizeratios_path and os.path.exists(sizeratios_path) else None,
+                labels_dir=labels_dir if os.path.exists(labels_dir) else None,
+                output_base_path=output_base_path
             )
 
 # Ordering steps, adding --from and --until
@@ -390,7 +405,7 @@ def main():
         log(f"Error: {e}")
         return
 
-    # Log startup information - STILL NEED TO INTEGRATE BETTER
+    # Log startup information
     log("DrawerDissect Pipeline")
     log("=====================")
     log(f"Running steps: {', '.join(steps_to_run)}")
