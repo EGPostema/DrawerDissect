@@ -377,8 +377,27 @@ def determine_steps(args, all_steps):
             return all_steps[:end_idx]
     elif args.steps:
         if 'all' in args.steps:
+            if args.until_step:
+                end_idx = all_steps.index(args.until_step) + 1
+                return all_steps[:end_idx]
+            elif args.from_step:
+                start_idx = all_steps.index(args.from_step)
+                return all_steps[start_idx:]
             return all_steps
-        return args.steps
+        
+        # For specified steps + from/until
+        result = args.steps.copy()
+        if args.from_step and args.until_step:
+            start_idx = all_steps.index(args.from_step)
+            end_idx = all_steps.index(args.until_step) + 1
+            result.extend(all_steps[start_idx:end_idx])
+        elif args.from_step:
+            start_idx = all_steps.index(args.from_step)
+            result.extend(all_steps[start_idx:])
+        elif args.until_step:
+            end_idx = all_steps.index(args.until_step) + 1
+            result.extend(all_steps[:end_idx])
+        return result
     else:
         raise ValueError("Please specify steps to run")
 
