@@ -27,23 +27,32 @@ def determine_optimal_workers(total_files: int) -> int:
     # For small batches (2-10 files), use up to 50% of cores
     return min(max(1, cpu_cores // 2), total_files)
 
-def resize_image(args: Tuple[str, str, Set[str], int, int]) -> bool:
+def resize_image(args: Tuple[str, str, str, Set[str], int, int]) -> bool:
     """
     Optimized resize for large images
     Returns True if processed, False if skipped
     """
-    input_path, output_dir, completed_files, current, total = args
-    filename = Path(input_path).name
-    base_name = Path(input_path).stem
+    input_path, input_dir, output_dir, completed_files, current, total = args
+    
+    # Create relative path to preserve directory structure
+    relative_path = Path(input_path).relative_to(input_dir)
+    
+    filename = relative_path.name
+    base_name = relative_path.stem
     output_filename = f"{base_name}_1000.jpg"
     
-    if output_filename in completed_files:
+    # Create corresponding output subdirectory
+    output_subdir = Path(output_dir) / relative_path.parent
+    output_subdir.mkdir(parents=True, exist_ok=True)
+    output_path = output_subdir / output_filename
+    
+    # Check if file already exists
+    if output_path.exists():
         print(f"\rProcessing image {current}/{total} - Skipped {filename} (already exists)", 
               end="", flush=True)
         return False
         
     try:
-        output_path = Path(output_dir) / output_filename
         start_time = time.time()
         
         # Open and resize image with optimizations
@@ -93,11 +102,14 @@ def get_image_files(input_dir: str) -> List[str]:
 def resize_tray_images(input_dir: str, output_dir: str) -> None:
     start_time = time.time()
     
+    # Ensure input and output are absolute paths
+    input_dir = str(Path(input_dir).resolve())
+    output_dir = str(Path(output_dir).resolve())
+    
     # Ensure output directory exists
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     
-    # Get existing files and input files
-    completed_files = {f.name for f in Path(output_dir).glob('*_1000.jpg')}
+    # Get input files
     file_paths = get_image_files(input_dir)
     total_files = len(file_paths)
     
@@ -106,14 +118,12 @@ def resize_tray_images(input_dir: str, output_dir: str) -> None:
         return
     
     print(f"Found {total_files} images to process")
-    if completed_files:
-        print(f"Found {len(completed_files)} previously processed images")
     
     # Determine optimal number of workers
     num_workers = determine_optimal_workers(total_files)
     
     # Process images
-    args = [(f, output_dir, completed_files, i+1, total_files) 
+    args = [(f, input_dir, output_dir, set(), i+1, total_files) 
             for i, f in enumerate(file_paths)]
     
     with Pool(num_workers) as pool:
