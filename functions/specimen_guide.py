@@ -12,6 +12,8 @@ def create_guide(args):
     """
     resized_trays_dir, guides_dir, root, resized_filename, current, total = args
     base_name = resized_filename.replace('_1000.jpg', '')
+    
+    # Calculate relative path to preserve directory structure
     rel_path = os.path.relpath(root, resized_trays_dir)
     if rel_path == '.':
         rel_path = ''
@@ -28,6 +30,7 @@ def create_guide(args):
         log_progress("create_traymaps", current, total, f"Skipped {base_name} (JSON not found)")
         return False
 
+    # Create output directory that mirrors input structure
     guide_output_dir = os.path.join(guides_dir, rel_path)
     os.makedirs(guide_output_dir, exist_ok=True)
     
