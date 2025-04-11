@@ -24,9 +24,18 @@ def create_guide(args):
         log_progress("create_traymaps", current, total, f"Skipped {base_name} (image not found)")
         return False
 
-    json_path = os.path.join(resized_trays_dir, 'coordinates', f"{base_name}_1000.json")
+    # Search recursively for the JSON file in the coordinates directory
+    json_files = []
+    for root_dir, _, files in os.walk(os.path.join(resized_trays_dir, 'coordinates')):
+        for file in files:
+            if file == f"{base_name}_1000.json":
+                json_path = os.path.join(root_dir, file)
+                json_files.append(json_path)
     
-    if not os.path.exists(json_path):
+    # Use the first matching JSON if found
+    json_path = json_files[0] if json_files else None
+    
+    if not json_path:
         log_progress("create_traymaps", current, total, f"Skipped {base_name} (JSON not found)")
         return False
 
