@@ -23,8 +23,14 @@ def infer_tray_images(input_dir, output_dir, rf_instance, workspace_instance, mo
     project = workspace_instance.project(model_endpoint)
     model = project.version(version).model
     
-    # Find all resized tray images
-    image_files = [f for f in os.listdir(input_dir) if f.endswith('_1000.jpg')]
+    # Find all resized tray images - RECURSIVELY SEARCH SUBDIRECTORIES
+    image_files = []
+    for root, _, files in os.walk(input_dir):
+        for file in files:
+            if file.endswith('_1000.jpg'):
+                # Store the full path and the file name
+                image_files.append((os.path.join(root, file), file))
+    
     total_files = len(image_files)
     
     if not total_files:
@@ -46,16 +52,21 @@ def infer_tray_images(input_dir, output_dir, rf_instance, workspace_instance, mo
     skipped = 0
     errors = 0
 
-    for i, file in enumerate(image_files, 1):
-        json_path = os.path.join(output_dir, file.replace('_1000.jpg', '_1000.json'))
+    for i, (file_path, file_name) in enumerate(image_files, 1):
+        # Create mirrored directory structure in output
+        relative_path = os.path.relpath(os.path.dirname(file_path), input_dir)
+        if relative_path != '.':  # If file is in a subdirectory
+            output_subdir = os.path.join(output_dir, relative_path)
+            os.makedirs(output_subdir, exist_ok=True)
+            json_path = os.path.join(output_subdir, file_name.replace('_1000.jpg', '_1000.json'))
+        else:  # If file is in the top-level directory
+            json_path = os.path.join(output_dir, file_name.replace('_1000.jpg', '_1000.json'))
         
-        # Skip if already processed
-        if file in existing_files:
+        # Skip if already processed - check using file name only
+        if file_name in existing_files:
             log_progress("find_specimens", i, total_files, f"Skipped (already exists)")
             skipped += 1
             continue
-
-        file_path = os.path.join(input_dir, file)
         
         try:
             prediction = model.predict(file_path, confidence=confidence, overlap=overlap).json()
@@ -68,7 +79,7 @@ def infer_tray_images(input_dir, output_dir, rf_instance, workspace_instance, mo
             processed += 1
             
         except Exception as e:
-            log(f"Error processing {file}: {str(e)}")
+            log(f"Error processing {file_name}: {str(e)}")
             errors += 1
     
     log(f"Complete. {processed} processed, {skipped} skipped, {errors} errors")
