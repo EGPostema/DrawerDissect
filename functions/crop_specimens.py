@@ -3,6 +3,7 @@ import json
 from PIL import Image, ImageFile
 from multiprocessing import Pool, cpu_count
 from logging_utils import log, log_found, log_progress
+import re
 
 Image.MAX_IMAGE_PIXELS = None
 ImageFile.LOAD_TRUNCATED_IMAGES = True
@@ -11,15 +12,48 @@ def process_tray(args):
     trays_dir, resized_trays_dir, specimens_dir, root, resized_filename, current, total = args
     base_name = resized_filename.replace('_1000.jpg', '')
     
-    # Find original file with any supported extension
-    drawer_name = '_'.join(base_name.split('_')[:-2])
-    tray_num = base_name.split('_')[-1]
+    # Extract drawer_name and tray_num using regex for better reliability
+    match = re.search(r'(.+)_tray_(\d+)$', base_name)
+    if match:
+        drawer_name = match.group(1)
+        tray_num = match.group(2)
+    else:
+        # Fallback to old method if regex doesn't match
+        drawer_name = '_'.join(base_name.split('_')[:-2])
+        tray_num = base_name.split('_')[-1]
+    
+    # Get relative path from base resized directory
+    # We need to check if the drawer name is already in the relative path to avoid duplication
+    relative_path = os.path.relpath(root, resized_trays_dir)
+    
+    # Check if drawer_name is already part of the relative path to avoid duplication
+    if relative_path == '.' or relative_path == drawer_name:
+        # Either top-level directory or already contains drawer name
+        relative_path = ''
+    elif drawer_name in relative_path:
+        # If drawer name is part of the path but not exactly equal
+        # Extract the part before drawer name to avoid duplication
+        parts = relative_path.split('/')
+        for i, part in enumerate(parts):
+            if drawer_name in part:
+                # Use everything before the part containing drawer_name
+                relative_path = '/'.join(parts[:i]) if i > 0 else ''
+                break
+    
+    # Use the same directory structure for all operations
     drawer_folder = os.path.join(trays_dir, drawer_name)
+    if not os.path.isdir(drawer_folder):
+        # Try alternate path with relative_path if first attempt fails
+        drawer_folder = os.path.join(trays_dir, relative_path, drawer_name)
+        if not os.path.isdir(drawer_folder):
+            # Try with just the top level directory
+            drawer_folder = os.path.join(trays_dir)
     
     supported_formats = ('.jpg', '.jpeg', '.tif', '.tiff', '.png')
     original_path = None
     original_ext = None
     
+    # First try with full base_name
     for ext in supported_formats:
         test_path = os.path.join(drawer_folder, base_name + ext)
         if os.path.exists(test_path):
@@ -27,10 +61,33 @@ def process_tray(args):
             original_ext = ext
             break
             
-    json_path = os.path.join(resized_trays_dir, 'coordinates', f'{base_name}_1000.json')
+    # If not found, try to locate the file more flexibly
+    if not original_path:
+        for root_dir, _, files in os.walk(drawer_folder):
+            for file in files:
+                file_base, file_ext = os.path.splitext(file)
+                if file_ext.lower() in supported_formats and file_base.endswith(f"_tray_{tray_num}"):
+                    original_path = os.path.join(root_dir, file)
+                    original_ext = file_ext
+                    break
+            if original_path:
+                break
+    
+    # Search recursively for the JSON file in the coordinates directory
+    json_files = []
+    for root_dir, _, files in os.walk(os.path.join(resized_trays_dir, 'coordinates')):
+        for file in files:
+            if file == f'{base_name}_1000.json':
+                json_path = os.path.join(root_dir, file)
+                json_files.append(json_path)
+    
+    # Use the first matching JSON if found
+    json_path = json_files[0] if json_files else None
+    
+    # FIXED: Create the specimen folder without duplicating the drawer name
     specimen_folder = os.path.join(specimens_dir, drawer_name, tray_num)
     
-    if not os.path.exists(json_path):
+    if not json_path:
         log_progress("crop_specimens", current, total, f"Skipped {base_name} (missing JSON)")
         return False
 
@@ -122,11 +179,17 @@ def find_processed_trays(specimens_dir):
 def crop_specimens_from_trays(trays_dir, resized_trays_dir, specimens_dir):
     """
     Crop individual specimens from tray images based on detected coordinates.
+    
+    This function handles nested directory structures by:
+    1. Finding all resized tray images in resized_trays_dir (recursively)
+    2. Preserving the same directory structure in specimens_dir
+    3. Looking up original images in trays_dir with matching structure
+    4. Finding JSON files in resized_trays_dir/coordinates with flexible search
     """
     # Ensure output directory exists
     os.makedirs(specimens_dir, exist_ok=True)
     
-    # Find all resized tray images
+    # Find all resized tray images (recursively through all subdirectories)
     resized_files = []
     for root, _, files in os.walk(resized_trays_dir):
         for f in files:
@@ -162,12 +225,6 @@ def crop_specimens_from_trays(trays_dir, resized_trays_dir, specimens_dir):
     num_workers = min(cpu_count(), len(tasks))
     with Pool(num_workers) as pool:
         results = pool.map(process_tray, tasks)
-    
-    # Count results
-    processed = sum(1 for r in results if r)
-    skipped = len(tasks) - processed
-    
-    log(f"Complete. {processed} processed, {skipped} skipped")
 
 
 
