@@ -8,31 +8,6 @@ processing:
   transcribe_taxonomy: true  # Set to false if no taxonomic IDs
   transcribe_specimen_labels: true  # Set to false to skip specimen label transcription
 
-resources:
-  # !! Did this part very on the fly... still need to integrate consistently among functions!!
-  memory:
-    sequential: false    # Process in parallel by default
-    max_workers: null    # null = automatic based on CPU
-    batch_size: null     # null = process all at once
-    
-    # Step-specific overrides (only for steps that need special handling)
-    step_overrides:
-      resize_drawers:    
-        sequential: true # Process one image at a time
-        batch_size: 1    # One image per batch
-      crop_trays:    
-        sequential: true # Process one image at a time
-        batch_size: 1    # One image per batch
-      outline_specimens:
-        sequential: false
-        max_workers: 40
-      outline_pins:
-        sequential: false
-        max_workers: 40
-      create_transparency:
-        sequential: false
-        max_workers: 40  
-
 roboflow:
   workspace: "field-museum" # FMNH workspace is default
   models:
@@ -189,3 +164,28 @@ directories:
   specimen_level: "drawers/transcriptions/specimen_labels"
   tray_level: "drawers/transcriptions/tray_labels"
   data: "drawers/data"
+
+resources:
+  # !! Did this part very on the fly... still need to integrate consistently among functions!!
+  memory:
+    sequential: false    # Process in parallel by default
+    max_workers: null    # null = automatic based on CPU
+    batch_size: null     # null = process all at once
+    
+    # Step-specific overrides (only for steps that need special handling)
+    step_overrides:
+      resize_drawers:    
+        sequential: true # Process one image at a time
+        batch_size: 1    # One image per batch
+      crop_trays:    
+        sequential: true # Process one image at a time
+        batch_size: 1    # One image per batch
+      outline_specimens:
+        sequential: false
+        max_workers: 40
+      outline_pins:
+        sequential: false
+        max_workers: 40
+      create_transparency:
+        sequential: false
+        max_workers: 40  
