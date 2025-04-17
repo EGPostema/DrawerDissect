@@ -4,9 +4,9 @@ api_keys:
 
 processing:
   process_metadata: false  # Set true if FMNH-style metadata is present
-  transcribe_barcodes: true  # Set to false if no barcodes
-  transcribe_taxonomy: true  # Set to false if no taxonomic IDs
-  transcribe_specimen_labels: true  # Set to false to skip specimen label transcription
+  transcribe_barcodes: false  # Set to false if no unit tray-level barcodes
+  transcribe_taxonomy: true  # Set to false if no unit tray-level taxonomic IDs
+  transcribe_specimen_labels: false  # Set to false to skip specimen label transcription
 
 roboflow:
   workspace: "field-museum" # FMNH workspace is default
