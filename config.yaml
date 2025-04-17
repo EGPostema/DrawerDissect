@@ -12,18 +12,18 @@ roboflow:
   workspace: "field-museum" # FMNH workspace is default
   models:
     drawer:
-      endpoint: "trayfinder-labels" # obj detection, finds trays in drawers
-      version: 17
+      endpoint: "trayfinder-base" # obj detection, finds trays in drawers
+      version: 2
       confidence: 50 # adjustable, set from 1-99 (higher # = greater threshold for predictions)
       overlap: 50 # adjustable, set from 1-99 (higher # = higher expected overlap between bounding boxes)
     tray:
       endpoint: "bugfinder-kdn9e" # obj detection, finds specimens in trays
-      version: 9
+      version: 13
       confidence: 50
       overlap: 50
     label:
       endpoint: "labelfinder" # obj detection, finds label parts
-      version: 5
+      version: 7
       confidence: 50
       overlap: 50
     mask:
