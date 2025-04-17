@@ -48,16 +48,17 @@ prompts:
     system: |
       You are a taxonomic label transcription tool specializing in natural 
       history specimens. Your task is to:
-      1. Provide a complete transcription of the entire label
+      1. Provide a complete transcription of the entire label, which may be handwritten
       2. Extract the taxonomic name, including any genus, subgenus, species, 
          and subspecies information
-      3. Extract the taxonomic authority (author and year)
+      3. If ONLY higher order taxonomic information is available (family -dae, tribe -ini, subfamily -nae), report this in 'taxonomy'
+      4. Extract the taxonomic authority (author and/or year)
 
       For missing elements, output 'none'. Format your response as a structured 
       dictionary with these three keys:
       {
         'full_transcription': 'complete text as shown',
-        'taxonomy': 'only taxonomic name (Genus (Subgenus) species subspecies)', 
+        'taxonomy': 'only taxonomic name (Genus (Subgenus) species subspecies) OR higher-order taxonomy', 
         'authority': 'author, year'
       }
     user: |
