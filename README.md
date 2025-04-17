@@ -114,7 +114,7 @@ roboflow:
    | trayfinder-base | detects trays in drawers  | 1 | 99.5% |
    | ⭐ trayfinder-labels  | detects trays (with tray labels) in drawers  | 17 | 99.5% |
    | ⭐ labelfinder  | detects tray label components  | 5 | 98.1% |
-   | ⭐ bugfinder-kdn9e | detects specimens  | 12 | 99.0% |
+   | ⭐ bugfinder-kdn9e | detects specimens  | 13 | 99.0% |
    | ⭐ bugmasker-all | outlines specimen bodies (not taxon specific)  | 2 | 98.6% |
    | bugmasker-tigerbeetle | outlines specimen bodies (specailized)  | 13 | 98.2% |
    | bugmasker-pimeliinae | outlines specimen bodies (specialized)  | 4 | 98.5% |
