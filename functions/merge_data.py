@@ -246,6 +246,7 @@ def create_specimen_table(specimens_dir, output_path=None):
 def add_measurement_data(specimen_df, measurements_path, sizeratios_path=None):
     """
     Add measurement data to the specimen table if available.
+    Only includes mm measurements when sizeratios is available.
     
     Args:
         specimen_df (pd.DataFrame): DataFrame containing specimen information
@@ -266,16 +267,18 @@ def add_measurement_data(specimen_df, measurements_path, sizeratios_path=None):
         # Load measurements data
         measurements_df = pd.read_csv(measurements_path)
         
-        # Select required columns
-        measurement_columns = [
-            'full_id', 'len1_mm', 'len2_mm', 'spec_area_mm2',
-            'len1_px', 'len2_px', 'mask_OK', 'bad_size'
-        ]
+        # Determine if we have valid sizeratios for mm conversion
+        has_sizeratios = sizeratios_path and os.path.exists(sizeratios_path)
         
-        # If no mm measurements but we have sizeratios, try to calculate them
-        if sizeratios_path and os.path.exists(sizeratios_path) and \
-           'px_mm_ratio' not in measurements_df.columns and \
-           ('len1_mm' not in measurements_df.columns or measurements_df['len1_mm'].isna().all()):
+        # Select required columns - only include mm measurements if sizeratios is available
+        measurement_columns = ['full_id', 'len1_px', 'len2_px', 'mask_OK', 'bad_size']
+        
+        # If we have sizeratios, prepare for mm calculations
+        if has_sizeratios:
+            # Add mm measurement columns to our list
+            measurement_columns.extend(['len1_mm', 'len2_mm', 'spec_area_mm2'])
+            
+            # Try to calculate mm measurements using sizeratios
             try:
                 sizeratios_df = pd.read_csv(sizeratios_path)
                 sizeratios_map = sizeratios_df.set_index('drawer_id')['px_mm_ratio'].to_dict()
@@ -307,6 +310,12 @@ def add_measurement_data(specimen_df, measurements_path, sizeratios_path=None):
                 print(f"Calculated mm measurements using sizeratios from {sizeratios_path}")
             except Exception as e:
                 print(f"Error calculating mm measurements: {str(e)}")
+                # If we fail to calculate mm measurements, remove them from our columns list
+                for col in ['len1_mm', 'len2_mm', 'spec_area_mm2']:
+                    if col in measurement_columns:
+                        measurement_columns.remove(col)
+        else:
+            print("No sizeratios file provided or found - excluding mm measurements")
         
         # Ensure all required columns exist
         for col in measurement_columns:
@@ -337,7 +346,7 @@ def add_measurement_data(specimen_df, measurements_path, sizeratios_path=None):
         
         # Fill missing values
         for col in measurement_columns[1:]:  # Skip full_id
-            if col in ['mask', 'bad_size']:
+            if col in ['mask_found', 'bad_size']:
                 merged_df[col] = merged_df[col].fillna(False)
             else:
                 merged_df[col] = merged_df[col].fillna(-1)
@@ -401,7 +410,7 @@ def add_label_transcription(specimen_df, location_checked_path):
         return specimen_df
 
 def add_data_completeness_flag(specimen_df, has_measurements=False, has_taxonomy=False, 
-                         has_barcodes=False, has_locations=False):
+                         has_barcodes=False, has_locations=False, has_mm_measurements=False):
     """
     Add a data_complete flag to the specimen DataFrame indicating whether
     all expected data for a specimen is available.
@@ -412,6 +421,7 @@ def add_data_completeness_flag(specimen_df, has_measurements=False, has_taxonomy
         has_taxonomy (bool): Whether taxonomy data was added
         has_barcodes (bool): Whether barcode data was added
         has_locations (bool): Whether location data was added
+        has_mm_measurements (bool): Whether mm measurements are available
         
     Returns:
         pd.DataFrame: Enhanced DataFrame with data_complete flag
@@ -424,13 +434,24 @@ def add_data_completeness_flag(specimen_df, has_measurements=False, has_taxonomy
     
     # Check measurement completeness if applicable
     if has_measurements:
-        # Check if any measurement is missing
-        measurement_incomplete = (
-            (df['len1_mm'] == -1) | 
-            (df['len2_mm'] == -1) | 
-            (df['spec_area_mm2'] == -1) |
-            (~df['mask_found']) # Mask must exist
-        )
+        # Check base measurement completeness (always check px measurements and mask)
+        measurement_incomplete = (~df['mask_found'])  # Mask must exist
+        
+        # Check pixel measurements if they exist
+        if 'len1_px' in df.columns:
+            measurement_incomplete |= (df['len1_px'] == -1)
+        if 'len2_px' in df.columns:
+            measurement_incomplete |= (df['len2_px'] == -1)
+        
+        # Only check mm measurements if they're available and expected
+        if has_mm_measurements:
+            if 'len1_mm' in df.columns:
+                measurement_incomplete |= (df['len1_mm'] == -1)
+            if 'len2_mm' in df.columns:
+                measurement_incomplete |= (df['len2_mm'] == -1)
+            if 'spec_area_mm2' in df.columns:
+                measurement_incomplete |= (df['spec_area_mm2'] == -1)
+                
         df.loc[measurement_incomplete, 'data_complete'] = False
     
     # Check taxonomy completeness if applicable
@@ -543,6 +564,7 @@ def merge_data(specimens_dir, measurements_path=None, location_checked_path=None
         has_locations = location_checked_path and os.path.exists(location_checked_path)
         has_taxonomy = taxonomy_path and os.path.exists(taxonomy_path)
         has_barcodes = unit_barcodes_path and os.path.exists(unit_barcodes_path)
+        has_mm_measurements = sizeratios_path and os.path.exists(sizeratios_path)
         
         # 1. Generate Tray Lookup Table
         tray_lookup_path = os.path.join(output_folder, "trays.csv")
@@ -590,7 +612,8 @@ def merge_data(specimens_dir, measurements_path=None, location_checked_path=None
             has_measurements=has_measurements,
             has_taxonomy=has_taxonomy,
             has_barcodes=has_barcodes,
-            has_locations=has_locations
+            has_locations=has_locations,
+            has_mm_measurements=has_mm_measurements
         )
         
         # 5. Add incomplete data count to the tray lookup table
