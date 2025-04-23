@@ -291,20 +291,20 @@ python process_images.py resize_drawers find_trays crop_trays
 To run a step and all steps after, use `--from`
 
 ```bash
-python process_images.py all --from create_masks
+python process_images.py --from create_masks
 ```
 
 To run all steps up to a specific step, use `--until`
 
 ```bash
-python process_images.py all --until create_transparency
+python process_images.py --until create_transparency
 ```
 
 Finally, `--from` and `--until` can be combined to run sets of steps in order:
 
 ```bash
 # runs all steps between create_masks and create_transparency
-python process_images.py all --from create_masks --until create_transparency
+python process_images.py --from create_masks --until create_transparency
 
 # runs resize_trays and then find_specimens through to validate_speclabels
 python process_images.py resize_trays --from find_specimens --until validate_speclabels
