@@ -271,7 +271,7 @@ def add_measurement_data(specimen_df, measurements_path, sizeratios_path=None):
         has_sizeratios = sizeratios_path and os.path.exists(sizeratios_path)
         
         # Select required columns - only include mm measurements if sizeratios is available
-        measurement_columns = ['full_id', 'len1_px', 'len2_px', 'mask_OK', 'bad_size']
+        measurement_columns = ['full_id', 'len1_px', 'len2_px', 'mask_OK']
         
         # If we have sizeratios, prepare for mm calculations
         if has_sizeratios:
@@ -335,18 +335,14 @@ def add_measurement_data(specimen_df, measurements_path, sizeratios_path=None):
             measurement_columns.remove('mask_OK')
             measurement_columns.append('mask_found')
         
-        # Convert bad_size to True/False for consistency
-        if 'bad_size' in measurements_df.columns:
-            measurements_df['bad_size'] = measurements_df['bad_size'].apply(
-                lambda x: True if x == 'Y' else False
-            )
+        # We're no longer including bad_size flag in our processing
         
         # Merge with specimen data
         merged_df = pd.merge(specimen_df, measurements_df, on='full_id', how='left')
         
         # Fill missing values
         for col in measurement_columns[1:]:  # Skip full_id
-            if col in ['mask_found', 'bad_size']:
+            if col == 'mask_found':
                 merged_df[col] = merged_df[col].fillna(False)
             else:
                 merged_df[col] = merged_df[col].fillna(-1)
