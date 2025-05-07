@@ -94,12 +94,20 @@ def process_mask(mask_path):
         logger.error(f"Error processing {os.path.basename(mask_path)}: {e}")
         return None, None, None, None, None
 
-def generate_csv_with_measurements(mask_dir, sizeratios_path, output_dir, csv_filename='measurements.csv'):
+def generate_csv_with_measurements(mask_dir, output_dir, csv_filename='measurements.csv'):
     """
     Generate or update a CSV file of measurements for all valid masks.
     Skip already processed images and append data for new ones.
+    
+    Args:
+        mask_dir: Directory containing mask PNG files
+        output_dir: Directory to save the CSV output
+        csv_filename: Name of the output CSV file
     """
     try:
+        # Ensure output directory exists
+        os.makedirs(output_dir, exist_ok=True)
+        
         # Ensure the output file path is valid
         csv_path = os.path.join(output_dir, csv_filename)
         
@@ -112,15 +120,6 @@ def generate_csv_with_measurements(mask_dir, sizeratios_path, output_dir, csv_fi
             existing_df = pd.DataFrame()
             processed_ids = set()
             logger.info(f"No existing CSV found. Starting fresh.")
-            
-        # Initialize sizeratios_map based on metadata availability
-        sizeratios_map = {}
-        if sizeratios_path and os.path.isfile(sizeratios_path):
-            sizeratios_df = pd.read_csv(sizeratios_path)
-            sizeratios_map = sizeratios_df.set_index('drawer_id')['px_mm_ratio'].to_dict()
-            logger.info(f"Loaded size ratios for {len(sizeratios_map)} drawers.")
-        else:
-            logger.info("No size ratios metadata available. Measurements will be in pixels only.")
             
         file_info = []
         for root, _, files in os.walk(mask_dir):
@@ -142,7 +141,6 @@ def generate_csv_with_measurements(mask_dir, sizeratios_path, output_dir, csv_fi
                         'drawer_id': drawer_id,
                         'tray_id': tray_id,
                         'mask_OK': 'Y',
-                        'px_mm_ratio': sizeratios_map.get(drawer_id),
                         'mask_path': mask_path
                     })
                     
@@ -150,10 +148,9 @@ def generate_csv_with_measurements(mask_dir, sizeratios_path, output_dir, csv_fi
         
         # Ensure required columns are present, even if DataFrame is empty
         required_columns = ['full_id', 'drawer_id', 'tray_id', 
-                          'len1_mm', 'len2_mm', 'spec_area_mm2',
                           'len1_px', 'len2_px', 'area_px', 
                           'len1_points', 'len2_points', 
-                          'px_mm_ratio', 'mask_OK', 'bad_size']
+                          'mask_OK']
         for col in required_columns:
             if col not in df.columns:
                 df[col] = pd.NA
@@ -177,130 +174,152 @@ def generate_csv_with_measurements(mask_dir, sizeratios_path, output_dir, csv_fi
                         # Save the endpoints as strings for later use
                         df.at[idx, 'len1_points'] = str(len1_points)
                         df.at[idx, 'len2_points'] = str(len2_points)
-                        
-                        # Add bad_size flag based on len1_px
-                        df.at[idx, 'bad_size'] = 'Y' if len1_px < 50 else 'N'
-                        
-                        # Only calculate mm measurements if we have the ratio
-                        ratio = df.at[idx, 'px_mm_ratio']
-                        if ratio:
-                            df.at[idx, 'len1_mm'] = len1_px / ratio
-                            df.at[idx, 'len2_mm'] = len2_px / ratio
-                            df.at[idx, 'spec_area_mm2'] = area_px / (ratio ** 2)
                     else:
-                        # Mark as bad size if measurement failed
+                        # Mark as problematic mask if measurement failed
                         idx = df[df['full_id'] == full_id].index[0]
-                        df.at[idx, 'bad_size'] = 'Y'
-                        df.at[idx, 'mask_OK'] = 'N'  # Also mark mask as problematic
+                        df.at[idx, 'mask_OK'] = 'N'
                         
                 except Exception as e:
                     logger.error(f"Error processing {full_id}: {e}")
-                    # Mark as bad size if exception occurred
+                    # Mark as problematic if exception occurred
                     idx = df[df['full_id'] == full_id].index[0]
-                    df.at[idx, 'bad_size'] = 'Y'
-                    df.at[idx, 'mask_OK'] = 'N'  # Also mark mask as problematic
+                    df.at[idx, 'mask_OK'] = 'N'
                     
         # Concatenate new data with existing data
-        cols = ['full_id', 'drawer_id', 'tray_id', 
-                'len1_mm', 'len2_mm', 'spec_area_mm2',
+        cols = ['full_id', 'drawer_id', 'tray_id',
                 'len1_px', 'len2_px', 'area_px', 
                 'len1_points', 'len2_points', 
-                'px_mm_ratio', 'mask_OK', 'bad_size']
+                'mask_OK']
                 
         new_df = df[cols]
         
-        # Ensure any missing len1_px values are marked as bad_size
-        if 'len1_px' in new_df.columns:
-            bad_size_mask = new_df['len1_px'].isna() | (new_df['len1_px'] < 50)
-            new_df.loc[bad_size_mask, 'bad_size'] = 'Y'
-            
         if not existing_df.empty:
-            existing_df = existing_df.dropna(how='all', subset=cols)
+            # Ensure existing data has the same columns
+            existing_cols = set(existing_df.columns)
+            for col in cols:
+                if col not in existing_cols:
+                    existing_df[col] = pd.NA
             
-            # Also fix bad_size in existing data if needed
-            if 'len1_px' in existing_df.columns:
-                bad_size_mask = existing_df['len1_px'].isna() | (existing_df['len1_px'] < 50)
-                existing_df.loc[bad_size_mask, 'bad_size'] = 'Y'
-                
-            updated_df = pd.concat([existing_df, new_df], ignore_index=True)
+            existing_df = existing_df.dropna(how='all', subset=cols)
+            updated_df = pd.concat([existing_df[cols], new_df], ignore_index=True)
         else:
             updated_df = new_df
             
         updated_df.to_csv(csv_path, index=False)
         logger.info(f"Updated measurements saved to: {csv_path}")
+        
+        # Create visualizations
+        vis_output_dir = os.path.join(output_dir, "visualizations")
+        logger.info(f"Generating visualizations in {vis_output_dir}")
+        visualize_measurements(csv_path, mask_dir, vis_output_dir)
+        
     except Exception as e:
         logger.error(f"Error generating measurements: {e}")
 
-def visualize_measurements(csv_path, mask_dir, output_dir=None, num_visualizations=10):
+def visualize_measurements(csv_path, mask_dir, output_dir):
     """
-    Visualize the measurements for the first few rows of the CSV.
-    Saves visuals with lengths mapped as _mapped.png files.
+    Visualize the measurements for all rows in the CSV.
+    Saves visuals with lengths mapped as _mapped.png files in a directory structure
+    that mirrors the input mask directory.
+    
+    Args:
+        csv_path: Path to the measurements CSV file
+        mask_dir: Directory containing mask PNG files
+        output_dir: Directory to save visualization images
     """
     try:
         # Load the CSV
         df = pd.read_csv(csv_path)
         
-        # Default output directory to the CSV directory if not specified
-        if output_dir is None:
-            output_dir = os.path.dirname(csv_path)
+        # Ensure the output directory exists
+        os.makedirs(output_dir, exist_ok=True)
         
-        # Ensure the directory exists for outputs
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-        
-        # Perform a walkthrough to locate all mask files
+        # Get a list of all mask files with their full paths
         mask_files = glob.glob(os.path.join(mask_dir, "**", "*.png"), recursive=True)
-        mask_map = {os.path.splitext(os.path.basename(mask))[0]: mask for mask in mask_files}
         
-        # Process the first `num_visualizations` rows
-        for _, row in df.head(num_visualizations).iterrows():
+        # Create a mapping of full_id to mask path
+        mask_map = {}
+        for mask_path in mask_files:
+            mask_filename = os.path.basename(mask_path)
+            full_id = os.path.splitext(mask_filename)[0]
+            mask_map[full_id] = mask_path
+        
+        # Count for progress reporting
+        total_rows = len(df)
+        processed = 0
+        skipped = 0
+        
+        # Process each row in the CSV
+        for _, row in df.iterrows():
             full_id = row['full_id']
             mask_path = mask_map.get(full_id)
-            mapped_output_path = os.path.join(output_dir, f"{full_id}_mapped.png")
             
             if not mask_path:
                 logger.warning(f"Mask not found for {full_id}, skipping visualization.")
+                skipped += 1
                 continue
-
-            len1_px = row['len1_px']
-            len2_px = row['len2_px']
+                
+            # Get measurements
+            len1_px = row.get('len1_px')
+            len2_px = row.get('len2_px')
+            
             if pd.isna(len1_px) or pd.isna(len2_px):
                 logger.warning(f"Missing length measurements for {full_id}, skipping visualization.")
+                skipped += 1
                 continue
+                
+            # Create output path that mirrors the input directory structure
+            rel_path = os.path.relpath(os.path.dirname(mask_path), mask_dir)
+            output_subdir = os.path.join(output_dir, rel_path)
+            os.makedirs(output_subdir, exist_ok=True)
             
+            mapped_output_path = os.path.join(output_subdir, f"{full_id}_mapped.png")
+            
+            # Skip if already exists
+            if os.path.exists(mapped_output_path):
+                skipped += 1
+                continue
+                
             # Read the mask
             mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
             
             if mask is None:
                 logger.warning(f"Could not read mask for {full_id}, skipping visualization.")
+                skipped += 1
                 continue
-
+                
             # Create a figure
             plt.figure(figsize=(10, 10))
             plt.imshow(mask, cmap='gray')
-            plt.title(f"{full_id}: len1_px={len1_px}, len2_px={len2_px}")
+            plt.title(f"{full_id}: len1_px={len1_px:.1f}, len2_px={len2_px:.1f}")
             plt.axis('off')
-
+            
             # Add length annotations
             try:
                 if not pd.isna(row['len1_points']):
                     len1_points = eval(row['len1_points'], {"array": np.array, "int32": np.int32})
                     plt.plot([len1_points[0][0], len1_points[1][0]],
                              [len1_points[0][1], len1_points[1][1]], 'r-', linewidth=2, label='Length 1')
-
+                    
                 if not pd.isna(row['len2_points']):
                     len2_points = eval(row['len2_points'], {"array": np.array, "int32": np.int32})
                     plt.plot([len2_points[0][0], len2_points[1][0]],
                              [len2_points[0][1], len2_points[1][1]], 'b-', linewidth=2, label='Length 2')
-
+                    
                 plt.legend()
             except Exception as e:
                 logger.warning(f"Error plotting lengths for {full_id}: {e}")
-
+                
             plt.savefig(mapped_output_path, bbox_inches='tight', dpi=300)
             plt.close()
-            logger.info(f"Saved visualization: {mapped_output_path}")
-
+            
+            processed += 1
+            # Log progress every 10 images
+            if processed % 10 == 0:
+                logger.info(f"Processed {processed}/{total_rows} visualizations")
+            
+        logger.info(f"Visualization complete. Created {processed} visualization images, skipped {skipped}.")
+        
     except Exception as e:
         logger.error(f"Error during visualization: {e}")
 
