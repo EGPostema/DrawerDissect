@@ -195,7 +195,6 @@ DrawerDissect also has the option to:
 
 ```yaml
 processing:
-  process_metadata: false  # Set to true if metadata txt file is present
   transcribe_barcodes: true  # Set to false if no barcodes
   transcribe_taxonomy: true  # Set to false if no taxonomic IDs
   transcribe_specimen_labels: true  # Set to false to skip specimen label transcription/estimation
@@ -216,14 +215,6 @@ processing:
 3. Place it in `drawers/fullsize`
 4. Check that `config.yaml` contains your API keys
 5. Edit `config.yaml` to enable metadata processing
-
-  ```yaml
-  processing:
-    process_metadata: true # default is false
-  ```
-
-Our imaging system produces a metadata .txt file. This file can be used to convert pixel:mm, if process_metadata is toggled on.
-
 6. Run the Script
 
   ```bash
@@ -318,7 +309,6 @@ python process_images.py resize_trays --from find_specimens
 ```sh
 all # to run all steps, in the order below
 resize_drawers
-process_metadata # if metadata TXT file present
 find_trays
 crop_trays
 resize_trays
