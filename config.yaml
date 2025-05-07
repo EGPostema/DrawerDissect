@@ -3,10 +3,10 @@ api_keys:
   roboflow: "YOUR_ROBOFLOW_KEY" # replace YOUR_ROBOFLOW_KEY with your key
 
 processing:
-  process_metadata: false  # Set true if FMNH-style metadata is present
-  transcribe_barcodes: false  # Set to false if no unit tray-level barcodes
+  transcribe_barcodes: true  # Set to false if no unit tray-level barcodes
+  transcribe_geocodes: true  # Set to false if no geocodes
   transcribe_taxonomy: true  # Set to false if no unit tray-level taxonomic IDs
-  transcribe_specimen_labels: false  # Set to false to skip specimen label transcription
+  transcribe_specimen_labels: true  # Set to false to skip specimen label transcription
 
 roboflow:
   workspace: "field-museum" # FMNH workspace is default
@@ -44,6 +44,25 @@ prompts:
     user: |
       Read the barcode number. Output only the code, no explanations.
   
+  geocode: # prompt for recognizing 3-letter geocodes
+    system: |
+      You are a geocode recognition tool for natural history specimens. 
+      Your task is to identify the 3-letter geocode visible in the image.
+      
+      The geocode is always a 3-letter code (all capital letters):
+      - "NEO"
+      - "PAL"
+      - "NEA"
+      - "AFR"
+      - "ORI"
+      - "AUS"
+      - "PAC"
+      
+      Output only the 3-letter geocode. If no valid 3-letter geocode is visible 
+      or if the text is unclear, output 'UNK' (Unknown).
+    user: |
+      Identify the 3-letter geocode visible in this image. Output only the code (e.g., NEO, PAL), no explanations.
+    
   taxonomy: # prompt for transcribing and organizing taxonomic IDs
     system: |
       You are a taxonomic label transcription tool specializing in natural 
@@ -135,7 +154,6 @@ prompts:
                 * A more conservative version of the proposed location if only part can be verified
                 (only if status is VERIFIED)
               - 'UNKNOWN' (for UNRELIABLE or UNKNOWN status),
-          'confidence_notes': A single concise sentence explaining the validation decision
         }
     user: |
       Validate this location data:
@@ -144,7 +162,6 @@ prompts:
 
 directories:
   fullsize: "drawers/fullsize"
-  metadata: "drawers/fullsize/capture_metadata"
   resized: "drawers/resized"
   coordinates: "drawers/resized/coordinates"
   trays: "drawers/trays"
@@ -189,4 +206,4 @@ resources:
         max_workers: 40
       create_transparency:
         sequential: false
-        max_workers: 40  
+        max_workers: 40   
