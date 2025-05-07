@@ -93,4 +93,3 @@ class DrawerDissectConfig:
             log(f"Using default memory config for {step}: {default_config}")
         
         return default_config
-
