@@ -9,7 +9,6 @@ from typing import Tuple, Dict, Any
 from config import DrawerDissectConfig
 from logging_utils import log, StepTimer
 from functions.resize_drawer import resize_drawer_images
-from functions.process_metadata import process_files
 from functions.infer_drawers import infer_drawers
 from functions.crop_trays import crop_trays_from_fullsize
 from functions.resize_trays import resize_tray_images
@@ -68,16 +67,6 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
                 max_workers=max_workers,
                 batch_size=batch_size
             )
-        
-        elif step == 'process_metadata':
-            if config.processing_flags['process_metadata']:
-                process_files(
-                    config.directories['metadata'],
-                    config.directories['fullsize'],
-                    os.path.join(config.directories['metadata'], 'sizeratios.csv')
-                )
-            else:
-                log("Metadata processing disabled in config - skipping")
         
         elif step == 'find_trays':
             drawer_model = config.roboflow_models['drawer']
@@ -178,14 +167,9 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
         elif step == 'fix_masks':
             fix_mask(config.directories['mask_png'])
         
-        elif step == 'measure_specimens':
-            metadata_file = None
-            if config.processing_flags['process_metadata']:
-                metadata_file = os.path.join(config.directories['metadata'], 'sizeratios.csv')
-            
+        elif step == 'measure_specimens':            
             generate_csv_with_measurements(
                 config.directories['mask_png'],
-                metadata_file,
                 config.directories['measurements']
             )
         
@@ -274,6 +258,19 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
             else:
                 log("Barcode transcription disabled in config - skipping")
 
+        elif step == 'transcribe_geocodes':
+            if config.processing_flags['transcribe_geocodes']:
+                prompts = {
+                    'system': config.prompts['geocode']['system'],
+                    'user': config.prompts['geocode']['user']
+                }
+                asyncio.run(process_image_folder(
+                    config.directories['labels'],
+                    os.path.join(config.directories['tray_level'], 'geocodes.csv'),
+                    config.api_keys['anthropic'],
+                    prompts=prompts,
+                ))
+
         elif step == 'transcribe_taxonomy':
             if config.processing_flags['transcribe_taxonomy']:
                 prompts = {
@@ -295,13 +292,10 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
             location_checked_path = os.path.join(config.directories['specimen_level'], 'location_checked.csv')
             taxonomy_path = os.path.join(config.directories['tray_level'], 'taxonomy.csv')
             unit_barcodes_path = os.path.join(config.directories['tray_level'], 'unit_barcodes.csv')
+            geocodes_path = os.path.join(config.directories['tray_level'], 'geocodes.csv')
             labels_dir = config.directories['labels']
             output_base_path = os.path.join(config.directories['data'], 'merged_data')
-            
-            # Add sizeratios path if metadata processing is enabled
-            sizeratios_path = None
-            if config.processing_flags['process_metadata']:
-                sizeratios_path = os.path.join(config.directories['metadata'], 'sizeratios.csv')
+            sizeratios_path = os.path.join(config.directories['fullsize'], 'sizeratios.csv')
             
             # Run the merge_data function with all available inputs
             merge_data(
@@ -310,6 +304,7 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
                 location_checked_path=location_checked_path if os.path.exists(location_checked_path) else None,
                 taxonomy_path=taxonomy_path if os.path.exists(taxonomy_path) else None,
                 unit_barcodes_path=unit_barcodes_path if os.path.exists(unit_barcodes_path) else None,
+                geocodes_path=geocodes_path if os.path.exists(geocodes_path) else None,
                 sizeratios_path=sizeratios_path if sizeratios_path and os.path.exists(sizeratios_path) else None,
                 labels_dir=labels_dir if os.path.exists(labels_dir) else None,
                 output_base_path=output_base_path
@@ -318,12 +313,12 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
 # Ordering steps, adding --from and --until
 def parse_arguments():
     all_steps = [
-        'resize_drawers', 'process_metadata', 'find_trays', 'crop_trays',
+        'resize_drawers', 'find_trays', 'crop_trays',
         'resize_trays', 'find_traylabels', 'crop_labels', 'find_specimens',
         'crop_specimens', 'create_traymaps', 'outline_specimens', 'create_masks',
         'fix_masks', 'measure_specimens', 'censor_background', 'outline_pins',
         'create_pinmask', 'create_transparency', 'transcribe_speclabels',
-        'validate_speclabels', 'transcribe_barcodes', 'transcribe_taxonomy',
+        'validate_speclabels', 'transcribe_barcodes', 'transcribe_geocodes', 'transcribe_taxonomy',
         'merge_data'
     ]
     
@@ -408,12 +403,12 @@ def main():
     config = DrawerDissectConfig()
     
     all_steps = [
-        'resize_drawers', 'process_metadata', 'find_trays', 'crop_trays',
+        'resize_drawers', 'find_trays', 'crop_trays',
         'resize_trays', 'find_traylabels', 'crop_labels', 'find_specimens',
         'crop_specimens', 'create_traymaps', 'outline_specimens', 'create_masks',
         'fix_masks', 'measure_specimens', 'censor_background', 'outline_pins',
         'create_pinmask', 'create_transparency', 'transcribe_speclabels',
-        'validate_speclabels', 'transcribe_barcodes', 'transcribe_taxonomy',
+        'validate_speclabels', 'transcribe_barcodes', 'transcribe_geocodes', 'transcribe_taxonomy',
         'merge_data'
     ]
     
