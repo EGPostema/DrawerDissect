@@ -434,14 +434,14 @@ def add_label_transcription(specimen_df, location_checked_path):
 
         # Proceed with merge
         merged_df = pd.merge(specimen_df, location_df[list(expected_cols.values())], on='spec_filename', how='left')
-        
+
         # Fill missing values
-        for col in expected_cols[1:]:  # Skip spec_filename
+        for col in list(expected_cols.values())[1:]:
             merged_df[col] = merged_df[col].fillna("NA")
-        
+
         print(f"Added label transcription data from {location_checked_path}")
         return merged_df
-        
+
     except Exception as e:
         print(f"Error adding label transcription data: {str(e)}")
         return specimen_df
