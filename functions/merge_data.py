@@ -3,7 +3,7 @@ import shutil
 import pandas as pd
 from datetime import datetime
 
-def generate_tray_lookup(trays_dir, specimens_dir=None, barcode_csv_path=None, taxonomy_csv_path=None, labels_dir=None, output_path=None):
+def generate_tray_lookup(trays_dir, specimens_dir=None, barcode_csv_path=None, geocode_csv_path=None, taxonomy_csv_path=None, labels_dir=None, output_path=None):
     """
     Generate a lookup table of all tray images found in the trays directory.
     Optionally enriches with barcode, taxonomy information, and specimen counts.
@@ -118,6 +118,31 @@ def generate_tray_lookup(trays_dir, specimens_dir=None, barcode_csv_path=None, t
                 print("Added barcode detection flags")
         except Exception as e:
             print(f"Error loading barcode data: {str(e)}")
+
+    # Load geocode data if path is provided and file exists
+    if geocode_csv_path and os.path.exists(geocode_csv_path):
+        try:
+            geocode_df = pd.read_csv(geocode_csv_path)
+            # Ensure tray_id is treated as string in both dataframes
+            geocode_df['tray_id'] = geocode_df['tray_id'].astype(str)
+            tray_df['tray_id'] = tray_df['tray_id'].astype(str)
+            # Merge with tray data
+            tray_df = pd.merge(tray_df, geocode_df[['tray_id', 'geocode']], 
+                              on='tray_id', how='left')
+            # Fill missing geocodes with "MISSING"
+            tray_df['geocode'] = tray_df['geocode'].fillna("MISSING")
+            print(f"Added geocode information from {geocode_csv_path}")
+            
+            # Add geocode detection flag if labels directory is provided
+            if labels_dir and os.path.exists(labels_dir):
+                tray_df['geocode_detect'] = 'not detected'
+                for idx, row in tray_df.iterrows():
+                    geocode_filename = f"{row['tray_id']}_geocode.jpg"
+                    if geocode_filename in existing_labels:
+                        tray_df.at[idx, 'geocode_detect'] = 'detected'
+                print("Added geocode detection flags")
+        except Exception as e:
+            print(f"Error loading geocode data: {str(e)}")
     
     # Load taxonomy data if path is provided and file exists
     if taxonomy_csv_path and os.path.exists(taxonomy_csv_path):
@@ -152,11 +177,17 @@ def generate_tray_lookup(trays_dir, specimens_dir=None, barcode_csv_path=None, t
     if 'unit_barcode' in tray_df.columns:
         column_order.append('unit_barcode')
     
+    if 'geocode' in tray_df.columns:
+        column_order.append('geocode')
+    
     if 'full_taxonomy' in tray_df.columns:
         column_order.append('full_taxonomy')
     
     if 'barcode_detect' in tray_df.columns:
         column_order.append('barcode_detect')
+    
+    if 'geocode_detect' in tray_df.columns:
+        column_order.append('geocode_detect')
     
     if 'taxonomy_detect' in tray_df.columns:
         column_order.append('taxonomy_detect')
@@ -246,7 +277,7 @@ def create_specimen_table(specimens_dir, output_path=None):
 def add_measurement_data(specimen_df, measurements_path, sizeratios_path=None):
     """
     Add measurement data to the specimen table if available.
-    Only includes mm measurements when sizeratios is available.
+    Calculates mm measurements when sizeratios.csv is available.
     
     Args:
         specimen_df (pd.DataFrame): DataFrame containing specimen information
@@ -267,84 +298,92 @@ def add_measurement_data(specimen_df, measurements_path, sizeratios_path=None):
         # Load measurements data
         measurements_df = pd.read_csv(measurements_path)
         
-        # Determine if we have valid sizeratios for mm conversion
+        # Basic measurement columns (always included)
+        measurement_columns = ['full_id', 'len1_px', 'len2_px', 'area_px', 'mask_OK']
+        
+        # Check for required columns in the measurements file
+        for col in ['full_id', 'len1_px', 'len2_px', 'area_px']:
+            if col not in measurements_df.columns:
+                print(f"Warning: Required column '{col}' not found in measurements file")
+                return specimen_df
+        
+        # Check if sizeratios.csv exists
         has_sizeratios = sizeratios_path and os.path.exists(sizeratios_path)
         
-        # Select required columns - only include mm measurements if sizeratios is available
-        measurement_columns = ['full_id', 'len1_px', 'len2_px', 'mask_OK']
-        
-        # If we have sizeratios, prepare for mm calculations
+        # If sizeratios.csv exists, calculate mm measurements
         if has_sizeratios:
-            # Add mm measurement columns to our list
-            measurement_columns.extend(['len1_mm', 'len2_mm', 'spec_area_mm2'])
-            
-            # Try to calculate mm measurements using sizeratios
+            print(f"Found sizeratios file at {sizeratios_path}, will calculate mm measurements")
             try:
+                # Load sizeratios data
                 sizeratios_df = pd.read_csv(sizeratios_path)
+                
+                # Check if required columns exist in sizeratios.csv
+                if 'drawer_id' not in sizeratios_df.columns or 'px_mm_ratio' not in sizeratios_df.columns:
+                    print("Warning: sizeratios.csv missing required columns (drawer_id, px_mm_ratio)")
+                    return specimen_df
+                
+                # Create a mapping of drawer_id to px_mm_ratio
                 sizeratios_map = sizeratios_df.set_index('drawer_id')['px_mm_ratio'].to_dict()
                 
-                # Add drawer_id if not present
+                # Extract drawer_id from full_id in measurements_df if needed
                 if 'drawer_id' not in measurements_df.columns:
-                    drawer_pattern = r'(.+)_tray_\d+'
-                    measurements_df['drawer_id'] = measurements_df['full_id'].str.extract(drawer_pattern)[0]
+                    print("Adding drawer_id to measurements data")
+                    measurements_df['drawer_id'] = measurements_df['full_id'].apply(
+                        lambda x: x.split('_tray_')[0] if '_tray_' in x else None
+                    )
                 
-                # Add px_mm_ratio from sizeratios
+                # Match px_mm_ratio to each specimen based on drawer_id
                 measurements_df['px_mm_ratio'] = measurements_df['drawer_id'].map(sizeratios_map)
                 
-                # Calculate mm measurements if px measurements exist
-                if 'len1_px' in measurements_df.columns:
-                    measurements_df['len1_mm'] = measurements_df.apply(
-                        lambda row: row['len1_px'] / row['px_mm_ratio'] if pd.notnull(row['px_mm_ratio']) else None, 
-                        axis=1
-                    )
-                if 'len2_px' in measurements_df.columns:
-                    measurements_df['len2_mm'] = measurements_df.apply(
-                        lambda row: row['len2_px'] / row['px_mm_ratio'] if pd.notnull(row['px_mm_ratio']) else None, 
-                        axis=1
-                    )
-                if 'area_px' in measurements_df.columns:
-                    measurements_df['spec_area_mm2'] = measurements_df.apply(
-                        lambda row: row['area_px'] / (row['px_mm_ratio'] ** 2) if pd.notnull(row['px_mm_ratio']) else None, 
-                        axis=1
-                    )
-                print(f"Calculated mm measurements using sizeratios from {sizeratios_path}")
+                # Calculate mm measurements for specimens with a valid ratio
+                measurements_df['len1_mm'] = measurements_df.apply(
+                    lambda row: row['len1_px'] / row['px_mm_ratio'] if pd.notnull(row['px_mm_ratio']) else None, 
+                    axis=1
+                )
+                
+                measurements_df['len2_mm'] = measurements_df.apply(
+                    lambda row: row['len2_px'] / row['px_mm_ratio'] if pd.notnull(row['px_mm_ratio']) else None, 
+                    axis=1
+                )
+                
+                measurements_df['spec_area_mm2'] = measurements_df.apply(
+                    lambda row: row['area_px'] / (row['px_mm_ratio'] ** 2) if pd.notnull(row['px_mm_ratio']) else None, 
+                    axis=1
+                )
+                
+                # Add mm columns to our list of columns to include
+                measurement_columns.extend(['len1_mm', 'len2_mm', 'spec_area_mm2', 'px_mm_ratio'])
+                    
             except Exception as e:
                 print(f"Error calculating mm measurements: {str(e)}")
-                # If we fail to calculate mm measurements, remove them from our columns list
-                for col in ['len1_mm', 'len2_mm', 'spec_area_mm2']:
-                    if col in measurement_columns:
-                        measurement_columns.remove(col)
         else:
-            print("No sizeratios file provided or found - excluding mm measurements")
+            print("No sizeratios file provided - pixel measurements only")
         
-        # Ensure all required columns exist
-        for col in measurement_columns:
-            if col not in measurements_df.columns:
-                print(f"Warning: Column '{col}' not found in measurements file")
-                measurements_df[col] = None
-        
-        # Select only the columns we need
-        measurements_df = measurements_df[measurement_columns]
-        
-        # Convert mask_OK to a simpler boolean-like column
+        # Convert mask_OK to a mask_found boolean flag
         if 'mask_OK' in measurements_df.columns:
             measurements_df['mask_found'] = measurements_df['mask_OK'].apply(
                 lambda x: True if x == 'Y' else False
             )
-            measurements_df = measurements_df.drop('mask_OK', axis=1)
             measurement_columns.remove('mask_OK')
             measurement_columns.append('mask_found')
         
-        # We're no longer including bad_size flag in our processing
+        # Select only the columns we need
+        for col in measurement_columns:
+            if col not in measurements_df.columns:
+                measurements_df[col] = None
+                
+        measurements_df = measurements_df[[col for col in measurement_columns if col in measurements_df.columns]]
         
         # Merge with specimen data
         merged_df = pd.merge(specimen_df, measurements_df, on='full_id', how='left')
         
-        # Fill missing values
+        # Fill missing values with appropriate defaults
         for col in measurement_columns[1:]:  # Skip full_id
             if col == 'mask_found':
                 merged_df[col] = merged_df[col].fillna(False)
-            else:
+            elif col in ['len1_px', 'len2_px', 'area_px']:
+                merged_df[col] = merged_df[col].fillna(-1)
+            elif col in ['len1_mm', 'len2_mm', 'spec_area_mm2']:
                 merged_df[col] = merged_df[col].fillna(-1)
         
         print(f"Added measurement data from {measurements_path}")
@@ -376,26 +415,28 @@ def add_label_transcription(specimen_df, location_checked_path):
         # Load location checked data
         location_df = pd.read_csv(location_checked_path)
         
-        # Select required columns
-        location_columns = [
-            'filename', 'verbatim_text', 'proposed_location', 
-            'validation_status', 'final_location', 'confidence_notes'
-        ]
-        
+        expected_cols = {
+            'filename': 'spec_filename',
+            'verbatim_text': 'verbatim_text',
+            'proposed_location': 'proposed_location',
+            'validation_status': 'validation_status',
+            'final_location': 'final_location'
+        }
+
+        # Rename only if present
+        location_df = location_df.rename(columns={k: v for k, v in expected_cols.items() if k in location_df.columns})
+
         # Ensure all required columns exist
-        for col in location_columns:
-            if col not in location_df.columns:
-                print(f"Warning: Column '{col}' not found in location checked file")
-                location_df[col] = None
-        
-        # Rename filename column to match spec_filename in specimen_df
-        location_df = location_df.rename(columns={'filename': 'spec_filename'})
-        
-        # Merge with specimen data
-        merged_df = pd.merge(specimen_df, location_df[location_columns], on='spec_filename', how='left')
+        for new_col in expected_cols.values():
+            if new_col not in location_df.columns:
+                print(f"Warning: Column '{new_col}' missing from location_checked.csv — filling with 'NA'")
+                location_df[new_col] = "NA"
+
+        # Proceed with merge
+        merged_df = pd.merge(specimen_df, location_df[list(expected_cols.values())], on='spec_filename', how='left')
         
         # Fill missing values
-        for col in location_columns[1:]:  # Skip spec_filename
+        for col in expected_cols[1:]:  # Skip spec_filename
             merged_df[col] = merged_df[col].fillna("NA")
         
         print(f"Added label transcription data from {location_checked_path}")
@@ -406,7 +447,7 @@ def add_label_transcription(specimen_df, location_checked_path):
         return specimen_df
 
 def add_data_completeness_flag(specimen_df, has_measurements=False, has_taxonomy=False, 
-                         has_barcodes=False, has_locations=False, has_mm_measurements=False):
+                         has_barcodes=False, has_geocodes=False, has_locations=False, has_mm_measurements=False):
     """
     Add a data_complete flag to the specimen DataFrame indicating whether
     all expected data for a specimen is available.
@@ -416,6 +457,7 @@ def add_data_completeness_flag(specimen_df, has_measurements=False, has_taxonomy
         has_measurements (bool): Whether measurement data was added
         has_taxonomy (bool): Whether taxonomy data was added
         has_barcodes (bool): Whether barcode data was added
+        has_geocodes (bool): Whether geocode data was added
         has_locations (bool): Whether location data was added
         has_mm_measurements (bool): Whether mm measurements are available
         
@@ -465,6 +507,14 @@ def add_data_completeness_flag(specimen_df, has_measurements=False, has_taxonomy
             (df['unit_barcode'] == "MISSING")
         )
         df.loc[barcode_incomplete, 'data_complete'] = False
+
+    # Check geocode completeness if applicable
+    if has_geocodes and 'geocode' in df.columns:
+        geocode_incomplete = (
+            (df['geocode'] == "NA") | 
+            (df['geocode'] == "MISSING")
+        )
+        df.loc[geocode_incomplete, 'data_complete'] = False
     
     # Check location completeness if applicable
     if has_locations and 'validation_status' in df.columns:
@@ -524,169 +574,125 @@ def generate_drawer_summary(tray_df, specimen_df, output_path=None):
     return summary_df
 
 def merge_data(specimens_dir, measurements_path=None, location_checked_path=None, 
-              taxonomy_path=None, unit_barcodes_path=None, sizeratios_path=None,
+              taxonomy_path=None, unit_barcodes_path=None, geocodes_path=None, sizeratios_path=None,
               labels_dir=None, output_base_path=None):
-    """
-    Generate a complete merged dataset with information from all available sources.
-    Creates three main outputs:
-    1. Tray-level lookup table (trays.csv)
-    2. Specimen-level merged dataset (merged_data.csv)
-    3. Drawer-level summary (drawer_summary.csv)
-    
-    Args:
-        specimens_dir (str): Directory containing specimen images
-        measurements_path (str, optional): Path to the measurements CSV file
-        location_checked_path (str, optional): Path to the location_checked CSV file
-        taxonomy_path (str, optional): Path to the taxonomy CSV file
-        unit_barcodes_path (str, optional): Path to the unit_barcodes CSV file
-        sizeratios_path (str, optional): Path to the sizeratios CSV for px to mm conversion
-        labels_dir (str, optional): Path to the labels directory
-        output_base_path (str, optional): Base path for output directory
-    
-    Returns:
-        tuple: (tray_df, specimen_df, summary_df) - The three main DataFrames created
-    """
     try:
         # Create timestamped output folder
         timestamp = datetime.now().strftime('%d_%m_%Y_%H_%M')
         output_folder = f"{output_base_path}_{timestamp}" if output_base_path else f"data_merge_{timestamp}"
         os.makedirs(output_folder, exist_ok=True)
-        
-        # Define paths to the trays directory
+
         trays_dir = os.path.join(os.path.dirname(specimens_dir), "trays")
-        
-        # Track what data sources are being added
+
         has_measurements = measurements_path and os.path.exists(measurements_path)
         has_locations = location_checked_path and os.path.exists(location_checked_path)
         has_taxonomy = taxonomy_path and os.path.exists(taxonomy_path)
         has_barcodes = unit_barcodes_path and os.path.exists(unit_barcodes_path)
+        has_geocodes = geocodes_path and os.path.exists(geocodes_path)
         has_mm_measurements = sizeratios_path and os.path.exists(sizeratios_path)
-        
-        # 1. Generate Tray Lookup Table
+
         tray_lookup_path = os.path.join(output_folder, "trays.csv")
         tray_df = generate_tray_lookup(
             trays_dir=trays_dir,
             specimens_dir=specimens_dir,
             barcode_csv_path=unit_barcodes_path,
+            geocode_csv_path=geocodes_path,
             taxonomy_csv_path=taxonomy_path,
             labels_dir=labels_dir,
-            output_path=None  # Don't save yet, we'll add incomplete_data first
+            output_path=None
         )
-        
-        # 2. Create Specimen Table
+
         specimen_path = os.path.join(output_folder, "specimens.csv")
         specimen_df = create_specimen_table(specimens_dir)
-        
-        # Add measurement data if available
+
         if has_measurements:
             specimen_df = add_measurement_data(specimen_df, measurements_path, sizeratios_path)
-            
-        # Add label transcription data if available
+
         if has_locations:
             specimen_df = add_label_transcription(specimen_df, location_checked_path)
-        
-        # 3. Add tray-level information to specimen table
-        # Add unit barcode and taxonomy if available
-        if len(tray_df) > 0 and ('unit_barcode' in tray_df.columns or 'full_taxonomy' in tray_df.columns):
-            # Get only the columns we need
+
+        if len(tray_df) > 0 and any(col in tray_df.columns for col in ['unit_barcode', 'geocode', 'full_taxonomy']):
             tray_info_cols = ['tray_id']
-            if 'unit_barcode' in tray_df.columns:
-                tray_info_cols.append('unit_barcode')
-            if 'full_taxonomy' in tray_df.columns:
-                tray_info_cols.append('full_taxonomy')
-                
-            # Merge with specimen data
+            for col in ['unit_barcode', 'geocode', 'full_taxonomy']:
+                if col in tray_df.columns:
+                    tray_info_cols.append(col)
+
             specimen_df = pd.merge(specimen_df, tray_df[tray_info_cols], on='tray_id', how='left')
-            
-            # Fill missing values
-            for col in tray_info_cols[1:]:  # Skip tray_id
+
+            for col in tray_info_cols[1:]:
                 specimen_df[col] = specimen_df[col].fillna("NA")
-        
-        # 4. Add data completeness flag
+
         specimen_df = add_data_completeness_flag(
             specimen_df,
             has_measurements=has_measurements,
             has_taxonomy=has_taxonomy,
             has_barcodes=has_barcodes,
+            has_geocodes=has_geocodes,
             has_locations=has_locations,
             has_mm_measurements=has_mm_measurements
         )
-        
-        # 5. Add incomplete data count to the tray lookup table
+
         if 'data_complete' in specimen_df.columns and len(specimen_df) > 0:
-            # Count incomplete specimens per tray
             incomplete_data = specimen_df[specimen_df['data_complete'] == False].groupby('tray_id').size().reset_index(name='incomplete_specimen_count')
-            
-            # Make sure all trays are included even if they have no incomplete specimens
             all_trays = pd.DataFrame({'tray_id': tray_df['tray_id'].unique()})
             incomplete_data = pd.merge(all_trays, incomplete_data, on='tray_id', how='left')
             incomplete_data['incomplete_specimen_count'] = incomplete_data['incomplete_specimen_count'].fillna(0).astype(int)
-            
-            # Update tray_df with incomplete counts
             tray_df = pd.merge(tray_df, incomplete_data[['tray_id', 'incomplete_specimen_count']], on='tray_id', how='left')
             tray_df['incomplete_specimen_count'] = tray_df['incomplete_specimen_count'].fillna(0).astype(int)
-            
             print(f"Added incomplete_specimen_count to tray lookup table")
         else:
             tray_df['incomplete_specimen_count'] = 0
-            
-        # 6. Add masked_detected count to the tray lookup table
+
         if 'mask_found' in specimen_df.columns and len(specimen_df) > 0:
-            # Count masked specimens per tray
             masked_data = specimen_df[specimen_df['mask_found'] == True].groupby('tray_id').size().reset_index(name='masked_specimen_count')
-            
-            # Make sure all trays are included even if they have no masked specimens
             all_trays = pd.DataFrame({'tray_id': tray_df['tray_id'].unique()})
             masked_data = pd.merge(all_trays, masked_data, on='tray_id', how='left')
             masked_data['masked_specimen_count'] = masked_data['masked_specimen_count'].fillna(0).astype(int)
-            
-            # Update tray_df with masked counts
             tray_df = pd.merge(tray_df, masked_data[['tray_id', 'masked_specimen_count']], on='tray_id', how='left')
             tray_df['masked_specimen_count'] = tray_df['masked_specimen_count'].fillna(0).astype(int)
-            
             print(f"Added masked_specimen_count to tray lookup table")
         else:
             tray_df['masked_specimen_count'] = 0
-            
-        # Save the updated tray lookup table
+
         tray_df.to_csv(tray_lookup_path, index=False)
         print(f"Saved tray lookup table to {tray_lookup_path}")
         specimen_df.to_csv(specimen_path, index=False)
         print(f"Saved merged specimen data to {specimen_path}")
-        
-        # 5. Generate drawer-level summary
+
         summary_path = os.path.join(output_folder, "drawers.csv")
         summary_df = generate_drawer_summary(tray_df, specimen_df, summary_path)
-        
-        # 6. Copy input files to a data_inputs subfolder for reference
+
         data_inputs_folder = os.path.join(output_folder, "data_inputs")
         os.makedirs(data_inputs_folder, exist_ok=True)
-        
+
         input_files = [
-            measurements_path, 
-            location_checked_path, 
-            taxonomy_path, 
+            measurements_path,
+            location_checked_path,
+            taxonomy_path,
             unit_barcodes_path,
+            geocodes_path,
             sizeratios_path
         ]
         input_file_names = [
-            'measurements.csv', 
-            'location_checked.csv', 
-            'taxonomy.csv', 
+            'measurements.csv',
+            'location_checked.csv',
+            'taxonomy.csv',
             'unit_barcodes.csv',
+            'geocodes.csv',
             'sizeratios.csv'
         ]
-        
+
         for path, name in zip(input_files, input_file_names):
             if path and os.path.exists(path):
                 shutil.copy2(path, os.path.join(data_inputs_folder, name))
                 print(f"Copied {name} to data_inputs folder")
-        
+
         print(f"Data merge complete. Results saved to {output_folder}")
         return tray_df, specimen_df, summary_df
-        
+
     except Exception as e:
         print(f"Error in merge_data: {str(e)}")
         raise
+
 
 
