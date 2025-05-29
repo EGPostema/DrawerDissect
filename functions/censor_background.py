@@ -34,6 +34,10 @@ def process_masking(args):
         # Convert to numpy arrays for processing
         specimen_np = np.array(specimen_img)
         mask_np = np.array(mask_img) / 255.0
+        
+        # Limit specimen pixels to range 1-254 to avoid overlap with background/mask values
+        specimen_np = np.clip(specimen_np, 1, 254)
+        
         background_img = np.ones_like(specimen_np) * 255  # White background
         
         # Apply the mask
