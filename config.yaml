@@ -18,7 +18,7 @@ roboflow:
       overlap: 50 # adjustable, set from 1-99 (higher # = higher expected overlap between bounding boxes)
     tray:
       endpoint: "bugfinder-kdn9e" # obj detection, finds specimens in trays
-      version: 13
+      version: 16
       confidence: 50
       overlap: 50
     label:
@@ -28,11 +28,11 @@ roboflow:
       overlap: 50
     mask:
       endpoint: "bugmasker-all"  # segmentation, outlines specimen bodies
-      version: 3 
+      version: 8 
       confidence: 50
     pin:
       endpoint: "pinmasker" # segmentation, outlines pin
-      version: 5
+      version: 6
       confidence: 50
 
 prompts:
@@ -184,20 +184,19 @@ directories:
   data: "drawers/data"
 
 resources:
-  # !! Did this part very on the fly... still need to integrate consistently among functions!!
   memory:
     sequential: false    # Process in parallel by default
     max_workers: null    # null = automatic based on CPU
     batch_size: null     # null = process all at once
     
-    # Step-specific overrides (only for steps that need special handling)
+    # Step-specific overrides for processing-heavy steps
     step_overrides:
       resize_drawers:    
-        sequential: true # Process one image at a time
+        sequential: true # Process one image at a time, better for giant drawer images
         batch_size: 1    # One image per batch
       crop_trays:    
-        sequential: true # Process one image at a time
-        batch_size: 1    # One image per batch
+        sequential: true 
+        batch_size: 1    
       outline_specimens:
         sequential: false
         max_workers: 40
