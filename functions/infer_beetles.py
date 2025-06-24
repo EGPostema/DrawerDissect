@@ -3,8 +3,8 @@ import json
 import tempfile
 from PIL import Image
 from contextlib import contextmanager
-from typing import Optional
 from concurrent.futures import ThreadPoolExecutor
+from typing import Optional
 from logging_utils import log, log_found, log_progress
 
 @contextmanager
@@ -20,98 +20,106 @@ def temporary_jpg_if_needed(image_path):
             with Image.open(image_path) as img:
                 if img.mode in ('RGBA', 'LA') or (img.mode == 'P' and 'transparency' in img.info):
                     img = img.convert('RGB')
-                img.save(temp_file_path, 'JPEG', quality=90)  # Lower quality for faster processing
+                img.save(temp_file_path, 'JPEG', quality=95)
             yield temp_file_path
         finally:
             if os.path.exists(temp_file_path):
                 os.remove(temp_file_path)
 
 def process_image(args):
-    """Process a single image."""
+    """Process a single image to detect pins."""
     model, input_dir, output_dir, root, file, confidence, current, total = args
     
-    # Extract path information
+    # Create output subfolder with the same structure
     relative_path = os.path.relpath(root, input_dir)
-    
-    # Create output subfolder
     output_subfolder = os.path.join(output_dir, relative_path)
     os.makedirs(output_subfolder, exist_ok=True)
     
-    # Define output JSON path
-    json_path = os.path.join(output_subfolder, os.path.splitext(file)[0] + '.json')
+    # Define the JSON filename and path
+    json_filename = file.rsplit('.', 1)[0] + '.json'
+    json_path = os.path.join(output_subfolder, json_filename)
     
     # Skip if already processed
     if os.path.exists(json_path):
-        log_progress("outline_specimens", current, total, f"Skipped")
+        log_progress("outline_pins", current, total, f"Skipped (already exists)")
         return False
         
+    file_path = os.path.join(root, file)
+    
     try:
-        # Run inference with temporary conversion if needed
-        file_path = os.path.join(root, file)
+        # Handle temporary conversion for TIFFs if needed
         with temporary_jpg_if_needed(file_path) as inference_path:
+            # Run inference
             prediction = model.predict(inference_path, confidence=confidence).json()
         
-        # Save results
-        with open(json_path, 'w') as f:
-            json.dump(prediction, f, indent=None)  # Remove indentation for smaller files
-        
-        # Log progress (without point counts for efficiency)
-        log_progress("outline_specimens", current, total, f"Processed")
+        # Save predictions to a JSON file
+        with open(json_path, 'w') as json_file:
+            json.dump(prediction, json_file)
+            
+        # Count pins found
+        pin_count = len(prediction.get('predictions', []))
+        log_progress("outline_pins", current, total, f"Found {pin_count} pins")
         return True
         
     except Exception as e:
-        log(f"Error processing {file}: {str(e)}")
+        log(f"Error processing {file}: {e}")
         return False
 
-def infer_beetles(
-    input_dir: str,
-    output_dir: str,
-    rf_instance,
-    workspace_instance,
-    model_endpoint: str,
-    version: int,
-    confidence: Optional[float] = 50,
-    max_workers: Optional[int] = None,
-    sequential: bool = False
+def infer_pins(
+    input_dir, 
+    output_dir, 
+    csv_path, 
+    rf_instance, 
+    workspace_instance, 
+    model_endpoint, 
+    version, 
+    confidence=50,
+    sequential=False,
+    max_workers=None
 ):
     """
-    Segment specimens in images using the Roboflow model.
+    Detect pins in specimen images using the Roboflow model.
     
     Args:
-        input_dir: Directory containing specimen images
-        output_dir: Directory to save JSON outputs
+        input_dir: Directory containing masked specimen images
+        output_dir: Directory to save prediction coordinates
+        csv_path: Path to measurements CSV (not used in this simplified version)
         rf_instance: Roboflow instance
         workspace_instance: Workspace instance from Roboflow
         model_endpoint: Name of the model
         version: Version number of the model
         confidence: Confidence threshold (0-100)
-        max_workers: Maximum number of concurrent workers (None = auto)
         sequential: Whether to process sequentially to save memory
+        max_workers: Maximum number of concurrent workers (None = auto)
     """
     # Initialize model
     log(f"Using model: {model_endpoint} v{version} (confidence: {confidence})")
     project = workspace_instance.project(model_endpoint)
     model = project.version(version).model
     
-    # Find all specimen images
+    # Find all masked specimen images
     image_files = []
-    supported_formats = ('.jpg', '.jpeg', '.tif', '.tiff', '.png')
+    valid_extensions = ('.tif', '.tiff', '.png', '.jpg', '.jpeg')
     
     for root, _, files in os.walk(input_dir):
         for file in files:
-            if file.lower().endswith(supported_formats):
-                image_files.append((root, file))
+            # Check for valid extensions and '_masked' in the filename
+            if not file.lower().endswith(valid_extensions) or '_masked' not in file:
+                continue
+            
+            image_files.append((root, file))
     
     if not image_files:
-        log("No specimen images found to process")
+        log("No masked specimen images found to process")
         return
         
-    log_found("specimen images", len(image_files))
+    log_found("masked specimens", len(image_files))
     
     # Prepare tasks with progress tracking indices
     tasks = [(model, input_dir, output_dir, root, file, confidence, i+1, len(image_files)) 
              for i, (root, file) in enumerate(image_files)]
     
+    # Counters for tracking results
     processed = 0
     skipped = 0
     errors = 0
@@ -134,13 +142,12 @@ def infer_beetles(
         workers = max_workers if max_workers is not None else min(32, os.cpu_count() * 2)
         log(f"Processing images in parallel with {workers} workers")
         
-        # Use ThreadPoolExecutor instead of ProcessPoolExecutor for this task
-        # as it's mostly I/O bound and has less overhead
+        # Use ThreadPoolExecutor for I/O bound tasks
         with ThreadPoolExecutor(max_workers=workers) as executor:
             results = list(executor.map(process_image, tasks))
             processed = sum(1 for r in results if r)
             skipped = len(tasks) - processed - errors
-            
+    
     log(f"Complete. {processed} processed, {skipped} skipped, {errors} errors")
 
 
