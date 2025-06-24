@@ -1,5 +1,7 @@
 import os
 import json
+import time
+import random
 import tempfile
 from PIL import Image
 from contextlib import contextmanager
@@ -26,6 +28,43 @@ def temporary_jpg_if_needed(image_path):
             if os.path.exists(temp_file_path):
                 os.remove(temp_file_path)
 
+def retry_with_backoff(func, max_retries=3, base_delay=2, max_delay=60):
+    """
+    Retry function with exponential backoff for server errors.
+    
+    Args:
+        func: Function to retry
+        max_retries: Maximum number of retry attempts
+        base_delay: Base delay in seconds
+        max_delay: Maximum delay in seconds
+    """
+    for attempt in range(max_retries + 1):  # +1 to include the initial attempt
+        try:
+            return func()
+        except Exception as e:
+            error_str = str(e).lower()
+            
+            # Check if it's a server error we should retry
+            is_server_error = (
+                '500' in error_str or 
+                'internal server error' in error_str or
+                'server error' in error_str or
+                'timeout' in error_str or
+                'connection' in error_str
+            )
+            
+            if is_server_error and attempt < max_retries:
+                # Calculate delay with exponential backoff and jitter
+                delay = min(base_delay * (2 ** attempt) + random.uniform(0, 1), max_delay)
+                log(f"Server error (attempt {attempt + 1}/{max_retries + 1}), retrying in {delay:.1f}s...")
+                time.sleep(delay)
+            else:
+                # Re-raise the exception if it's not retryable or we've exhausted retries
+                raise
+    
+    # This shouldn't be reached, but just in case
+    raise Exception(f"Failed after {max_retries + 1} attempts")
+
 def process_image(args):
     """Process a single image to detect pins."""
     model, input_dir, output_dir, root, file, confidence, current, total = args
@@ -47,10 +86,14 @@ def process_image(args):
     file_path = os.path.join(root, file)
     
     try:
-        # Handle temporary conversion for TIFFs if needed
-        with temporary_jpg_if_needed(file_path) as inference_path:
-            # Run inference
-            prediction = model.predict(inference_path, confidence=confidence).json()
+        def run_inference():
+            # Handle temporary conversion for TIFFs if needed
+            with temporary_jpg_if_needed(file_path) as inference_path:
+                # Run inference
+                return model.predict(inference_path, confidence=confidence).json()
+        
+        # Use retry logic for the inference call
+        prediction = retry_with_backoff(run_inference, max_retries=3, base_delay=2)
         
         # Save predictions to a JSON file
         with open(json_path, 'w') as json_file:
