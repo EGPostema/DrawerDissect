@@ -1,9 +1,3 @@
-"""
-Simple logger for DrawerDissect.
-Provides consistent, clean output with no duplicates.
-STILL WORKING ON THIS!!
-"""
-
 import time
 import os
 from typing import Optional
@@ -46,8 +40,11 @@ def end_step(step_name: str) -> None:
     processed = step_data.get('processed', 0)
     skipped = step_data.get('skipped', 0)
     
-    log(f"{step_name} complete! Total time: {duration:.2f}s")
-    log(f"{processed} processed, {skipped} skipped")
+    # Only log final summary if we actually tracked counts
+    if processed > 0 or skipped > 0:
+        log(f"{step_name} complete! {processed} processed, {skipped} skipped, {duration:.2f}s")
+    else:
+        log(f"{step_name} complete! Total time: {duration:.2f}s")
 
 def log_found(item_type: str, count: int) -> None:
     """
@@ -69,7 +66,7 @@ def log_found_previous(item_type: str, count: int) -> None:
     """
     log(f"Found {count} previously processed {item_type}")
 
-def log_progress(step: str, current: int, total: int, filename: Optional[str] = None) -> None:
+def log_progress(step: str, current: int, total: int, message: Optional[str] = None) -> None:
     """
     Log progress of current step.
     
@@ -77,10 +74,10 @@ def log_progress(step: str, current: int, total: int, filename: Optional[str] = 
         step: Name of the current processing step
         current: Current item number
         total: Total items to process
-        filename: Optional filename being processed
+        message: Optional message about current item
     """
-    if filename:
-        print(f"\rProcessing {current}/{total} - {filename}", end="", flush=True)
+    if message:
+        print(f"\rProcessing {current}/{total} - {message}", end="", flush=True)
     else:
         print(f"\rProcessing {current}/{total}", end="", flush=True)
     
@@ -109,17 +106,24 @@ def increment_skipped(step: str) -> None:
         _ACTIVE_STEPS[step]['skipped'] = _ACTIVE_STEPS[step].get('skipped', 0) + 1
 
 class StepTimer:
-    """Context manager for timing steps with simple logging."""
+    """Context manager for timing steps with clean logging."""
     
     def __init__(self, step_name: str):
         self.step_name = step_name
+        self.start_time = None
 
     def __enter__(self):
-        start_step(self.step_name)
+        self.start_time = time.time()
+        log(f"Starting {self.step_name}...")
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        end_step(self.step_name)
+        if self.start_time:
+            duration = time.time() - self.start_time
+            log(f"{self.step_name} complete! Total time: {duration:.2f}s")
+            # Add a thin divider after each step completes
+            log("-" * 95)
+        
         if exc_type:
             log(f"Error in {self.step_name}: {exc_val}")
             return False
