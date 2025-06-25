@@ -39,10 +39,10 @@ def get_roboflow_instance(config) -> Tuple[roboflow.Roboflow, roboflow.Workspace
     workspace_instance = rf_instance.workspace(config.workspace)
     return rf_instance, workspace_instance
 
-# Defining steps
-def run_step(step, config, args, rf_instance=None, workspace_instance=None):
-    """Run a specific pipeline step with appropriate configuration."""
-    with StepTimer(step):
+# Defining all steps
+def run_step_for_drawer(step, config, drawer_id, args, rf_instance=None, workspace_instance=None):
+    """Run a specific pipeline step for a specific drawer."""
+    with StepTimer(f"{step}_{drawer_id}"):
         # Get memory management settings for this step from config
         mem_config = config.get_memory_config(step)
         
@@ -61,8 +61,8 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
                 
         if step == 'resize_drawers':
             resize_drawer_images(
-                config.directories['fullsize'], 
-                config.directories['resized'],
+                config.get_drawer_directory(drawer_id, 'fullsize'), 
+                config.get_drawer_directory(drawer_id, 'resized'),
                 sequential=sequential,
                 max_workers=max_workers,
                 batch_size=batch_size
@@ -71,8 +71,8 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
         elif step == 'find_trays':
             drawer_model = config.roboflow_models['drawer']
             infer_drawers(
-                config.directories['resized'],
-                config.directories['coordinates'],
+                config.get_drawer_directory(drawer_id, 'resized'),
+                config.get_drawer_directory(drawer_id, 'coordinates'),
                 rf_instance,
                 workspace_instance,
                 drawer_model['endpoint'],
@@ -83,9 +83,9 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
         
         elif step == 'crop_trays':
             crop_trays_from_fullsize(
-                config.directories['fullsize'],
-                config.directories['resized'],
-                config.directories['trays'],
+                config.get_drawer_directory(drawer_id, 'fullsize'),
+                config.get_drawer_directory(drawer_id, 'resized'),
+                config.get_drawer_directory(drawer_id, 'trays'),
                 sequential=sequential,
                 max_workers=max_workers,
                 batch_size=batch_size
@@ -93,15 +93,15 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
         
         elif step == 'resize_trays':
             resize_tray_images(
-                config.directories['trays'],
-                config.directories['resized_trays']
+                config.get_drawer_directory(drawer_id, 'trays'),
+                config.get_drawer_directory(drawer_id, 'resized_trays')
             )
         
         elif step == 'find_traylabels':
             label_model = config.roboflow_models['label']
             infer_tray_labels(
-                config.directories['resized_trays'],
-                config.directories['label_coordinates'],
+                config.get_drawer_directory(drawer_id, 'resized_trays'),
+                config.get_drawer_directory(drawer_id, 'label_coordinates'),
                 rf_instance,
                 workspace_instance,
                 label_model['endpoint'],
@@ -112,17 +112,17 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
         
         elif step == 'crop_labels':
             crop_labels(
-                config.directories['trays'],
-                config.directories['resized_trays'],
-                config.directories['label_coordinates'],
-                config.directories['labels']
+                config.get_drawer_directory(drawer_id, 'trays'),
+                config.get_drawer_directory(drawer_id, 'resized_trays'),
+                config.get_drawer_directory(drawer_id, 'label_coordinates'),
+                config.get_drawer_directory(drawer_id, 'labels')
             )
         
         elif step == 'find_specimens':
             tray_model = config.roboflow_models['tray']
             infer_tray_images(
-                config.directories['resized_trays'],
-                config.directories['resized_trays_coordinates'],
+                config.get_drawer_directory(drawer_id, 'resized_trays'),
+                config.get_drawer_directory(drawer_id, 'resized_trays_coordinates'),
                 rf_instance,
                 workspace_instance,
                 tray_model['endpoint'],
@@ -133,22 +133,22 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
         
         elif step == 'crop_specimens':
             crop_specimens_from_trays(
-                config.directories['trays'],
-                config.directories['resized_trays'],
-                config.directories['specimens']
+                config.get_drawer_directory(drawer_id, 'trays'),
+                config.get_drawer_directory(drawer_id, 'resized_trays'),
+                config.get_drawer_directory(drawer_id, 'specimens')
             )
         
         elif step == 'create_traymaps':
             create_specimen_guides(
-                config.directories['resized_trays'],
-                config.directories['guides']
+                config.get_drawer_directory(drawer_id, 'resized_trays'),
+                config.get_drawer_directory(drawer_id, 'guides')
             )
         
         elif step == 'outline_specimens':
             mask_model = config.roboflow_models['mask']
             infer_beetles(
-                config.directories['specimens'],
-                config.directories['mask_coordinates'],
+                config.get_drawer_directory(drawer_id, 'specimens'),
+                config.get_drawer_directory(drawer_id, 'mask_coordinates'),
                 rf_instance,
                 workspace_instance,
                 mask_model['endpoint'],
@@ -160,32 +160,33 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
         
         elif step == 'create_masks':
             create_masks(
-                config.directories['mask_coordinates'],
-                config.directories['mask_png']
+                config.get_drawer_directory(drawer_id, 'mask_coordinates'),
+                config.get_drawer_directory(drawer_id, 'mask_png')
             )
         
         elif step == 'fix_masks':
-            fix_mask(config.directories['mask_png'])
+            fix_mask(config.get_drawer_directory(drawer_id, 'mask_png'))
         
         elif step == 'measure_specimens':            
             generate_csv_with_measurements(
-                config.directories['mask_png'],
-                config.directories['measurements']
+                config.get_drawer_directory(drawer_id, 'mask_png'),
+                config.get_drawer_directory(drawer_id, 'measurements'),
+                visualization_mode=config.processing_flags.get('measurement_visualizations', 'on')
             )
         
         elif step == 'censor_background':
             censor_background(
-                config.directories['specimens'],
-                config.directories['mask_png'],
-                config.directories['no_background']
+                config.get_drawer_directory(drawer_id, 'specimens'),
+                config.get_drawer_directory(drawer_id, 'mask_png'),
+                config.get_drawer_directory(drawer_id, 'no_background')
             )
         
         elif step == 'outline_pins':
             pin_model = config.roboflow_models['pin']
             infer_pins(
-                config.directories['no_background'],
-                config.directories['pin_coordinates'],
-                os.path.join(config.directories['measurements'], 'measurements.csv'),
+                config.get_drawer_directory(drawer_id, 'no_background'),
+                config.get_drawer_directory(drawer_id, 'pin_coordinates'),
+                os.path.join(config.get_drawer_directory(drawer_id, 'measurements'), 'measurements.csv'),
                 rf_instance,
                 workspace_instance,
                 pin_model['endpoint'],
@@ -197,17 +198,17 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
         
         elif step == 'create_pinmask':
             create_pinmask(
-                config.directories['mask_png'],
-                config.directories['pin_coordinates'],
-                config.directories['full_masks']
+                config.get_drawer_directory(drawer_id, 'mask_png'),
+                config.get_drawer_directory(drawer_id, 'pin_coordinates'),
+                config.get_drawer_directory(drawer_id, 'full_masks')
             )
         
         elif step == 'create_transparency':
             create_transparency(
-                config.directories['no_background'],
-                config.directories['full_masks'],
-                config.directories['transparencies'],
-                config.directories['whitebg_specimens'],
+                config.get_drawer_directory(drawer_id, 'no_background'),
+                config.get_drawer_directory(drawer_id, 'full_masks'),
+                config.get_drawer_directory(drawer_id, 'transparencies'),
+                config.get_drawer_directory(drawer_id, 'whitebg_specimens'),
                 sequential=sequential,
                 max_workers=max_workers,
                 batch_size=batch_size
@@ -220,8 +221,8 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
                     'location': config.prompts['location']
                 }
                 asyncio.run(process_specimen_labels(
-                    config.directories['specimens'],
-                    os.path.join(config.directories['specimen_level'], 'location_frags.csv'),
+                    config.get_drawer_directory(drawer_id, 'specimens'),
+                    os.path.join(config.get_drawer_directory(drawer_id, 'specimen_level'), 'location_frags.csv'),
                     config.api_keys['anthropic'],
                     prompts=prompts
                 ))
@@ -235,8 +236,8 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
                     'user': config.prompts['validation']['user']
                 }
                 asyncio.run(validate_transcriptions(
-                    os.path.join(config.directories['specimen_level'], 'location_frags.csv'),
-                    os.path.join(config.directories['specimen_level'], 'location_checked.csv'),
+                    os.path.join(config.get_drawer_directory(drawer_id, 'specimen_level'), 'location_frags.csv'),
+                    os.path.join(config.get_drawer_directory(drawer_id, 'specimen_level'), 'location_checked.csv'),
                     config.api_keys['anthropic'],
                     prompts=prompts
                 ))
@@ -250,8 +251,8 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
                     'user': config.prompts['barcode']['user']
                 }
                 asyncio.run(process_image_folder(
-                    config.directories['labels'],
-                    os.path.join(config.directories['tray_level'], 'unit_barcodes.csv'),
+                    config.get_drawer_directory(drawer_id, 'labels'),
+                    os.path.join(config.get_drawer_directory(drawer_id, 'tray_level'), 'unit_barcodes.csv'),
                     config.api_keys['anthropic'],
                     prompts=prompts
                 ))
@@ -265,8 +266,8 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
                     'user': config.prompts['geocode']['user']
                 }
                 asyncio.run(process_image_folder(
-                    config.directories['labels'],
-                    os.path.join(config.directories['tray_level'], 'geocodes.csv'),
+                    config.get_drawer_directory(drawer_id, 'labels'),
+                    os.path.join(config.get_drawer_directory(drawer_id, 'tray_level'), 'geocodes.csv'),
                     config.api_keys['anthropic'],
                     prompts=prompts,
                 ))
@@ -278,8 +279,8 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
                     'user': config.prompts['taxonomy']['user']
                 }
                 asyncio.run(process_image_folder(
-                    config.directories['labels'],
-                    os.path.join(config.directories['tray_level'], 'taxonomy.csv'),
+                    config.get_drawer_directory(drawer_id, 'labels'),
+                    os.path.join(config.get_drawer_directory(drawer_id, 'tray_level'), 'taxonomy.csv'),
                     config.api_keys['anthropic'],
                     prompts=prompts
                 ))
@@ -287,15 +288,15 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
                 log("Taxonomy transcription disabled in config - skipping")
         
         elif step == 'merge_data':
-            specimens_dir = config.directories['specimens']
-            measurements_path = os.path.join(config.directories['measurements'], 'measurements.csv')
-            location_checked_path = os.path.join(config.directories['specimen_level'], 'location_checked.csv')
-            taxonomy_path = os.path.join(config.directories['tray_level'], 'taxonomy.csv')
-            unit_barcodes_path = os.path.join(config.directories['tray_level'], 'unit_barcodes.csv')
-            geocodes_path = os.path.join(config.directories['tray_level'], 'geocodes.csv')
-            labels_dir = config.directories['labels']
-            output_base_path = os.path.join(config.directories['data'], 'merged_data')
-            sizeratios_path = os.path.join(config.directories['fullsize'], 'sizeratios.csv')
+            specimens_dir = config.get_drawer_directory(drawer_id, 'specimens')
+            measurements_path = os.path.join(config.get_drawer_directory(drawer_id, 'measurements'), 'measurements.csv')
+            location_checked_path = os.path.join(config.get_drawer_directory(drawer_id, 'specimen_level'), 'location_checked.csv')
+            taxonomy_path = os.path.join(config.get_drawer_directory(drawer_id, 'tray_level'), 'taxonomy.csv')
+            unit_barcodes_path = os.path.join(config.get_drawer_directory(drawer_id, 'tray_level'), 'unit_barcodes.csv')
+            geocodes_path = os.path.join(config.get_drawer_directory(drawer_id, 'tray_level'), 'geocodes.csv')
+            labels_dir = config.get_drawer_directory(drawer_id, 'labels')
+            output_base_path = os.path.join(config.get_drawer_directory(drawer_id, 'data'), 'merged_data')
+            sizeratios_path = os.path.join(config.get_drawer_directory(drawer_id, 'fullsize'), 'sizeratios.csv')
             
             # Run the merge_data function with all available inputs
             merge_data(
@@ -310,7 +311,9 @@ def run_step(step, config, args, rf_instance=None, workspace_instance=None):
                 output_base_path=output_base_path
             )
 
-# Ordering steps, adding --from and --until
+# Steps can be run in order (all), individually, in combinations, or with --from and --until flags
+## Steps can also be run for specific drawers using --drawers flag
+
 def parse_arguments():
     all_steps = [
         'resize_drawers', 'find_trays', 'crop_trays',
@@ -323,13 +326,20 @@ def parse_arguments():
     ]
     
     parser = argparse.ArgumentParser(description="Process drawer images")
-    parser.add_argument('steps', nargs='*', choices=all_steps + ['all'], 
-                      help='Steps to run')
+    parser.add_argument('steps', nargs='*', 
+                    help='Steps to run')
     parser.add_argument('--from', dest='from_step', choices=all_steps, 
-                      help='Run this step and all subsequent steps')
+                    help='Run this step and all subsequent steps')
     parser.add_argument('--until', dest='until_step', choices=all_steps,
-                      help='Run all steps up to and including this step')
+                    help='Run all steps up to and including this step')
     
+    # Drawer selection options
+    drawer_group = parser.add_argument_group('Drawer Selection')
+    drawer_group.add_argument('--drawers', type=str,
+                            help='Comma-separated list of drawer IDs to process (e.g., drawer_01,drawer_03)')
+    drawer_group.add_argument('--list-drawers', action='store_true',
+                            help='List available drawers and exit')
+
     # Memory management options
     memory_group = parser.add_argument_group('Memory Management')
     sequential_group = memory_group.add_mutually_exclusive_group()
@@ -346,7 +356,7 @@ def parse_arguments():
     # Set defaults to None to allow config to decide
     parser.set_defaults(sequential=None)
     
-    # Model confidence and overlap parameters
+    # Model confidence and overlap parameters; overlap for object detection only
     model_group = parser.add_argument_group('Model Parameters')
     for model in ['drawer', 'tray', 'label', 'beetle', 'pin']:
         model_group.add_argument(f'--{model}_confidence', type=float,
@@ -357,8 +367,12 @@ def parse_arguments():
     
     return parser.parse_args()
 
-# Allowing steps to be called individually, in combinations, etc
 def determine_steps(args, all_steps):
+    valid_steps = all_steps + ['all']
+    if args.steps:
+        invalid_steps = [step for step in args.steps if step not in valid_steps]
+        if invalid_steps:
+            raise ValueError(f"Invalid steps: {', '.join(invalid_steps)}. Choose from: {', '.join(valid_steps)}")
     if not args.steps and (args.from_step or args.until_step):
         if args.from_step and args.until_step:
             start_idx = all_steps.index(args.from_step)
@@ -402,18 +416,56 @@ def main():
     
     config = DrawerDissectConfig()
     
+    from functions.drawer_management import get_drawers_to_process, validate_drawer_structure
+    
     all_steps = [
         'resize_drawers', 'find_trays', 'crop_trays',
         'resize_trays', 'find_traylabels', 'crop_labels', 'find_specimens',
         'crop_specimens', 'create_traymaps', 'outline_specimens', 'create_masks',
         'fix_masks', 'measure_specimens', 'censor_background', 'outline_pins',
         'create_pinmask', 'create_transparency', 'transcribe_speclabels',
-        'validate_speclabels', 'transcribe_barcodes', 'transcribe_geocodes', 'transcribe_taxonomy',
-        'merge_data'
+        'validate_speclabels', 'transcribe_barcodes', 'transcribe_geocodes', 
+        'transcribe_taxonomy', 'merge_data'
     ]
     
     try:
         args = parse_arguments()
+        
+        if args.list_drawers:
+            from functions.drawer_management import discover_and_sort_drawers
+            discover_and_sort_drawers(config)  # Sort any unsorted images first
+            available = config.get_existing_drawers()
+            if available:
+                log("Available drawers:")
+                for drawer in available:
+                    log(f"  - {drawer}")
+            else:
+                log("No drawers found")
+            return
+        
+        # Parse drawer selection
+        specified_drawers = None
+        if args.drawers:
+            specified_drawers = [d.strip() for d in args.drawers.split(',')]
+        
+        # Get drawers to process
+        drawers_to_process = get_drawers_to_process(config, specified_drawers)
+        if not drawers_to_process:
+            log("No drawers to process")
+            return
+        
+        # Validate drawer structures
+        valid_drawers = []
+        for drawer_id in drawers_to_process:
+            if validate_drawer_structure(config, drawer_id):
+                valid_drawers.append(drawer_id)
+            else:
+                log(f"Skipping invalid drawer: {drawer_id}")
+        
+        if not valid_drawers:
+            log("No valid drawers to process")
+            return
+        
         steps_to_run = determine_steps(args, all_steps)
     except ValueError as e:
         log(f"Error: {e}")
@@ -422,17 +474,23 @@ def main():
     # Log startup information
     log("DrawerDissect Pipeline")
     log("=====================")
+    log(f"Processing drawers: {', '.join(valid_drawers)}")
     log(f"Running steps: {', '.join(steps_to_run)}")
     
+    # Initialize Roboflow if needed
     rf_instance = workspace_instance = None
     roboflow_steps = {'find_trays', 'find_traylabels', 'find_specimens', 
                     'outline_specimens', 'outline_pins'}
     if set(steps_to_run) & roboflow_steps:
         rf_instance, workspace_instance = get_roboflow_instance(config)
     
-    for step in steps_to_run:
-        log(f"\nRunning step: {step}")
-        run_step(step, config, args, rf_instance, workspace_instance)
+    # Process each drawer
+    for drawer_id in valid_drawers:
+        log(f"\n{'='*20} Processing {drawer_id} {'='*20}")
+        
+        for step in steps_to_run:
+            log(f"Running {step} for {drawer_id}")
+            run_step_for_drawer(step, config, drawer_id, args, rf_instance, workspace_instance)
 
     # Final timing report
     total_time = time.time() - start_time
