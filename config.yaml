@@ -3,16 +3,17 @@ api_keys:
   roboflow: "YOUR_ROBOFLOW_KEY" # replace YOUR_ROBOFLOW_KEY with your key
 
 processing:
-  transcribe_barcodes: true  # Set to false if no unit tray-level barcodes
-  transcribe_geocodes: true  # Set to false if no geocodes
-  transcribe_taxonomy: true  # Set to false if no unit tray-level taxonomic IDs
-  transcribe_specimen_labels: true  # Set to false to skip specimen label transcription
+  measurement_visualizations: "rand_sample"  # "on", "off", or "rand_sample" (max 20 random visualizations)
+  transcribe_barcodes: false  # Set to true for tray-level barcodes
+  transcribe_geocodes: false  # Set to true for tray-level geocodes
+  transcribe_taxonomy: true  # Set to false to skip taxonomy transcription
+  transcribe_specimen_labels: false  # Set to true for specimen label transcription (experimental)
 
 roboflow:
   workspace: "field-museum" # FMNH workspace is default
   models:
     drawer:
-      endpoint: "trayfinder-base" # obj detection, finds trays in drawers
+      endpoint: "trayfinder-base" # obj detection, finds trays in drawers (use trayfinder-popup for popup labels)
       version: 2
       confidence: 50 # adjustable, set from 1-99 (higher # = greater threshold for predictions)
       overlap: 50 # adjustable, set from 1-99 (higher # = higher expected overlap between bounding boxes)
@@ -161,27 +162,29 @@ prompts:
       Proposed location: {proposed_location}
 
 directories:
-  fullsize: "drawers/fullsize"
-  resized: "drawers/resized"
-  coordinates: "drawers/resized/coordinates"
-  trays: "drawers/trays"
-  guides: "drawers/guides"
-  resized_trays: "drawers/resized_trays"
-  resized_trays_coordinates: "drawers/resized_trays/coordinates"
-  label_coordinates: "drawers/resized_trays/label_coordinates"
-  labels: "drawers/labels"
-  specimens: "drawers/specimens"
-  mask_coordinates: "drawers/masks/mask_coordinates"
-  mask_png: "drawers/masks/mask_png"
-  measurements: "drawers/measurements"
-  no_background: "drawers/masks/no_background"
-  pin_coordinates: "drawers/masks/pin_coords"
-  full_masks: "drawers/masks/full_masks"
-  transparencies: "drawers/transparencies"
-  whitebg_specimens: "drawers/whitebg_specimens"
-  specimen_level: "drawers/transcriptions/specimen_labels"
-  tray_level: "drawers/transcriptions/tray_labels"
-  data: "drawers/data"
+  unsorted: "drawers/unsorted"
+  drawer_subdirs:
+    fullsize: "fullsize"
+    resized: "resized"
+    coordinates: "resized/coordinates" 
+    trays: "trays"
+    guides: "guides"
+    resized_trays: "resized_trays"
+    resized_trays_coordinates: "resized_trays/coordinates"
+    label_coordinates: "resized_trays/label_coordinates"
+    labels: "labels"
+    specimens: "specimens"
+    mask_coordinates: "masks/mask_coordinates"
+    mask_png: "masks/mask_png"
+    measurements: "measurements"
+    no_background: "masks/no_background"
+    pin_coordinates: "masks/pin_coords"
+    full_masks: "masks/full_masks"
+    transparencies: "transparencies"
+    whitebg_specimens: "whitebg_specimens"
+    specimen_level: "transcriptions/specimen_labels"
+    tray_level: "transcriptions/tray_labels"
+    data: "data"
 
 resources:
   memory:
@@ -192,10 +195,10 @@ resources:
     # Step-specific overrides for processing-heavy steps
     step_overrides:
       resize_drawers:    
-        sequential: true # Process one image at a time, better for giant drawer images
+        sequential: true # Process one image at a time, better for large images
         batch_size: 1    # One image per batch
       crop_trays:    
-        sequential: true 
+        sequential: true # Process one image at a time, better for large images
         batch_size: 1    
       outline_specimens:
         sequential: false
@@ -205,4 +208,4 @@ resources:
         max_workers: 40
       create_transparency:
         sequential: false
-        max_workers: 40   
+        max_workers: 40
