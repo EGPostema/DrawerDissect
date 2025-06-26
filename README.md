@@ -1,12 +1,8 @@
-# DrawerDissect :beetle: :scissors:
+# <img src="https://github.com/user-attachments/assets/26e883f0-f643-4715-80d6-abb2225bdb75" width="75" height="75"> rawerDissect
 
-**DrawerDissect** is an AI-driven pipeline that automates the processing of whole-drawer images of insect specimens. It extracts individual specimen photos, measures specimen size, retrieves taxonomic information, and creates "masked" specimens for downstream analysis.
+**DrawerDissect** is an AI-driven pipeline for processing whole-drawer images of insect specimens. It can extract individual specimen photos, measure specimens, transcribe visible text, and create "masked" specimens for downstream phenotypic analysis.
 
----
-
-## 📖 Visual Overview
-
-<img width="1000" alt="Screenshot 2025-02-06 at 11 08 53 AM" src="https://github.com/user-attachments/assets/5f27e287-e6c9-44eb-a2ad-cba05a4153b8" />
+<img width="1000" src="https://github.com/user-attachments/assets/20e3abb8-18d4-45cd-9b83-3c67048e24b0" />
 
 ---
 
@@ -21,10 +17,13 @@
   - [Anthropic](anthropic.com) - for reading tray and specimen labels
 - Supported image formats: TIF/TIFF, PNG, JPG/JPEG
 
-DrawerDissect has been successfully used on:
-- Our Windows computers (describe)
-- My Mac (describe)
-- Kelton's computer (describe)
+DrawerDissect has been successfully tested on the following systems:
+
+| System | OS | CPU | RAM | GPU |
+|--------|----|----|-----|-----|
+| Mac | macOS | Apple M2 (8-core) | 16 GB | M2 Integrated (10-core) |
+| Windows | Windows 11 | AMD Ryzen 7 7800X3D | 32 GB | NVIDIA GeForce RTX 4060 |
+| Windows | Windows 11 | Intel i5-13400F | 32 GB | NVIDIA GeForce RTX 4060 |
 
 ---
 
@@ -64,10 +63,6 @@ api_keys:
 - [Get Roboflow API Key](https://docs.roboflow.com/api-reference/authentication)
 
 ❗This step is <ins>REQUIRED</ins> for the full pipeline to run.
-
-Then, you can:
-- [Process your own images](https://github.com/EGPostema/DrawerDissect/tree/main?tab=readme-ov-file#process-your-own-images)
-- [OR try a test image first](https://github.com/EGPostema/DrawerDissect/tree/main?tab=readme-ov-file#try-a-test-image) (⭐ Recommended )
 
 ---
 
