@@ -1,6 +1,6 @@
 import os
 from PIL import Image
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 import multiprocessing
 import logging
 from typing import Tuple, List, Optional
@@ -177,7 +177,7 @@ def create_transparency(specimen_input_dir: str, mask_input_dir: str,
             # Show batch progress
             print(f"\rProcessing batch {batch_num}/{total_batches} [{i}/{len(tasks)} images]", end="", flush=True)
             
-            with ProcessPoolExecutor(max_workers=num_workers) as executor:
+            with ThreadPoolExecutor(max_workers=num_workers) as executor:
                 batch_results = list(executor.map(process_single_image, batch))
                 
             batch_processed = sum(1 for r in batch_results if r)
@@ -195,5 +195,5 @@ def create_transparency(specimen_input_dir: str, mask_input_dir: str,
         skipped = 0
         progress_interval = 100  # Update progress bar every 100 images
         
-        with ProcessPoolExecutor(max_workers=num_workers) as executor:
+        with ThreadPoolExecutor(max_workers=num_workers) as executor:
             futures = [executor.submit(process_single_image, task) for task in tasks]
