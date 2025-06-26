@@ -9,6 +9,10 @@ processing:
   transcribe_taxonomy: true  # Set to false to skip taxonomy transcription
   transcribe_specimen_labels: false  # Set to true for specimen label transcription (experimental)
 
+claude:
+  model: "claude-sonnet-4-20250514"  # subsitute with any claude model; accuracy, price, and speed may vary
+  max_tokens: 600  # Default max tokens - increase for more complicated tasks,  decrease for simple tasks
+
 roboflow:
   workspace: "field-museum" # FMNH workspace is default
   models:
