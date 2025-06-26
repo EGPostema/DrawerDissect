@@ -110,13 +110,18 @@ class LocationValidator:
         except Exception as e:
             log(f"Failed to load processed files: {e}")
 
-    async def api_call_with_retry(self, **kwargs) -> dict:
+    async def api_call_with_retry(self, model_config: dict, **kwargs) -> dict:
         for attempt in range(self.max_retries):
             try:
                 async with self.semaphore:
+                    call_kwargs = {
+                        'model': model_config['model'],
+                        'max_tokens': model_config['max_tokens'],
+                        **kwargs
+                    }
                     response = await asyncio.get_event_loop().run_in_executor(
                         None,
-                        lambda: self.client.messages.create(**kwargs)
+                        lambda: self.client.messages.create(**call_kwargs)
                     )
                     return response
             except RateLimitError:
@@ -134,13 +139,12 @@ class LocationValidator:
                     raise
                 await asyncio.sleep(self.retry_delay * (2 ** attempt))
 
-    async def validate_single_entry(self, filename: str, transcription: str, location: str, prompts: dict, current: int, total: int) -> ValidationResult:
+    async def validate_single_entry(self, filename: str, transcription: str, location: str, prompts: dict, model_config: dict, current: int, total: int) -> ValidationResult:
         try:
             log_progress("validate_speclabels", current, total, f"Processing {filename}")
             
             response = await self.api_call_with_retry(
-                model="claude-3-5-sonnet-20241022",
-                max_tokens=1000,
+                model_config,  # Add model_config
                 system=prompts['system'],
                 messages=[{
                     "role": "user",
@@ -246,7 +250,7 @@ class LocationValidator:
             for result in results:
                 writer.writerow(vars(result))
 
-    async def validate_locations(self, input_csv: str, output_csv: str, prompts: dict) -> Tuple[List[ValidationResult], int]:
+    async def validate_locations(self, input_csv: str, output_csv: str, prompts: dict, model_config: dict) -> Tuple[List[ValidationResult], int]:
         self.load_processed_files(output_csv)
         
         if not os.path.exists(input_csv):
@@ -295,6 +299,7 @@ class LocationValidator:
                     row['transcription'],
                     row['location'],
                     prompts,
+                    model_config,  # Add model_config
                     i + j,  # Adjust for overall progress
                     len(unprocessed_rows)
                 )
@@ -320,16 +325,17 @@ class LocationValidator:
             # Small pause between batches to prevent rate limiting
             await asyncio.sleep(0.5)
 
+        log(f"Complete. {processed} processed, {skipped} skipped, {errors} errors")
         return results, processed
 
-async def validate_transcriptions(input_csv: str, output_csv: str, api_key: str, prompts: dict) -> Tuple[List[ValidationResult], int]:
+async def validate_transcriptions(input_csv: str, output_csv: str, api_key: str, prompts: dict, model_config: dict) -> Tuple[List[ValidationResult], int]:
     try:
         # Initialize with higher concurrency since this is just text processing
         validator = LocationValidator(
             api_key,
             concurrent_api_calls=12  # Increased from 1 to 12
         )
-        return await validator.validate_locations(input_csv, output_csv, prompts)
+        return await validator.validate_locations(input_csv, output_csv, prompts, model_config)
     except Exception as e:
         log(f"Failed to validate locations: {e}")
         raise
