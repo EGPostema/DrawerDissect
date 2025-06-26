@@ -113,13 +113,19 @@ class ImageTranscriber:
         except Exception as e:
             raise ValueError(f"Error processing image {image_path}: {str(e)}")
     
-    async def api_call_with_retry(self, **kwargs) -> dict:
+    async def api_call_with_retry(self, model_config: dict, **kwargs) -> dict:
         for attempt in range(self.max_retries):
             try:
                 async with self.semaphore:
+                    # Use model_config for model and max_tokens
+                    call_kwargs = {
+                        'model': model_config['model'],
+                        'max_tokens': model_config['max_tokens'],
+                        **kwargs
+                    }
                     response = await asyncio.get_event_loop().run_in_executor(
                         None,
-                        lambda: self.client.messages.create(**kwargs)
+                        lambda: self.client.messages.create(**call_kwargs)
                     )
                     return response
             except RateLimitError:
@@ -137,15 +143,14 @@ class ImageTranscriber:
                     raise
                 await asyncio.sleep(self.retry_delay * (2 ** attempt))
     
-    async def process_single_image(self, filepath: str, config: TranscriptionConfig, prompts: dict) -> TranscriptionResult:
+    async def process_single_image(self, filepath: str, config: TranscriptionConfig, prompts: dict, model_config: dict) -> TranscriptionResult:
         tray_id = self.extract_tray_id(filepath, config.file_suffix)
 
         try:
             base64_image = await self.encode_image(filepath)
 
             response = await self.api_call_with_retry(
-                model="claude-3-5-sonnet-20241022",
-                max_tokens=1000,
+                model_config,  # Pass model config
                 system=prompts['system'],
                 messages=[{
                     "role": "user",
@@ -211,7 +216,7 @@ class ImageTranscriber:
                 writer.writeheader()
             writer.writerow({field: result.content.get(field, '') for field in fields})
 
-    async def process_images(self, folder_path: str, output_csv: str, config: TranscriptionConfig, prompts: dict) -> Tuple[List[TranscriptionResult], int]:
+    async def process_images(self, folder_path: str, output_csv: str, config: TranscriptionConfig, prompts: dict, model_config: dict) -> Tuple[List[TranscriptionResult], int]:
         self.load_processed_files(output_csv)
         image_files = self.find_images(folder_path, config.file_suffix)
         total_images = len(image_files)
@@ -229,7 +234,7 @@ class ImageTranscriber:
             filename = os.path.basename(filepath)
             
             try:
-                result = await self.process_single_image(filepath, config, prompts)
+                result = await self.process_single_image(filepath, config, prompts, model_config)
                 results.append(result)
 
                 if not result.error:
@@ -263,7 +268,7 @@ async def process_geocodes(self, folder_path: str, output_csv: str, prompts: dic
     # Use existing processing logic with geocode-specific configuration
     return await self.process_images(folder_path, output_csv, config, prompts)
 
-async def process_image_folder(folder_path: str, output_csv: str, api_key: str, prompts: dict) -> Tuple[List[TranscriptionResult], int]:
+async def process_image_folder(folder_path: str, output_csv: str, api_key: str, prompts: dict, model_config: dict) -> Tuple[List[TranscriptionResult], int]:
     try:
         processor = ImageTranscriber(api_key)
         
@@ -274,20 +279,20 @@ async def process_image_folder(folder_path: str, output_csv: str, api_key: str, 
                 csv_fields=['tray_id', 'unit_barcode'],
                 validation_func=lambda x: {'unit_barcode': 'no_barcode' if x.lower() == 'none' else x}
             )
-            return await processor.process_images(folder_path, output_csv, config, prompts)
+            return await processor.process_images(folder_path, output_csv, config, prompts, model_config)
         elif 'geocode' in output_csv:
             config = TranscriptionConfig(
                 file_suffix='_geocode.jpg',
                 csv_fields=['tray_id', 'geocode'],
                 validation_func=lambda x: {'geocode': x.upper()} if isinstance(x, str) and len(x) == 3 else {'geocode': 'UNK'}
             )
-            return await processor.process_images(folder_path, output_csv, config, prompts)
+            return await processor.process_images(folder_path, output_csv, config, prompts, model_config)
         elif 'taxonomy' in output_csv:
             config = TranscriptionConfig(
                 file_suffix='_label.jpg',
                 csv_fields=['tray_id', 'full_transcription', 'taxonomy', 'authority']
             )
-            return await processor.process_images(folder_path, output_csv, config, prompts)
+            return await processor.process_images(folder_path, output_csv, config, prompts, model_config)
         else:
             raise ValueError(f"Unknown output type for CSV: {output_csv}")
     except Exception as e:
