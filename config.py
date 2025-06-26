@@ -104,6 +104,21 @@ class DrawerDissectConfig:
         return self._config['api_keys']
     
     @property
+    def claude_config(self) -> Dict[str, Any]:
+        """Get Claude model configuration."""
+        # Set defaults if claude section doesn't exist
+        default_config = {
+            'model': 'claude-3-5-sonnet-20241022',
+            'max_tokens': 1000
+        }
+        
+        claude_config = self._config.get('claude', {})
+        
+        # Merge defaults with user config
+        result = {**default_config, **claude_config}
+        return result
+    
+    @property
     def roboflow_models(self) -> Dict[str, Dict[str, Any]]:
         """Get Roboflow model configurations."""
         return self._config['roboflow']['models']
