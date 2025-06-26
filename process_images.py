@@ -8,6 +8,7 @@ from functools import lru_cache
 from typing import Tuple, Dict, Any
 from config import DrawerDissectConfig
 from logging_utils import log, StepTimer
+from functions.drawer_management import get_drawers_to_process, validate_drawer_structure, discover_and_sort_drawers
 from functions.resize_drawer import resize_drawer_images
 from functions.infer_drawers import infer_drawers
 from functions.crop_trays import crop_trays_from_fullsize
@@ -224,7 +225,8 @@ def run_step_for_drawer(step, config, drawer_id, args, rf_instance=None, workspa
                     config.get_drawer_directory(drawer_id, 'specimens'),
                     os.path.join(config.get_drawer_directory(drawer_id, 'specimen_level'), 'location_frags.csv'),
                     config.api_keys['anthropic'],
-                    prompts=prompts
+                    prompts=prompts,
+                    model_config=config.claude_config
                 ))
             else:
                 log("Specimen label transcription disabled in config - skipping")
@@ -239,7 +241,8 @@ def run_step_for_drawer(step, config, drawer_id, args, rf_instance=None, workspa
                     os.path.join(config.get_drawer_directory(drawer_id, 'specimen_level'), 'location_frags.csv'),
                     os.path.join(config.get_drawer_directory(drawer_id, 'specimen_level'), 'location_checked.csv'),
                     config.api_keys['anthropic'],
-                    prompts=prompts
+                    prompts=prompts,
+                    model_config=config.claude_config
                 ))
             else:
                 log("Specimen label validation skipped (transcription disabled)")
@@ -254,7 +257,8 @@ def run_step_for_drawer(step, config, drawer_id, args, rf_instance=None, workspa
                     config.get_drawer_directory(drawer_id, 'labels'),
                     os.path.join(config.get_drawer_directory(drawer_id, 'tray_level'), 'unit_barcodes.csv'),
                     config.api_keys['anthropic'],
-                    prompts=prompts
+                    prompts=prompts,
+                    model_config=config.claude_config
                 ))
             else:
                 log("Barcode transcription disabled in config - skipping")
@@ -270,6 +274,7 @@ def run_step_for_drawer(step, config, drawer_id, args, rf_instance=None, workspa
                     os.path.join(config.get_drawer_directory(drawer_id, 'tray_level'), 'geocodes.csv'),
                     config.api_keys['anthropic'],
                     prompts=prompts,
+                    model_config=config.claude_config  # Add this line
                 ))
 
         elif step == 'transcribe_taxonomy':
@@ -282,7 +287,8 @@ def run_step_for_drawer(step, config, drawer_id, args, rf_instance=None, workspa
                     config.get_drawer_directory(drawer_id, 'labels'),
                     os.path.join(config.get_drawer_directory(drawer_id, 'tray_level'), 'taxonomy.csv'),
                     config.api_keys['anthropic'],
-                    prompts=prompts
+                    prompts=prompts,
+                    model_config=config.claude_config  # Add this line
                 ))
             else:
                 log("Taxonomy transcription disabled in config - skipping")
