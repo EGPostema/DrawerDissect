@@ -72,7 +72,7 @@ Place all drawer images in the `drawers/unsorted` folder:
 ```
 DrawerDissect/
 ├── drawers/
-│   └── unsorted/          ← Place your drawer images here
+│   └── unsorted/              ← Place your drawer images here
 │       ├── drawer_001.tif
 │       ├── drawer_002.tif
 │       └── drawer_003.jpg
@@ -104,7 +104,7 @@ DrawerDissect/
 
 ---
 
-## 🔧 Running the Pipeline
+## 🏁 Running the Pipeline
 
 ### Basic Usage
 
@@ -141,6 +141,13 @@ python process_images.py --from create_masks  # from create_masks to end
 python process_images.py --until crop_trays   # from start to crop_trays
 ```
 
+**Combine flags for custom workflows:**
+```bash
+python process_images.py transcribe_speclabels --from find_specimens --until create_transparencies --drawers drawer_03,drawer_08
+```
+
+This command would run all steps from find_specimens to create_transparencies, and then transcribe_speclabels, for drawer_03 & drawer_08.
+
 ### List of Available Steps
 
 ```
@@ -174,7 +181,57 @@ merge_data             # Combine all data into final CSVs
 
 ## 📊 Example Outputs
 
-[WIP]
+### Specimen Locations in Trays
+
+<img src="https://github.com/user-attachments/assets/ea8322a6-a4a6-468a-a744-451136f762a1" width="500">
+
+### Tray-Level Transcriptions
+
+<img src="https://github.com/user-attachments/assets/6ffe77b4-351f-4dc5-8fce-69f5226125af" height="250"> <img src="https://github.com/user-attachments/assets/2cbae42b-c04c-4bb0-a456-659cc367cb39" width="300">
+
+| taxonomy | barcode | geocode |
+|--------|----|----|
+| <i>Cicindela (Cicindela) formosa gibsoni</i> | 57377 | NEA |
+| <i>Automeris io</i> | - | - |
+
+### Individual Specimen Images
+
+<img src="https://github.com/user-attachments/assets/cef073ca-596a-4f2f-bb25-31c782b72945" height="200"> <img src="https://github.com/user-attachments/assets/acdb39bf-9a75-4812-8f07-32ac2a60fc7e" height="200"> <img src="https://github.com/user-attachments/assets/038e68c2-fd81-4374-9748-ea1d5c392bb8" height="200"> <img src="https://github.com/user-attachments/assets/ce2c569d-a180-4828-a857-042dfeab77ea" height="200">  <img src="https://github.com/user-attachments/assets/e2666020-7062-4d9c-b884-58f17f2dd29c" height="200">
+
+### Masked Specimens
+
+<img src="https://github.com/user-attachments/assets/8735f8de-f3e2-4750-b0a8-14e53bba44cb" height="200"> <img src="https://github.com/user-attachments/assets/6db89295-0b42-47cb-9152-695e1c4747e2" height="200"> <img src="https://github.com/user-attachments/assets/6c1cf238-229a-4185-b878-d471b304b0f6" height="200"> <img src="https://github.com/user-attachments/assets/697c5c1e-8015-43a0-9619-c74a4db8a8b5" height="200">  <img src="https://github.com/user-attachments/assets/acba309b-c3fd-4b84-9e4b-5ad5a9a9000c" height="200">
+
+### Measurements
+
+<img src="https://github.com/user-attachments/assets/d28be360-914c-496d-b013-affe98211588" height="300">
+
+| length (mm) | width (mm) | area (mm2) |
+|--------|----|----|
+| 17.8 | 6.3 | 84.9 |
+
+### Specimen-level Transcriptions
+
+<img src="https://github.com/user-attachments/assets/3b45f583-d0f8-450c-853a-bc95e537e056" height="500">
+
+### Summary Data
+
+```
+drawer01/
+├── data/
+│   ├── merged_data_02_05_2025_11_03/    # timestamped folder
+│   │   ├── drawers.csv                  # drawer-level summary
+│   │   ├── trays.csv                    # tray-level summary
+│   │   ├── specimens.csv                # fully merged dataset
+│   │   └── data_inputs/                 # contains all csvs used for summaries
+│   │       ├── measurements.csv
+│   │       ├── taxonomy.csv
+│   │       ├── unit_barcodes.csv
+│   │       └── location_checked.csv
+│   └── merged_data_01_05_2025_14_22/    # timestamped folder from previous run
+│       └── ... (same files)                 # (same structure as above)
+
+```
 
 ---
 
@@ -203,8 +260,12 @@ processing:
 
 Example settings:
 
-![image](https://github.com/user-attachments/assets/5639e133-3d36-4322-b879-a71e0ffe6858)
+<img src="https://github.com/user-attachments/assets/6ffe77b4-351f-4dc5-8fce-69f5226125af" height="250"> <img src="https://github.com/user-attachments/assets/2cbae42b-c04c-4bb0-a456-659cc367cb39" width="300">
 
+| tray | transcribe_barcodes | transcribe_geocodes | transcribe_taxonomy|
+|--------|----|----|----|
+| tiger beetles | true | true | true |
+| moth | false | false | true |
 
 ### Edit Models
 
@@ -212,7 +273,7 @@ Example settings:
 
 ```yaml
 claude:
-  model: "claude-sonnet-4-20250514"  # subsitute with any claude model; speed, accuracy, and price may vary
+  model: "claude-sonnet-4-20250514"  # subsitute with any claude model
   max_tokens: 600  # Default max tokens - increase for complicated tasks, decrease for simpler tasks
 ```
 
@@ -417,22 +478,22 @@ resources:
 ## 📋 Troubleshooting
 
 **Pipeline won't start?**
-- [ ] API keys added to `config.yaml` and file saved
-- [ ] Virtual environment activated (`dissectenv`)
-- [ ] All packages installed (`pip install -r requirements.txt`)
-- [ ] Images placed in `drawers/unsorted/` folder
+- Ensure API keys added to `config.yaml` and file saved/closed
+- Check that virtual environment activated (`dissectenv`) with required packages (`pip install -r requirements.txt`)
+- Check your current directory (`cd`); it should be `Drawerdissect`
 
-**Out of memory errors?**
-- Use `--sequential` flag to process one image at a time
-- Reduce `--max-workers` to limit parallel processing
-- Use `--batch-size` to process smaller groups
-
-**Models not detecting properly?**
-- Adjust confidence thresholds: `--tray_confidence 30` (lower = more detections)
-- Check image quality and format
+**Models not performing well?**
+- Adjust confidence/overlap thresholds
+- Check image quality (small/low-resolution may underperform)
 - Performance may vary for different taxa
+- Test out older model versions
 
 **Transcription errors?**
 - Verify API keys are correct and have sufficient credits
 - Check internet connection for API calls
 - Review and adjust prompts in `config.yaml` if needed
+
+**Memory issues?**
+- Use `--sequential` flag to process one image at a time
+- Reduce `--max-workers` to limit parallel processing
+- Use `--batch-size` to process smaller groups
