@@ -1,6 +1,8 @@
 # <img src="https://github.com/user-attachments/assets/26e883f0-f643-4715-80d6-abb2225bdb75" width="75" height="75">rawerDissect
 
-**DrawerDissect** is an AI-driven pipeline for processing whole-drawer images of insect specimens. It can extract individual specimen photos, measure specimens, transcribe visible text, and create "masked" specimens for downstream phenotypic analysis.
+**DrawerDissect** is an AI-driven pipeline for processing whole-drawer images of insect specimens. It can crop out specimen photos, measure specimens, transcribe visible text, and create "masked" specimens for phenotypic analysis.
+
+---
 
 <img width="1000" src="https://github.com/user-attachments/assets/20e3abb8-18d4-45cd-9b83-3c67048e24b0" />
 
@@ -15,11 +17,12 @@
   - [Anthropic](anthropic.com) - for reading tray and specimen labels
 - Supported image formats: TIF/TIFF, PNG, JPG/JPEG
 
-DrawerDissect has been successfully tested on the following systems:
+DrawerDissect has run successfully on the following systems:
 
 | System | OS | CPU | RAM | GPU |
 |--------|----|----|-----|-----|
-| Mac | macOS | Apple M2 (8-core) | 16 GB | M2 Integrated (10-core) |
+| MacBook Pro | macOS | 2.3 GHz Dual-Core Intel Core i5 | 8 GB | Intel Iris Plus Graphics 640 1536 MB |
+| Mac mini | macOS | Apple M2 (8-core) | 16 GB | M2 Integrated (10-core) |
 | Windows | Windows 11 | AMD Ryzen 7 7800X3D | 32 GB | NVIDIA GeForce RTX 4060 |
 | Windows | Windows 11 | Intel i5-13400F | 32 GB | NVIDIA GeForce RTX 4060 |
 
