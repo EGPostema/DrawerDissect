@@ -65,7 +65,7 @@ api_keys:
 
 ---
 
-## 📁 Adding Images
+## Adding Images
 
 Place all drawer images in the `drawers/unsorted` folder:
 
@@ -104,7 +104,7 @@ DrawerDissect/
 
 ---
 
-## 🏁 Running the Pipeline
+## Running the Pipeline
 
 ### Basic Usage
 
@@ -179,7 +179,7 @@ merge_data             # Combine all data into final CSVs
 
 ---
 
-## 📊 Example Outputs
+## Example Outputs
 
 ### Specimen Locations in Trays
 
@@ -235,7 +235,7 @@ drawer01/
 
 ---
 
-## ⚙️ User Settings
+## User Settings
 
 Key aspects of the pipeline can be adjusted by directly editing the `config.yaml`:
 
@@ -328,11 +328,9 @@ roboflow:
     # ... (configure all 5 model types)
 ```
 
-⚠️ Pipeline may fail to run if any models are missing ⚠️
-
 🤖 **Open-Source Alternatives**
 
-Our training data for all FMNH models can be downloaded to train open-source models at: [LINK COMING SOON]
+Our training data for all FMNH models can be downloaded to train open-source models at: [LINK TO HUGGINGFACE REPO TBD]
 
 ### Edit LLM Prompts
 
@@ -470,7 +468,7 @@ Adjust memory usage and processing speed:
 ```yaml
 resources:
   memory:
-    sequential: false    # true = process one image at a time (slower, less memory, good for large-image steps)
+    sequential: false    # true = process one image at a time (good for large-image steps)
     max_workers: null    # null = automatic (uses half CPU cores), or set number
     batch_size: null     # Process in smaller batches if needed
 ```
@@ -486,14 +484,12 @@ resources:
 - Adjust confidence/overlap thresholds
 - Check image quality (small/low-resolution may underperform)
 - Performance may vary for different taxa
-- Test out older model versions
+- Try out older model versions or add new training data to update a model
 
 **Transcription errors?**
 - Verify API keys are correct and have sufficient credits
 - Check internet connection for API calls
-- Review and adjust prompts in `config.yaml` if needed
+- Review and adjust prompts in `config.yaml` to match your text inputs
 
-**Memory issues?**
-- Use `--sequential` flag to process one image at a time
-- Reduce `--max-workers` to limit parallel processing
-- Use `--batch-size` to process smaller groups
+**Known Errors**
+[DESCRIBE HERE]
