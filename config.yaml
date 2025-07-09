@@ -196,7 +196,7 @@ resources:
     max_workers: null    # null = automatic based on CPU
     batch_size: null     # null = process all at once
     
-    # Step-specific overrides for processing-heavy steps
+    # Step-specific overrides for memory-heavy steps
     step_overrides:
       resize_drawers:    
         sequential: true # Process one image at a time, better for large images
