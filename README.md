@@ -26,6 +26,8 @@ DrawerDissect has run successfully on the following systems:
 | Windows | Windows 11 | AMD Ryzen 7 7800X3D | 32 GB | NVIDIA GeForce RTX 4060 |
 | Windows | Windows 11 | Intel i5-13400F | 32 GB | NVIDIA GeForce RTX 4060 |
 
+Link to Supporting Manuscript (pre-print): [COMING SOON]
+
 ---
 
 ## Installation
@@ -330,7 +332,7 @@ roboflow:
 
 🤖 **Open-Source Alternatives**
 
-Our training data for all FMNH models can be downloaded to train open-source models at: [LINK TO HUGGINGFACE REPO TBD]
+Our training data for all CV models can be downloaded to train open-source models at: [Coming Soon]
 
 ### Edit LLM Prompts
 
@@ -482,7 +484,7 @@ resources:
 
 **Models not performing well?**
 - Adjust confidence/overlap thresholds
-- Check image quality (small/low-resolution may underperform)
+- Check image quality (small/low-resolution images may underperform)
 - Performance may vary for different taxa
 - Try out older model versions or add new training data to update a model
 
@@ -492,4 +494,4 @@ resources:
 - Review and adjust prompts in `config.yaml` to match your text inputs
 
 **Known Errors**
-[DESCRIBE HERE]
+[COMING SOON]
