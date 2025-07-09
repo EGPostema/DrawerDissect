@@ -147,7 +147,6 @@ python process_images.py --until crop_trays   # from start to crop_trays
 ```bash
 python process_images.py transcribe_speclabels --from find_specimens --until create_transparencies --drawers drawer_03,drawer_08
 ```
-
 This command would run all steps from find_specimens to create_transparencies, and then transcribe_speclabels, for drawer_03 & drawer_08.
 
 ### List of Available Steps
@@ -178,6 +177,25 @@ transcribe_speclabels  # Read specimen labels (if enabled)
 validate_speclabels    # Validate specimen transcriptions
 merge_data             # Combine all data into final CSVs
 ```
+
+### Rerunning Steps
+
+Use the --rerun flag to redo steps, overwriting previous outputs
+
+```bash
+python process_images.py {step} --rerun                                     # reruns {step} for all drawers
+python process_images.py {step} --drawers drawer_001                        # reruns {step} for specific drawer(s)
+python process_images.py --from {step} --until {step} --drawers drawer_001  # reruns range of steps for specific drawer(s)
+```
+![Screenshot 2025-07-09 142726](https://github.com/user-attachments/assets/08ba4c7f-a53b-4739-8016-9e20e0d44f52)
+
+### Status Report
+
+```bash
+python process_images.py --status
+```
+
+![Screenshot 2025-07-09 142902](https://github.com/user-attachments/assets/63e64440-4911-4a52-99b6-5d83160245ed)
 
 ---
 
