@@ -1,5 +1,10 @@
 # Taxa included in each CV Model
-## Last Updated: July 10, 2025
+## Publication
+This table is associated with the following pre-print: [DOI]
+
+[CITATION HERE]
+
+### Last Updated: July 10, 2025
 
 | Order | Family | trayfinder-base | trayfinder-popup | labelfinder | bugfinder-kdn9e | bugmasker-all | pinmasker |
 |-------|--------|-----------------|------------------|-------------|------------------|---------------|-----------|
