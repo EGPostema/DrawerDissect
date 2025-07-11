@@ -213,7 +213,3 @@ def create_transparency(specimen_input_dir: str, mask_input_dir: str,
                     processed += 1
                 else:
                     skipped += 1
-
-    print(f"Transparency creation complete: {processed} processed, {skipped} skipped")
-    if missing_masks > 0:
-        print(f"Warning: {missing_masks} specimens had no corresponding masks")
