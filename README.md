@@ -137,9 +137,17 @@ python process_images.py all
 
 ### Test with Sample Image
 
-1. [Download test image](https://drive.google.com/drive/folders/1NHV9MSR-sjmAW43KlyPfSB9Xr5ZTvJFt?usp=drive_link)
-2. Place in `drawers/unsorted/`
-3. Run: `python process_images.py all`
+Download and test with sample image:
+
+```bash
+# Download test image
+curl -L -o drawers/unsorted/FMNH_cicindelidae_34_5_7.jpg https://github.com/EGPostema/DrawerDissect/releases/download/v0.1.0/FMNH_cicindelidae_34_5_7.jpg
+
+# Run the pipeline
+python process_images.py all
+```
+
+If automatic download fails, manually download from: https://github.com/EGPostema/DrawerDissect/releases/download/v0.1.0/FMNH_cicindelidae_34_5_7.jpg and place in `drawers/unsorted/`, then run `python process_images.py all`
 
 ### Advanced Usage
 
