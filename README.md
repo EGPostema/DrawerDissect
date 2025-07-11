@@ -332,7 +332,17 @@ roboflow:
       confidence: 50
 ```
 
-The most up-to-date FMNH models can be found at: https://app.roboflow.com/field-museum
+The most up-to-date FMNH models can be found at: [https://app.roboflow.com/field-museum](https://universe.roboflow.com/field-museum/)
+
+To find the model endpoint and version:
+- Click the link above
+- Select your desired model
+- Under 'Deploy' select 'Model'
+- Copy endpoint and version number (see below)
+- Add to `config.yaml`
+
+<img height="1000" alt="image" src="https://github.com/user-attachments/assets/df32c043-f4a1-49b7-8e9f-5dc7b5b7ebc8" />
+
 
 📷 **Use Your Own Roboflow Models**
 
