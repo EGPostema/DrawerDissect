@@ -1,46 +1,57 @@
 import os
 import csv
-import logging
 import asyncio
 from anthropic import Anthropic, RateLimitError, APIError
-from PIL import Image, ImageOps, ImageEnhance, UnidentifiedImageError
+from PIL import Image, ImageOps, UnidentifiedImageError, ImageEnhance
 import base64
 from io import BytesIO
 from dataclasses import dataclass
-from typing import List, Tuple, Optional, Dict
+from typing import List, Tuple, Optional, Dict, Any
+from logging_utils import log, log_found, log_progress
+import tempfile
+import time
+import logging
 
-# Silence HTTP request logging
 logging.getLogger("httpx").disabled = True
 logging.getLogger("anthropic").disabled = True
 logging.getLogger("httpcore").disabled = True
 
 @dataclass
-class TranscriptionResult:
-    tray_id: str
-    content: Dict[str, str]
+class ProcessingResult:
+    filename: str
+    transcription: str
+    location: str
     error: Optional[str] = None
+    cached: bool = False
 
     def to_dict(self):
         return {
-            'tray_id': self.tray_id,
-            **self.content,
-            'error': self.error
+            field: getattr(self, field) 
+            for field in self.__dataclass_fields__
         }
 
-@dataclass
-class TranscriptionConfig:
-    file_suffix: str
-    csv_fields: List[str]
-    validation_func: Optional[callable] = None
-
-class ImageTranscriber:
-    def __init__(self, api_key: str, max_retries: int = 7, retry_delay: float = 5.0):
+class ImageProcessor:
+    def __init__(self, api_key: str, max_retries: int = 5, retry_delay: float = 3.0, 
+                 max_size: int = 1000, convert_bw: bool = True, concurrent_api_calls: int = 12):
         self.client = Anthropic(api_key=api_key)
         self.max_retries = max_retries
         self.retry_delay = retry_delay
-        self.semaphore = asyncio.Semaphore(12)  # Increased from default to 12
+        # Increase concurrent API calls for better throughput
+        self.semaphore = asyncio.Semaphore(concurrent_api_calls)
         self.processed_files = set()
-    
+        self.image_cache = {}
+        self.max_size = max_size
+        self.convert_bw = convert_bw
+        self.temp_dir = tempfile.mkdtemp(prefix="image_processing_")
+        
+    def __del__(self):
+        """Clean up temporary directory when done"""
+        try:
+            import shutil
+            shutil.rmtree(self.temp_dir, ignore_errors=True)
+        except:
+            pass
+        
     def load_processed_files(self, csv_path: str) -> None:
         if not os.path.exists(csv_path):
             return
@@ -49,75 +60,90 @@ class ImageTranscriber:
             with open(csv_path, 'r', newline='', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
-                    if 'unit_barcode' in row and row['unit_barcode'] != 'ERROR':
-                        self.processed_files.add(f"{row['tray_id']}_barcode.jpg")
-                    if 'full_transcription' in row and row['full_transcription'] != 'ERROR':
-                        self.processed_files.add(f"{row['tray_id']}_label.jpg")
+                    if not row.get('error') or row.get('error', '').lower() == 'none':
+                        self.processed_files.add(row['filename'])
         except Exception as e:
-            print(f"Error: Failed to load processed files - {e}")
-
-    def find_images(self, folder_path: str, suffix: str) -> List[str]:
+            log(f"Failed to load processed files: {e}")
+        
+    def find_images(self, folder_path: str) -> List[str]:
         if not os.path.exists(folder_path):
             raise ValueError(f"Folder path does not exist: {folder_path}")
             
         image_files = []
         for root, _, files in os.walk(folder_path):
-            if 'checkpoint' in root:
-                continue
-                
             for file in files:
-                if 'checkpoint' in file:
-                    continue
-                    
-                if file.endswith(suffix):
+                if file.lower().endswith(('.jpg', '.jpeg', '.png', '.tif', '.tiff')):
                     full_path = os.path.join(root, file)
                     image_files.append(full_path)
         
         return image_files
 
-    def extract_tray_id(self, filepath: str, suffix: str) -> str:
-        try:
-            filename = os.path.basename(filepath)
-            # Remove the suffix (_barcode.jpg or _label.jpg)
-            tray_id = filename.replace('_barcode.jpg', '').replace('_label.jpg', '').replace('_geocode.jpg', '')
-            return tray_id
-        except Exception as e:
-            print(f"Error: Failed to extract tray ID - {e}")
-            return "unknown_tray"
-
-    async def encode_image(self, image_path: str) -> str:
+    async def create_optimized_image(self, image_path: str) -> str:
+        """
+        Creates an optimized version of the input image in a temp directory:
+        - Resizes to fit within max_size x max_size square (maintains aspect ratio)
+        - Optionally converts to black and white with enhanced contrast
+        Returns the path to the temporary file.
+        """
         try:
             with Image.open(image_path) as img:
                 img = ImageOps.exif_transpose(img)
-                img = img.convert('L')
                 
-                enhancer = ImageEnhance.Contrast(img)
-                img = enhancer.enhance(2.0)
+                if img.mode == 'RGBA':
+                    img = img.convert('RGB')
                 
-                brightness = ImageEnhance.Brightness(img)
-                img = brightness.enhance(1.2)
-    
-                if max(img.size) > 1024:
-                    ratio = 1024 / max(img.size)
-                    img = img.resize(
-                        (int(img.size[0] * ratio), int(img.size[1] * ratio)),
-                        Image.Resampling.LANCZOS
-                    )
-    
-                buffered = BytesIO()
-                img.save(buffered, format='JPEG', quality=95, optimize=True)
-                return base64.b64encode(buffered.getvalue()).decode('utf-8')
+                # Resize to fit within max_size x max_size square while maintaining aspect ratio
+                width, height = img.size
+                if width > self.max_size or height > self.max_size:
+                    ratio = min(self.max_size / width, self.max_size / height)
+                    new_width = int(width * ratio)
+                    new_height = int(height * ratio)
+                    img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+                
+                # Convert to black and white and enhance contrast if enabled
+                if self.convert_bw:
+                    # Convert to grayscale
+                    img = img.convert('L')
+                    
+                    # Enhance contrast to make text more readable
+                    enhancer = ImageEnhance.Contrast(img)
+                    img = enhancer.enhance(1.5)  # Increase contrast by 50%
+                
+                # Create a temporary filename based on original filename
+                orig_basename = os.path.basename(image_path)
+                temp_filename = f"temp_{orig_basename.split('.')[0]}.jpg"
+                temp_path = os.path.join(self.temp_dir, temp_filename)
+                
+                # Save as JPEG with good quality
+                img.save(temp_path, format='JPEG', quality=85, optimize=True)
+                
+                orig_size = os.path.getsize(image_path)/1024/1024
+                new_size = os.path.getsize(temp_path)/1024/1024
+                reduction = (1 - new_size/orig_size) * 100 if orig_size > 0 else 0
+                
+                log(f"Optimized {orig_basename}: {orig_size:.2f}MB → {new_size:.2f}MB ({reduction:.1f}% reduction)")
+                
+                return temp_path
                 
         except UnidentifiedImageError:
             raise ValueError(f"Could not identify image file: {image_path}")
         except Exception as e:
             raise ValueError(f"Error processing image {image_path}: {str(e)}")
-    
+
+    async def encode_image(self, image_path: str) -> str:
+        """
+        Encodes an image file to base64 string
+        """
+        try:
+            with open(image_path, 'rb') as img_file:
+                return base64.b64encode(img_file.read()).decode('utf-8')
+        except Exception as e:
+            raise ValueError(f"Error encoding image {image_path}: {str(e)}")
+
     async def api_call_with_retry(self, model_config: dict, **kwargs) -> dict:
         for attempt in range(self.max_retries):
             try:
                 async with self.semaphore:
-                    # Use model_config for model and max_tokens
                     call_kwargs = {
                         'model': model_config['model'],
                         'max_tokens': model_config['max_tokens'],
@@ -128,173 +154,229 @@ class ImageTranscriber:
                         lambda: self.client.messages.create(**call_kwargs)
                     )
                     return response
-            except RateLimitError:
+            except (RateLimitError, APIError) as e:
                 if attempt == self.max_retries - 1:
                     raise
-                await asyncio.sleep(self.retry_delay * (2 ** attempt))
-            except APIError as e:
-                if attempt == self.max_retries - 1:
-                    raise
-                if e.status_code < 500:
-                    raise
-                await asyncio.sleep(self.retry_delay * (2 ** attempt))
+                wait_time = self.retry_delay * (2 ** attempt)
+                
+                # Add jitter to prevent all retries happening simultaneously
+                jitter = wait_time * 0.1 * (2 * (0.5 - (attempt % 2)))
+                total_wait = max(0.1, wait_time + jitter)
+                
+                log(f"API error ({e.__class__.__name__}). Retrying in {total_wait:.2f}s (attempt {attempt+1}/{self.max_retries})")
+                await asyncio.sleep(total_wait)
             except Exception as e:
                 if attempt == self.max_retries - 1:
                     raise
-                await asyncio.sleep(self.retry_delay * (2 ** attempt))
-    
-    async def process_single_image(self, filepath: str, config: TranscriptionConfig, prompts: dict, model_config: dict) -> TranscriptionResult:
-        tray_id = self.extract_tray_id(filepath, config.file_suffix)
+                wait_time = self.retry_delay * (2 ** attempt)
+                await asyncio.sleep(wait_time)
+        
+        raise Exception("Max retries exceeded")
+
+    async def process_single_image(self, filepath: str, prompts: dict, model_config: dict, current: int, total: int) -> ProcessingResult:
+        filename = os.path.basename(filepath)
+
+        if filepath in self.image_cache:
+            log_progress("transcribe_speclabels", current, total, f"Using cached result for {filename}")
+            return self.image_cache[filepath]
 
         try:
-            base64_image = await self.encode_image(filepath)
+            log_progress("transcribe_speclabels", current, total, f"Processing {filename}")
+            
+            # Create an optimized version of the image
+            temp_image_path = await self.create_optimized_image(filepath)
+            
+            # Encode the optimized image
+            base64_image = await self.encode_image(temp_image_path)
 
-            response = await self.api_call_with_retry(
-                model_config,  # Pass model config
-                system=prompts['system'],
+            # Process both transcription and location extraction concurrently if possible
+            async def get_transcription():
+                return await self.api_call_with_retry(
+                    model_config,  # Add model config
+                    system=prompts['transcription']['system'],
+                    messages=[{
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": prompts['transcription']['user']
+                            },
+                            {
+                                "type": "image",
+                                "source": {
+                                    "type": "base64",
+                                    "media_type": "image/jpeg",
+                                    "data": base64_image
+                                }
+                            }
+                        ]
+                    }]
+                )
+
+            # First step: Transcribe the image
+            transcription_response = await get_transcription()
+            transcription = transcription_response.content[0].text.strip()
+            transcription = transcription.replace('<userStyle>Normal</userStyle>', '').strip()
+            
+            # Clean up temporary file
+            try:
+                os.remove(temp_image_path)
+            except:
+                pass  # Ignore cleanup errors
+
+            # If no text found, skip location extraction
+            if transcription.lower() == "no text found":
+                return ProcessingResult(
+                    filename=filename,
+                    transcription=transcription,
+                    location="no location found"
+                )
+
+            # Second step: Extract location from transcription
+            location_response = await self.api_call_with_retry(
+                model_config,  # Add model config
+                system=prompts['location']['system'],
                 messages=[{
                     "role": "user",
-                    "content": [
-                        {"type": "text", "text": prompts['user']},
-                        {"type": "image", "source": {
-                            "type": "base64",
-                            "media_type": "image/jpeg",
-                            "data": base64_image
-                        }}
-                    ]
+                    "content": prompts['location']['user'].format(text=transcription)
                 }]
             )
+            
+            location = location_response.content[0].text.strip()
+            location = location.replace('<userStyle>Normal</userStyle>', '').strip()
 
-            raw_content = response.content[0].text.strip()
-            content = raw_content.replace('<userStyle>Normal</userStyle>', '').strip()
-
-            # Apply validation if available
-            if config.validation_func:
-                content = config.validation_func(content)
-
-            # For labels, parse as dict from model output
-            if config.file_suffix == '_label.jpg':
-                try:
-                    import ast
-                    content = ast.literal_eval(content)
-                    content = {'tray_id': tray_id, **content}
-                except:
-                    content = {
-                        'tray_id': tray_id,
-                        'full_transcription': 'ERROR',
-                        'taxonomy': 'ERROR',
-                        'authority': 'ERROR'
-                    }
-            else:
-                # For all other cases like barcodes and geocodes
-                if not isinstance(content, dict):
-                    raise ValueError(f"Validation output is not a dict: {content}")
-                content = {'tray_id': tray_id, **content}
-
-            return TranscriptionResult(
-                tray_id=tray_id,
-                content=content
+            # Create and cache result
+            result = ProcessingResult(
+                filename=filename,
+                transcription=transcription,
+                location=location
             )
 
+            self.image_cache[filepath] = result
+            return result
+
         except Exception as e:
-            error_msg = f"Error: {os.path.basename(filepath)} - {str(e)}"
-            return TranscriptionResult(
-                tray_id=tray_id,
-                content={
-                    'tray_id': tray_id,
-                    **{field: "ERROR" for field in config.csv_fields if field != 'tray_id'}
-                },
+            error_msg = f"Error: {filename} - {str(e)}"
+            log(error_msg)
+            
+            return ProcessingResult(
+                filename=filename,
+                transcription="ERROR",
+                location="ERROR",
                 error=error_msg
             )
 
-    def write_results(self, result: TranscriptionResult, output_csv: str, fields: List[str]):
+    def write_results(self, results: List[ProcessingResult], output_csv: str):
+        """Write multiple results at once to reduce file I/O operations"""
+        if not results:
+            return
+            
         file_exists = os.path.exists(output_csv)
         
         with open(output_csv, 'a', newline='', encoding='utf-8') as f:
-            writer = csv.DictWriter(f, fieldnames=fields)
+            writer = csv.DictWriter(f, fieldnames=[
+                'filename', 'transcription', 'location',
+                'error', 'cached'
+            ])
             if not file_exists:
                 writer.writeheader()
-            writer.writerow({field: result.content.get(field, '') for field in fields})
+            for result in results:
+                writer.writerow(result.to_dict())
 
-    async def process_images(self, folder_path: str, output_csv: str, config: TranscriptionConfig, prompts: dict, model_config: dict) -> Tuple[List[TranscriptionResult], int]:
+    async def transcribe_images(self, folder_path: str, output_csv: str, prompts: dict, model_config: dict) -> List[ProcessingResult]:
+        start_time = time.time()
         self.load_processed_files(output_csv)
-        image_files = self.find_images(folder_path, config.file_suffix)
+        image_files = self.find_images(folder_path)
         total_images = len(image_files)
-        results = []
-        skipped = 0
         
-        print(f"Found {total_images} images to process")
+        if not total_images:
+            log("No specimen images found to process")
+            return []
+            
+        log_found("specimen images", total_images)
         
+        # Filter out already processed files
         unprocessed_files = [
             filepath for filepath in image_files 
             if os.path.basename(filepath) not in self.processed_files
         ]
         
-        for filepath in unprocessed_files:
-            filename = os.path.basename(filepath)
-            
-            try:
-                result = await self.process_single_image(filepath, config, prompts, model_config)
-                results.append(result)
-
-                if not result.error:
-                    self.processed_files.add(filename)
-
-                self.write_results(result, output_csv, config.csv_fields)
-
-            except Exception as e:
-                print(f"Error: {filename} - {e}")
-                results.append(TranscriptionResult(
-                    tray_id=self.extract_tray_id(filepath, config.file_suffix),
-                    content={field: "ERROR" for field in config.csv_fields if field != 'tray_id'},
-                    error=str(e)
-                ))
-
-        successful = len([r for r in results if not r.error])
-        return results, successful
-
-async def process_geocodes(self, folder_path: str, output_csv: str, prompts: dict) -> Tuple[List[TranscriptionResult], int]:
-    """
-    Process header images to extract 3-letter geocodes.
-    Similar to processing barcodes but with geocode-specific handling.
-    """
-    # Create a specific configuration for geocode processing
-    config = TranscriptionConfig(
-        file_suffix='_geocode.jpg',
-        csv_fields=['tray_id', 'geocode'],
-        validation_func=lambda x: {'geocode': 'UNK' if x.lower() == 'unk' or len(x) != 3 else x.upper()}
-    )
-    
-    # Use existing processing logic with geocode-specific configuration
-    return await self.process_images(folder_path, output_csv, config, prompts)
-
-async def process_image_folder(folder_path: str, output_csv: str, api_key: str, prompts: dict, model_config: dict) -> Tuple[List[TranscriptionResult], int]:
-    try:
-        processor = ImageTranscriber(api_key)
+        skipped = total_images - len(unprocessed_files)
+        if skipped > 0:
+            log(f"Found {skipped} previously processed images")
         
-        # Determine which type of processing to do based on the output CSV path
-        if 'barcode' in output_csv:
-            config = TranscriptionConfig(
-                file_suffix='_barcode.jpg',
-                csv_fields=['tray_id', 'unit_barcode'],
-                validation_func=lambda x: {'unit_barcode': 'no_barcode' if x.lower() == 'none' else x}
-            )
-            return await processor.process_images(folder_path, output_csv, config, prompts, model_config)
-        elif 'geocode' in output_csv:
-            config = TranscriptionConfig(
-                file_suffix='_geocode.jpg',
-                csv_fields=['tray_id', 'geocode'],
-                validation_func=lambda x: {'geocode': x.upper()} if isinstance(x, str) and len(x) == 3 else {'geocode': 'UNK'}
-            )
-            return await processor.process_images(folder_path, output_csv, config, prompts, model_config)
-        elif 'taxonomy' in output_csv:
-            config = TranscriptionConfig(
-                file_suffix='_label.jpg',
-                csv_fields=['tray_id', 'full_transcription', 'taxonomy', 'authority']
-            )
-            return await processor.process_images(folder_path, output_csv, config, prompts, model_config)
-        else:
-            raise ValueError(f"Unknown output type for CSV: {output_csv}")
+        if not unprocessed_files:
+            log("All images already processed")
+            return []
+        
+        log(f"Processing {len(unprocessed_files)} images...")
+        
+        results = []
+        processed = 0
+        errors = 0
+        
+        # Process in larger batches with improved concurrency
+        batch_size = 20  # Increased from 10
+        pending_writes = []
+        
+        for i in range(0, len(unprocessed_files), batch_size):
+            batch = unprocessed_files[i:i+batch_size]
+            
+            # Process batch in parallel
+            batch_tasks = []
+            for j, filepath in enumerate(batch, 1):
+                task = self.process_single_image(
+                    filepath, 
+                    prompts, 
+                    model_config,  
+                    i + j,  # Adjust for overall progress 
+                    len(unprocessed_files)
+                )
+                batch_tasks.append(task)
+            
+            batch_results = await asyncio.gather(*batch_tasks, return_exceptions=True)
+            
+            # Process results
+            batch_to_write = []
+            for filepath, result in zip(batch, batch_results):
+                if isinstance(result, Exception):
+                    log(f"Error processing {os.path.basename(filepath)}: {str(result)}")
+                    errors += 1
+                    continue
+                    
+                results.append(result)
+                batch_to_write.append(result)
+                
+                if not result.error:
+                    self.processed_files.add(result.filename)
+                    processed += 1
+                else:
+                    errors += 1
+            
+            # Write batch of results at once
+            self.write_results(batch_to_write, output_csv)
+            
+            # Report progress
+            elapsed = time.time() - start_time
+            images_per_sec = (processed + errors) / elapsed if elapsed > 0 else 0
+            percent_done = (processed + errors) / len(unprocessed_files) * 100
+            
+            log(f"Progress: {processed + errors}/{len(unprocessed_files)} ({percent_done:.1f}%) - " +
+                f"{images_per_sec:.2f} images/sec - ETA: {(len(unprocessed_files) - processed - errors) / max(0.1, images_per_sec):.1f}s")
+            
+            # Small pause between batches to avoid rate limits
+            await asyncio.sleep(0.5)
+
+async def process_specimen_labels(folder_path: str, output_csv: str, api_key: str, prompts: dict, model_config: dict) -> List[ProcessingResult]:
+    try:
+        # Initialize with improved settings
+        processor = ImageProcessor(
+            api_key, 
+            max_size=500,           # Max dimension of 500px
+            convert_bw=True,         # Black and white for better text visibility
+            concurrent_api_calls=12  # Increased concurrency for better throughput
+        )
+        return await processor.transcribe_images(folder_path, output_csv, prompts, model_config)
     except Exception as e:
-        print(f"Error: Failed to process folder - {e}")
+        log(f"Failed to process folder: {e}")
         raise
