@@ -56,14 +56,31 @@ pip install -r requirements.txt
 
 **Configure API Keys**
 
-Open `config.yaml` in the main directory, and add your API keys:
+DrawerDissect supports two methods for providing API keys:
+
+**Option 1: Environment Variables (Recommended)**
+Set environment variables in your shell:
+
+```bash
+export ANTHROPIC_API_KEY="your_anthropic_key_here"
+export ROBOFLOW_API_KEY="your_roboflow_key_here"
+```
+
+**Option 2: Direct Configuration**
+Open `config.yaml` in the main directory, and replace the default values with your actual API keys:
 
 ```yaml
 api_keys:
-  anthropic: "YOUR_ANTHROPIC_KEY" # replace YOUR_ANTHROPIC_KEY with your key
-  roboflow: "YOUR_ROBOFLOW_KEY" # replace YOUR_ROBOFLOW_KEY with your key
+  anthropic: "your_anthropic_key_here"  # replace with your actual key
+  roboflow: "your_roboflow_key_here"    # replace with your actual key
 ```
 
+**How it works:**
+- DrawerDissect first checks for environment variables `ANTHROPIC_API_KEY` and `ROBOFLOW_API_KEY`
+- If environment variables are not found, it uses the values directly from `config.yaml`
+- The program will report where each API key is being loaded from in the logs
+
+**Get your API keys:**
 - [Get Anthropic API Key](https://support.anthropic.com/en/articles/8114521-how-can-i-access-the-anthropic-api)
 - [Get Roboflow API Key](https://docs.roboflow.com/api-reference/authentication)
 
@@ -517,7 +534,7 @@ resources:
 ## 📋 Troubleshooting
 
 **Pipeline won't start?**
-- Ensure API keys added to `config.yaml` and file saved/closed
+- Ensure API keys are configured (either via environment variables or in `config.yaml`)
 - Check that virtual environment activated (`dissectenv`) with required packages (`pip install -r requirements.txt`)
 - Check your current directory (`cd`); it should be `Drawerdissect`
 
