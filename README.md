@@ -362,7 +362,16 @@ roboflow:
 
 🤖 **Open-Source Alternatives**
 
-Our training data for all CV models can be downloaded to train open-source models at: [Coming Soon]
+The images and annotations for all versions of all public CV models can be downloaded at: [https://app.roboflow.com/field-museum](https://universe.roboflow.com/field-museum/)
+
+To download:
+- Select the desired model
+- Select 'Dataset' under 'Data'
+- Choose a version
+- Click the 'Download Dataset' button
+- Use our datasets to train your own models locally!
+
+<img height="1000" alt="image" src="https://github.com/user-attachments/assets/ad8d7054-d678-4fe7-aad6-b96c227a2107" />
 
 ### Edit LLM Prompts
 
