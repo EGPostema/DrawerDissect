@@ -100,8 +100,22 @@ class DrawerDissectConfig:
     
     @property
     def api_keys(self) -> Dict[str, str]:
-        """Get API keys from config."""
-        return self._config['api_keys']
+        """Get API keys from environment variables or config."""
+        config_keys = self._config['api_keys']
+        resolved_keys = {}
+        
+        for key_name, config_value in config_keys.items():
+            # Try to get from environment variable first
+            env_value = os.getenv(config_value)
+            if env_value:
+                resolved_keys[key_name] = env_value
+                log(f"API key for '{key_name}' loaded from environment variable '{config_value}'")
+            else:
+                # Use config value as the actual key
+                resolved_keys[key_name] = config_value
+                log(f"API key for '{key_name}' loaded from config file (direct value)")
+        
+        return resolved_keys
     
     @property
     def claude_config(self) -> Dict[str, Any]:

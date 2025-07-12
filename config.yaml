@@ -1,6 +1,6 @@
 api_keys:
-  anthropic: "YOUR_ANTHROPIC_KEY" # replace YOUR_ANTHROPIC_KEY with your key
-  roboflow: "YOUR_ROBOFLOW_KEY" # replace YOUR_ROBOFLOW_KEY with your key
+  anthropic: "ANTHROPIC_API_KEY" # Environment variable or actual key
+  roboflow: "ROBOFLOW_API_KEY" # Environment variable or actual key
 
 processing:
   measurement_visualizations: "rand_sample"  # "on", "off", or "rand_sample" (max 20 random visualizations)
