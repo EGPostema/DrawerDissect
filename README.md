@@ -149,7 +149,10 @@ curl -L -o drawers/unsorted/FMNH_cicindelidae_34_5_7.jpg https://github.com/EGPo
 python process_images.py all
 ```
 
-If automatic download fails, manually download from: https://github.com/EGPostema/DrawerDissect/releases/download/v0.1.0/FMNH_cicindelidae_34_5_7.jpg and place in `drawers/unsorted/`, then run `python process_images.py all`
+If automatic download fails:
+- Manually download from: https://github.com/EGPostema/DrawerDissect/releases/download/v0.1.0/FMNH_cicindelidae_34_5_7.jpg
+- Place in `drawers/unsorted/`
+- Run `python process_images.py all`
 
 ### Advanced Usage
 
