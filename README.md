@@ -59,6 +59,7 @@ pip install -r requirements.txt
 DrawerDissect supports two methods for providing API keys:
 
 **Option 1: Environment Variables (Recommended)**
+
 Set environment variables in your shell:
 
 ```bash
@@ -67,6 +68,7 @@ export ROBOFLOW_API_KEY="your_roboflow_key_here"
 ```
 
 **Option 2: Direct Configuration**
+
 Open `config.yaml` in the main directory, and replace the default values with your actual API keys:
 
 ```yaml
