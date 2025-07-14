@@ -250,11 +250,15 @@ python process_images.py --status
 
 ### Individual Specimen Images
 
-<img src="https://github.com/user-attachments/assets/cef073ca-596a-4f2f-bb25-31c782b72945" height="200"> <img src="https://github.com/user-attachments/assets/acdb39bf-9a75-4812-8f07-32ac2a60fc7e" height="200"> <img src="https://github.com/user-attachments/assets/038e68c2-fd81-4374-9748-ea1d5c392bb8" height="200"> <img src="https://github.com/user-attachments/assets/ce2c569d-a180-4828-a857-042dfeab77ea" height="200">  <img src="https://github.com/user-attachments/assets/e2666020-7062-4d9c-b884-58f17f2dd29c" height="200">
+<img src="https://github.com/user-attachments/assets/cef073ca-596a-4f2f-bb25-31c782b72945" height="200"> <img src="https://github.com/user-attachments/assets/acdb39bf-9a75-4812-8f07-32ac2a60fc7e" height="200"> <img src="https://github.com/user-attachments/assets/038e68c2-fd81-4374-9748-ea1d5c392bb8" height="200"> 
+
+<img src="https://github.com/user-attachments/assets/ce2c569d-a180-4828-a857-042dfeab77ea" height="200">  <img src="https://github.com/user-attachments/assets/e2666020-7062-4d9c-b884-58f17f2dd29c" height="200">
 
 ### Masked Specimens
 
-<img src="https://github.com/user-attachments/assets/8735f8de-f3e2-4750-b0a8-14e53bba44cb" height="200"> <img src="https://github.com/user-attachments/assets/6db89295-0b42-47cb-9152-695e1c4747e2" height="200"> <img src="https://github.com/user-attachments/assets/6c1cf238-229a-4185-b878-d471b304b0f6" height="200"> <img src="https://github.com/user-attachments/assets/697c5c1e-8015-43a0-9619-c74a4db8a8b5" height="200">  <img src="https://github.com/user-attachments/assets/acba309b-c3fd-4b84-9e4b-5ad5a9a9000c" height="200">
+<img src="https://github.com/user-attachments/assets/8735f8de-f3e2-4750-b0a8-14e53bba44cb" height="200"> <img src="https://github.com/user-attachments/assets/6db89295-0b42-47cb-9152-695e1c4747e2" height="200"> <img src="https://github.com/user-attachments/assets/6c1cf238-229a-4185-b878-d471b304b0f6" height="200"> 
+
+<img src="https://github.com/user-attachments/assets/697c5c1e-8015-43a0-9619-c74a4db8a8b5" height="200">  <img src="https://github.com/user-attachments/assets/acba309b-c3fd-4b84-9e4b-5ad5a9a9000c" height="200">
 
 ### Measurements
 
@@ -364,7 +368,7 @@ roboflow:
       confidence: 50
 ```
 
-The most up-to-date FMNH models can be found at: [https://app.roboflow.com/field-museum](https://universe.roboflow.com/field-museum/)
+The most up-to-date FMNH models can be found at: [https://universe.roboflow.com/field-museum/](https://universe.roboflow.com/field-museum/)
 
 To find the model endpoint and version:
 - Click the link above
@@ -394,7 +398,7 @@ roboflow:
 
 🤖 **Open-Source Alternatives**
 
-The images and annotations for all versions of all public CV models can be downloaded at: [https://app.roboflow.com/field-museum](https://universe.roboflow.com/field-museum/)
+The images and annotations for all versions of all public CV models can be downloaded at: [https://universe.roboflow.com/field-museum/](https://universe.roboflow.com/field-museum/)
 
 To download:
 - Select the desired model
