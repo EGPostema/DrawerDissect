@@ -32,7 +32,7 @@ Current Version: v0.1.0
 
 ## Citation
 
-Postema, E.G., Briscoe, L., Harder, C., Hancock, G.R.A., Guarnieri, L.D, Eisel, T., Welch, K., Fischer, N., Johnson, C., Souza, D., Sepulveda, T., Phillip, D., Baquiran, R., de Medeiros, B.A.S. 2025. **DrawerDissect: Whole-drawer insect imaging, segmentation, and trait extraction using AI.** <i>EcoEvoRxiv (pre-print)</i>. DOI: [coming soon]
+Postema, E.G., Briscoe, L., Harder, C., Hancock, G.R.A., Guarnieri, L.D, Eisel, T., Welch, K., Fischer, N., Johnson, C., Souza, D., Sepulveda, T., Phillip, D., Baquiran, R., de Medeiros, B.A.S. 2025. **DrawerDissect: Whole-drawer insect imaging, segmentation, and trait extraction using AI.** <i>EcoEvoRxiv (pre-print)</i>. https://doi.org/10.32942/X2QW84
 
 ## Installation
 
