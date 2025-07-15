@@ -105,15 +105,64 @@ def get_drawers_to_process(config, specified_drawers: List[str] = None) -> List[
     log(f"Processing all available drawers: {', '.join(all_available)}")
     return all_available
 
+def is_specimen_only_drawer(config, drawer_id: str) -> bool:
+    """
+    Check if this is a specimen-only drawer (no fullsize images).
+    
+    Returns:
+        bool: True if drawer only contains specimens, False if it's a standard drawer
+    """
+    fullsize_dir = config.get_drawer_directory(drawer_id, 'fullsize')
+    specimens_dir = config.get_drawer_directory(drawer_id, 'specimens')
+    
+    # Check if fullsize has images
+    supported_formats = ('.jpg', '.jpeg', '.tif', '.tiff', '.png')
+    
+    fullsize_has_images = False
+    if os.path.exists(fullsize_dir):
+        fullsize_images = [f for f in os.listdir(fullsize_dir) 
+                          if f.lower().endswith(supported_formats)]
+        fullsize_has_images = len(fullsize_images) > 0
+    
+    specimens_has_images = False
+    if os.path.exists(specimens_dir):
+        specimens_images = [f for f in os.listdir(specimens_dir) 
+                           if f.lower().endswith(supported_formats)]
+        specimens_has_images = len(specimens_images) > 0
+    
+    # It's specimen-only if specimens exist but no fullsize images
+    return specimens_has_images and not fullsize_has_images
+
 def validate_drawer_structure(config, drawer_id: str) -> bool:
     """
     Validate that a drawer has the required directory structure.
     Create missing directories if needed.
+    Handles both standard drawers and specimen-only drawers.
     """
     try:
         config.setup_drawer_directories(drawer_id)
         
-        # Check that fullsize directory exists and has images
+        # Check if this is a specimen-only drawer
+        if is_specimen_only_drawer(config, drawer_id):
+            log(f"Detected specimen-only project: {drawer_id}")
+            
+            # For specimen-only, just check that specimens directory has images
+            specimens_dir = config.get_drawer_directory(drawer_id, 'specimens')
+            if not os.path.exists(specimens_dir):
+                log(f"Warning: No specimens directory for project {drawer_id}")
+                return False
+            
+            supported_formats = ('.jpg', '.jpeg', '.tif', '.tiff', '.png')
+            images = [f for f in os.listdir(specimens_dir) 
+                     if f.lower().endswith(supported_formats)]
+            
+            if not images:
+                log(f"Warning: No specimen images found in {specimens_dir}")
+                return False
+            
+            return True
+        
+        # Standard drawer validation - check fullsize directory
         fullsize_dir = config.get_drawer_directory(drawer_id, 'fullsize')
         if not os.path.exists(fullsize_dir):
             log(f"Warning: No fullsize directory for drawer {drawer_id}")
