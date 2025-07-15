@@ -69,9 +69,15 @@ def process_image(args):
     """Process a single image to detect pins."""
     model, input_dir, output_dir, root, file, confidence, current, total = args
     
-    # Create output subfolder with the same structure
+    # Create output structure that mirrors input
     relative_path = os.path.relpath(root, input_dir)
-    output_subfolder = os.path.join(output_dir, relative_path)
+    if relative_path == '.':
+        # Files are in the root of input_dir - put outputs in root of output_dir
+        output_subfolder = output_dir
+    else:
+        # Files are in subdirectories - mirror the structure
+        output_subfolder = os.path.join(output_dir, relative_path)
+    
     os.makedirs(output_subfolder, exist_ok=True)
     
     # Define the JSON filename and path
@@ -122,6 +128,7 @@ def infer_pins(
 ):
     """
     Detect pins in specimen images using the Roboflow model.
+    Supports both tray-based and specimen-only directory structures.
     
     Args:
         input_dir: Directory containing masked specimen images
@@ -190,5 +197,3 @@ def infer_pins(
             results = list(executor.map(process_image, tasks))
             processed = sum(1 for r in results if r)
             skipped = len(tasks) - processed - errors
-
-
