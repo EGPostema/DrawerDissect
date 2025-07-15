@@ -4,12 +4,11 @@ import time
 import argparse
 import roboflow
 import asyncio
-import shutil
 from functools import lru_cache
 from typing import Tuple, Dict, Any
 from config import DrawerDissectConfig
 from logging_utils import log, StepTimer
-from functions.drawer_management import get_drawers_to_process, validate_drawer_structure, discover_and_sort_drawers
+from functions.drawer_management import get_drawers_to_process, validate_drawer_structure, discover_and_sort_drawers, is_specimen_only_drawer
 from functions.resize_drawer import resize_drawer_images
 from functions.infer_drawers import infer_drawers
 from functions.crop_trays import crop_trays_from_fullsize
@@ -346,13 +345,6 @@ def parse_arguments():
                             help='Comma-separated list of drawer IDs to process (e.g., drawer_01,drawer_03)')
     drawer_group.add_argument('--list-drawers', action='store_true',
                             help='List available drawers and exit')
-    drawer_group.add_argument('--status', action='store_true',
-                            help='Show status report of all drawers and exit')
-
-    # Processing options
-    processing_group = parser.add_argument_group('Processing Options')
-    processing_group.add_argument('--rerun', action='store_true',
-                               help='Allow overwriting existing outputs (requires confirmation)')
 
     # Memory management options
     memory_group = parser.add_argument_group('Memory Management')
@@ -424,186 +416,13 @@ def determine_steps(args, all_steps):
     else:
         raise ValueError("Please specify steps to run")
 
-def confirm_rerun(steps_to_run, drawers_to_process):
-    """
-    Ask user to confirm before overwriting existing outputs.
-    Returns True if user confirms, False otherwise.
-    """
-    print(f"\n{'='*60}")
-    print("RERUN CONFIRMATION")
-    print(f"{'='*60}")
-    print(f"This will overwrite previous outputs of:")
-    print(f"  Steps:   {', '.join(steps_to_run)}")
-    print(f"  Drawers: {', '.join(drawers_to_process)}")
-    print(f"{'='*60}")
-    
-    while True:
-        response = input("Continue? (y/n): ").strip().lower()
-        if response in ['y', 'yes']:
-            return True
-        elif response in ['n', 'no']:
-            return False
-        else:
-            print("Please enter 'y' or 'n'")
-
-def clear_existing_outputs(config, drawer_id, steps_to_run):
-    """
-    Clear existing outputs for specified steps and drawer.
-    Only removes outputs, not source directories.
-    """
-    # Define what outputs to clear for each step
-    step_clear_mapping = {
-        'resize_drawers': ['resized'],
-        'find_trays': ['coordinates'], 
-        'crop_trays': ['trays'],
-        'resize_trays': ['resized_trays'],
-        'find_traylabels': ['label_coordinates'],
-        'crop_labels': ['labels'],
-        'find_specimens': ['resized_trays_coordinates'],
-        'crop_specimens': ['specimens'],
-        'create_traymaps': ['guides'],
-        'outline_specimens': ['mask_coordinates'],
-        'create_masks': ['mask_png'],
-        'fix_masks': [], # Don't clear, just re-process existing masks
-        'measure_specimens': ['measurements'],
-        'censor_background': ['no_background'],
-        'outline_pins': ['pin_coordinates'],
-        'create_pinmask': ['full_masks'],
-        'create_transparency': ['transparencies', 'whitebg_specimens'],
-        'transcribe_speclabels': ['specimen_level'],
-        'validate_speclabels': [], # Don't clear, just re-process
-        'transcribe_barcodes': ['tray_level'],
-        'transcribe_geocodes': [], # Don't clear tray_level if other transcription steps need it
-        'transcribe_taxonomy': [], # Don't clear tray_level if other transcription steps need it  
-        'merge_data': ['data']
-    }
-    
-    cleared_dirs = []
-    
-    for step in steps_to_run:
-        dirs_to_clear = step_clear_mapping.get(step, [])
-        
-        for dir_key in dirs_to_clear:
-            try:
-                output_path = config.get_drawer_directory(drawer_id, dir_key)
-                if os.path.exists(output_path):
-                    # Remove all contents but keep the directory
-                    for item in os.listdir(output_path):
-                        item_path = os.path.join(output_path, item)
-                        if os.path.isfile(item_path):
-                            os.remove(item_path)
-                        elif os.path.isdir(item_path):
-                            import shutil
-                            shutil.rmtree(item_path)
-                    cleared_dirs.append(f"{drawer_id}/{dir_key}")
-            except Exception as e:
-                log(f"Warning: Could not clear {drawer_id}/{dir_key}: {e}")
-    
-    if cleared_dirs:
-        log(f"Cleared outputs from: {', '.join(cleared_dirs)}")
-
-def generate_status_report(config):
-    """
-    Generate and display a status report showing what outputs exist for each drawer.
-    """
-    from functions.drawer_management import discover_and_sort_drawers
-    
-    # Get all available drawers
-    discover_and_sort_drawers(config)  # Sort any unsorted images first
-    available_drawers = config.get_existing_drawers()
-    
-    if not available_drawers:
-        log("No drawers found")
-        return
-    
-    # Define the outputs to check for each step
-    step_outputs = {
-        'resize_drawers': 'resized',
-        'find_trays': 'coordinates', 
-        'crop_trays': 'trays',
-        'resize_trays': 'resized_trays',
-        'find_traylabels': 'label_coordinates',
-        'crop_labels': 'labels',
-        'find_specimens': 'resized_trays_coordinates',
-        'crop_specimens': 'specimens',
-        'create_traymaps': 'guides',
-        'outline_specimens': 'mask_coordinates',
-        'create_masks': 'mask_png',
-        'fix_masks': 'mask_png',  # Same as create_masks
-        'measure_specimens': 'measurements',
-        'censor_background': 'no_background',
-        'outline_pins': 'pin_coordinates',
-        'create_pinmask': 'full_masks',
-        'create_transparency': 'transparencies',
-        'transcribe_speclabels': 'specimen_level',
-        'validate_speclabels': 'specimen_level',
-        'transcribe_barcodes': 'tray_level',
-        'transcribe_geocodes': 'tray_level', 
-        'transcribe_taxonomy': 'tray_level',
-        'merge_data': 'data'
-    }
-    
-    log("=" * 80)
-    log("DRAWER STATUS REPORT")
-    log("=" * 80)
-    
-    for drawer_id in available_drawers:
-        log(f"\n{drawer_id}:")
-        log("-" * 40)
-        
-        outputs_found = []
-        outputs_missing = []
-        
-        for step, output_dir in step_outputs.items():
-            try:
-                output_path = config.get_drawer_directory(drawer_id, output_dir)
-                
-                # Check if directory exists and has content
-                has_output = False
-                if os.path.exists(output_path):
-                    # Check for any files/folders in the directory
-                    if step == 'measure_specimens':
-                        # Check for measurements.csv specifically
-                        has_output = os.path.exists(os.path.join(output_path, 'measurements.csv'))
-                    elif step in ['transcribe_speclabels', 'validate_speclabels']:
-                        # Check for CSV files in specimen_level
-                        has_output = any(f.endswith('.csv') for f in os.listdir(output_path) if os.path.isfile(os.path.join(output_path, f)))
-                    elif step in ['transcribe_barcodes', 'transcribe_geocodes', 'transcribe_taxonomy']:
-                        # Check for CSV files in tray_level
-                        has_output = any(f.endswith('.csv') for f in os.listdir(output_path) if os.path.isfile(os.path.join(output_path, f)))
-                    elif step == 'merge_data':
-                        # Check for any timestamped folders
-                        has_output = any(os.path.isdir(os.path.join(output_path, item)) for item in os.listdir(output_path))
-                    else:
-                        # Check for any files in the directory
-                        has_output = any(os.path.isfile(os.path.join(output_path, f)) for f in os.listdir(output_path))
-                
-                if has_output:
-                    outputs_found.append(step)
-                else:
-                    outputs_missing.append(step)
-                    
-            except Exception:
-                outputs_missing.append(step)
-        
-        # Display results
-        if outputs_found:
-            log(f"  ✓ Completed: {', '.join(outputs_found)}")
-        if outputs_missing:
-            log(f"  ✗ Missing:   {', '.join(outputs_missing)}")
-        
-        if not outputs_found and not outputs_missing:
-            log("  (No outputs detected)")
-    
-    log("\n" + "=" * 80)
-
 # Main Function
 def main():
     start_time = time.time()
     
     config = DrawerDissectConfig()
     
-    from functions.drawer_management import get_drawers_to_process, validate_drawer_structure
+    from functions.drawer_management import get_drawers_to_process, validate_drawer_structure, is_specimen_only_drawer
     
     all_steps = [
         'resize_drawers', 'find_trays', 'crop_trays',
@@ -615,13 +434,15 @@ def main():
         'transcribe_taxonomy', 'merge_data'
     ]
     
+    # Define steps that are valid for specimen-only drawers
+    specimen_only_steps = [
+        'outline_specimens', 'create_masks', 'fix_masks', 'measure_specimens',
+        'censor_background', 'outline_pins', 'create_pinmask', 'create_transparency',
+        'transcribe_speclabels', 'validate_speclabels', 'merge_data'
+    ]
+    
     try:
         args = parse_arguments()
-        
-        # Handle status report
-        if args.status:
-            generate_status_report(config)
-            return
         
         if args.list_drawers:
             from functions.drawer_management import discover_and_sort_drawers
@@ -630,7 +451,8 @@ def main():
             if available:
                 log("Available drawers:")
                 for drawer in available:
-                    log(f"  - {drawer}")
+                    drawer_type = "specimen-only" if is_specimen_only_drawer(config, drawer) else "standard"
+                    log(f"  - {drawer} ({drawer_type})")
             else:
                 log("No drawers found")
             return
@@ -646,11 +468,15 @@ def main():
             log("No drawers to process")
             return
         
-        # Validate drawer structures
+        # Validate drawer structures and categorize
         valid_drawers = []
+        specimen_only_drawers = []
+        
         for drawer_id in drawers_to_process:
             if validate_drawer_structure(config, drawer_id):
                 valid_drawers.append(drawer_id)
+                if is_specimen_only_drawer(config, drawer_id):
+                    specimen_only_drawers.append(drawer_id)
             else:
                 log(f"Skipping invalid drawer: {drawer_id}")
         
@@ -660,17 +486,14 @@ def main():
         
         steps_to_run = determine_steps(args, all_steps)
         
-        # Handle rerun confirmation
-        if args.rerun:
-            if not confirm_rerun(steps_to_run, valid_drawers):
-                log("Operation cancelled by user")
-                return
-            
-            # Clear existing outputs for all selected drawers and steps
-            log("Clearing existing outputs...")
-            for drawer_id in valid_drawers:
-                clear_existing_outputs(config, drawer_id, steps_to_run)
-            
+        # Filter steps for specimen-only drawers
+        if specimen_only_drawers:
+            invalid_steps_for_specimens = [step for step in steps_to_run 
+                                         if step not in specimen_only_steps]
+            if invalid_steps_for_specimens:
+                log(f"Warning: Steps {invalid_steps_for_specimens} not supported for specimen-only drawers")
+                log(f"Specimen-only drawers ({specimen_only_drawers}) will skip these steps")
+        
     except ValueError as e:
         log(f"Error: {e}")
         return
@@ -679,9 +502,9 @@ def main():
     log("DrawerDissect Pipeline")
     log("=====================")
     log(f"Processing drawers: {', '.join(valid_drawers)}")
+    if specimen_only_drawers:
+        log(f"Specimen-only drawers: {', '.join(specimen_only_drawers)}")
     log(f"Running steps: {', '.join(steps_to_run)}")
-    if args.rerun:
-        log("Mode: RERUN (overwriting existing outputs)")
     
     # Initialize Roboflow if needed
     rf_instance = workspace_instance = None
@@ -694,7 +517,21 @@ def main():
     for drawer_id in valid_drawers:
         log(f"\n{'='*20} Processing {drawer_id} {'='*20}")
         
+        # Determine which steps to run for this drawer
+        is_specimen_only = drawer_id in specimen_only_drawers
+        drawer_steps = []
+        
         for step in steps_to_run:
+            if is_specimen_only and step not in specimen_only_steps:
+                log(f"Skipping {step} for specimen-only drawer {drawer_id}")
+                continue
+            drawer_steps.append(step)
+        
+        if not drawer_steps:
+            log(f"No valid steps to run for drawer {drawer_id}")
+            continue
+        
+        for step in drawer_steps:
             log(f"Running {step} for {drawer_id}")
             run_step_for_drawer(step, config, drawer_id, args, rf_instance, workspace_instance)
 
