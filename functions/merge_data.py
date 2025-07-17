@@ -218,7 +218,7 @@ def generate_tray_lookup(trays_dir, specimens_dir=None, barcode_csv_path=None, g
 def create_specimen_table(specimens_dir, output_path=None):
     """
     Create the initial specimen-level table based on all specimen image filenames.
-    Extracts drawer_id, tray_id, and full_id from filenames.
+    Handles both standard naming (drawer_id_tray_XX_spec_YY) and custom filenames.
     
     Args:
         specimens_dir (str): Directory containing specimen images
@@ -242,15 +242,17 @@ def create_specimen_table(specimens_dir, output_path=None):
                 # Extract full_id (filename without extension)
                 full_id = os.path.splitext(file)[0]
                 
-                # Extract drawer_id and tray_id using regex pattern
+                # Try to extract drawer_id and tray_id using standard regex pattern
                 match = re.match(r'(.+)_tray_(\d+)_spec_', full_id)
                 if match:
+                    # Standard naming pattern
                     drawer_id = match.group(1)
                     tray_num = match.group(2)
                     tray_id = f"{drawer_id}_tray_{tray_num}"
                 else:
-                    drawer_id = "MISSING"
-                    tray_id = "MISSING"
+                    # Custom naming - use generic identifiers
+                    drawer_id = "custom_specimens"
+                    tray_id = "custom_specimens"
                 
                 # Add to specimen data
                 specimen_data.append({
@@ -576,6 +578,20 @@ def generate_drawer_summary(tray_df, specimen_df, output_path=None):
 def merge_data(specimens_dir, measurements_path=None, location_checked_path=None, 
               taxonomy_path=None, unit_barcodes_path=None, geocodes_path=None, sizeratios_path=None,
               labels_dir=None, output_base_path=None):
+    """
+    Merge all available data sources into comprehensive specimen and tray tables.
+    
+    Args:
+        specimens_dir: Directory containing specimen images
+        measurements_path: Path to measurements CSV
+        location_checked_path: Path to location validation CSV
+        taxonomy_path: Path to taxonomy CSV
+        unit_barcodes_path: Path to unit barcodes CSV
+        geocodes_path: Path to geocodes CSV
+        sizeratios_path: Path to size ratios CSV
+        labels_dir: Directory containing label images
+        output_base_path: Base path for output files
+    """
     try:
         # Create timestamped output folder
         timestamp = datetime.now().strftime('%d_%m_%Y_%H_%M')
@@ -693,6 +709,4 @@ def merge_data(specimens_dir, measurements_path=None, location_checked_path=None
     except Exception as e:
         print(f"Error in merge_data: {str(e)}")
         raise
-
-
-
+            

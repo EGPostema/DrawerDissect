@@ -5,6 +5,25 @@ from PIL import Image, ImageDraw
 from concurrent.futures import ProcessPoolExecutor
 from logging_utils import log, log_found, log_progress
 
+def find_pin_json_path(base_name, coord_input_dir):
+    """
+    Find the corresponding pin JSON file for a mask.
+    Handles both tray-based and flat directory structures.
+    """
+    json_filename = f"{base_name}_masked.json"
+    
+    # First try direct lookup in the coordinates directory
+    direct_json_path = os.path.join(coord_input_dir, json_filename)
+    if os.path.exists(direct_json_path):
+        return direct_json_path
+    
+    # Search recursively in subdirectories
+    for root, _, files in os.walk(coord_input_dir):
+        if json_filename in files:
+            return os.path.join(root, json_filename)
+    
+    return None
+
 def process_mask(args):
     """
     Process a specimen mask and corresponding pin JSON file to create a combined mask.
@@ -12,7 +31,7 @@ def process_mask(args):
     Returns:
         str: Status message
     """
-    image_path, json_path, output_dir, base_name, current, total = args
+    image_path, coord_input_dir, output_dir, base_name, current, total = args
     
     # First check if any version of the output already exists
     existing_files = [
@@ -26,6 +45,9 @@ def process_mask(args):
     if any(os.path.exists(f) for f in existing_files):
         log_progress("create_pinmask", current, total, f"Skipped (already exists)")
         return False
+    
+    # Find the pin JSON file
+    json_path = find_pin_json_path(base_name, coord_input_dir)
     
     try:
         with Image.open(image_path).convert("RGB") as mask_image:
@@ -88,6 +110,7 @@ def process_mask(args):
 def create_pinmask(image_input_dir, coord_input_dir, output_dir):
     """
     Create pin masks from specimen masks and pin segmentation data.
+    Supports both tray-based and specimen-only directory structures.
     
     Args:
         image_input_dir: Directory containing specimen mask images
@@ -97,7 +120,7 @@ def create_pinmask(image_input_dir, coord_input_dir, output_dir):
     # Ensure output directory exists
     os.makedirs(output_dir, exist_ok=True)
     
-    # Find all mask images and corresponding JSON files
+    # Find all mask images and prepare tasks
     tasks = []
     
     for root, _, files in os.walk(image_input_dir):
@@ -108,16 +131,19 @@ def create_pinmask(image_input_dir, coord_input_dir, output_dir):
             # Get the specimen ID and paths
             full_id = file.replace('.png', '')
             image_path = os.path.join(root, file)
+            
+            # Create output directory with the same relative structure
             rel_path = os.path.relpath(root, image_input_dir)
+            if rel_path == '.':
+                # Files are in the root - put outputs in root of output_dir
+                out_subfolder = output_dir
+            else:
+                # Files are in subdirectories - mirror the structure
+                out_subfolder = os.path.join(output_dir, rel_path)
             
-            # Find the corresponding JSON file
-            json_path = os.path.join(coord_input_dir, rel_path, f"{full_id}_masked.json")
-            
-            # Create output directory with the same structure
-            out_subfolder = os.path.join(output_dir, rel_path)
             os.makedirs(out_subfolder, exist_ok=True)
             
-            tasks.append((image_path, json_path, out_subfolder, full_id))
+            tasks.append((image_path, coord_input_dir, out_subfolder, full_id))
     
     if not tasks:
         log("No mask files found to process")
@@ -134,5 +160,3 @@ def create_pinmask(image_input_dir, coord_input_dir, output_dir):
     
     with ProcessPoolExecutor() as executor:
         results = list(executor.map(process_mask, tasks))
-
-

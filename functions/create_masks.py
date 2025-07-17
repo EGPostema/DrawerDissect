@@ -52,6 +52,7 @@ def process_mask(args):
 def create_masks(jsondir, pngdir):
     """
     Create binary masks from segmentation JSON files.
+    Handles both tray-based and specimen-only directory structures.
     
     Args:
         jsondir: Directory containing segmentation JSON files
@@ -71,9 +72,16 @@ def create_masks(jsondir, pngdir):
         
         for file in json_files:
             json_path = os.path.join(root, file)
-            png_subfolder = os.path.join(pngdir, rel_dir)
-            os.makedirs(png_subfolder, exist_ok=True)
             
+            # Create output structure that mirrors input
+            if rel_dir == '.':
+                # Files are in the root of jsondir - put masks in root of pngdir
+                png_subfolder = pngdir
+            else:
+                # Files are in subdirectories - mirror the structure
+                png_subfolder = os.path.join(pngdir, rel_dir)
+            
+            os.makedirs(png_subfolder, exist_ok=True)
             png_path = os.path.join(png_subfolder, file.replace('.json', '.png'))
             tasks.append((json_path, png_path))
     
@@ -89,7 +97,3 @@ def create_masks(jsondir, pngdir):
     # Process masks in parallel
     with ThreadPoolExecutor() as executor:
         results = list(executor.map(lambda x: process_mask(x), tasks))
-
-    
-
-
