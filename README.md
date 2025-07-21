@@ -217,9 +217,9 @@ merge_data             # Combine all data into final CSVs
 Use the --rerun flag to redo steps, overwriting previous outputs
 
 ```bash
-python process_images.py {step} --rerun                                     # reruns {step} for all drawers
-python process_images.py {step} --drawers drawer_001                        # reruns {step} for specific drawer(s)
-python process_images.py --from {step} --until {step} --drawers drawer_001  # reruns range of steps for specific drawer(s)
+python process_images.py {step} --rerun                                             # reruns {step} for all drawers
+python process_images.py {step} --rerun --drawers drawer_001                        # reruns {step} for specific drawer(s)
+python process_images.py --from {step} --until {step} --rerun --drawers drawer_001  # reruns range of steps for specific drawer(s)
 ```
 ![Screenshot 2025-07-09 142726](https://github.com/user-attachments/assets/08ba4c7f-a53b-4739-8016-9e20e0d44f52)
 
