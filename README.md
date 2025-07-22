@@ -227,6 +227,7 @@ python process_images.py --from {step} --until {step} --rerun --drawers drawer_0
 
 ```bash
 python process_images.py --status
+python process_images.py --status --write-report  # creates a timestamped CSV for the report
 ```
 
 ![Screenshot 2025-07-09 142902](https://github.com/user-attachments/assets/63e64440-4911-4a52-99b6-5d83160245ed)
