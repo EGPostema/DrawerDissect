@@ -5,6 +5,8 @@ import argparse
 import roboflow
 import asyncio
 import shutil
+import csv
+from datetime import datetime
 from functools import lru_cache
 from typing import Tuple, Dict, Any
 from config import DrawerDissectConfig
@@ -318,9 +320,6 @@ def run_step_for_drawer(step, config, drawer_id, args, rf_instance=None, workspa
                 output_base_path=output_base_path
             )
 
-# Steps can be run in order (all), individually, in combinations, or with --from and --until flags
-## Steps can also be run for specific drawers using --drawers flag
-
 def parse_arguments():
     all_steps = [
         'resize_drawers', 'find_trays', 'crop_trays',
@@ -348,6 +347,8 @@ def parse_arguments():
                             help='List available drawers and exit')
     drawer_group.add_argument('--status', action='store_true',
                             help='Show status report of all drawers and exit')
+    drawer_group.add_argument('--write-report', action='store_true',
+                            help='Write CSV status report to status_reports folder')
 
     # Processing options
     processing_group = parser.add_argument_group('Processing Options')
@@ -471,7 +472,7 @@ def clear_existing_outputs(config, drawer_id, steps_to_run):
         'create_pinmask': ['full_masks'],
         'create_transparency': ['transparencies', 'whitebg_specimens'],
         'transcribe_speclabels': ['specimen_level'],
-        'validate_speclabels': [], # Don't clear, just re-process
+        'validate_speclabels': [], # Don't clear, just re-process existing files
         'transcribe_barcodes': ['tray_level'],
         'transcribe_geocodes': [], # Don't clear tray_level if other transcription steps need it
         'transcribe_taxonomy': [], # Don't clear tray_level if other transcription steps need it  
@@ -501,12 +502,11 @@ def clear_existing_outputs(config, drawer_id, steps_to_run):
     if cleared_dirs:
         log(f"Cleared outputs from: {', '.join(cleared_dirs)}")
 
-def generate_status_report(config):
+def generate_status_report(config, write_report=False):
     """
     Generate and display a status report showing what outputs exist for each drawer.
+    Optionally write a CSV report to status_reports folder.
     """
-    from functions.drawer_management import discover_and_sort_drawers
-    
     # Get all available drawers
     discover_and_sort_drawers(config)  # Sort any unsorted images first
     available_drawers = config.get_existing_drawers()
@@ -515,7 +515,7 @@ def generate_status_report(config):
         log("No drawers found")
         return
     
-    # Define the outputs to check for each step
+    # Define the outputs to check for each step (removed fix_masks)
     step_outputs = {
         'resize_drawers': 'resized',
         'find_trays': 'coordinates', 
@@ -528,7 +528,6 @@ def generate_status_report(config):
         'create_traymaps': 'guides',
         'outline_specimens': 'mask_coordinates',
         'create_masks': 'mask_png',
-        'fix_masks': 'mask_png',  # Same as create_masks
         'measure_specimens': 'measurements',
         'censor_background': 'no_background',
         'outline_pins': 'pin_coordinates',
@@ -546,6 +545,9 @@ def generate_status_report(config):
     log("DRAWER STATUS REPORT")
     log("=" * 80)
     
+    # Data for CSV report
+    report_data = []
+    
     for drawer_id in available_drawers:
         drawer_type = "specimen-only" if is_specimen_only_drawer(config, drawer_id) else "standard"
         log(f"\n{drawer_id} ({drawer_type}):")
@@ -554,6 +556,9 @@ def generate_status_report(config):
         outputs_found = []
         outputs_missing = []
         
+        # Dictionary to store status for CSV report
+        drawer_status = {'drawer_id': drawer_id}
+        
         for step, output_dir in step_outputs.items():
             try:
                 output_path = config.get_drawer_directory(drawer_id, output_dir)
@@ -561,30 +566,64 @@ def generate_status_report(config):
                 # Check if directory exists and has content
                 has_output = False
                 if os.path.exists(output_path):
-                    # Check for any files/folders in the directory
                     if step == 'measure_specimens':
                         # Check for measurements.csv specifically
                         has_output = os.path.exists(os.path.join(output_path, 'measurements.csv'))
-                    elif step in ['transcribe_speclabels', 'validate_speclabels']:
-                        # Check for CSV files in specimen_level
-                        has_output = any(f.endswith('.csv') for f in os.listdir(output_path) if os.path.isfile(os.path.join(output_path, f)))
-                    elif step in ['transcribe_barcodes', 'transcribe_geocodes', 'transcribe_taxonomy']:
-                        # Check for CSV files in tray_level
-                        has_output = any(f.endswith('.csv') for f in os.listdir(output_path) if os.path.isfile(os.path.join(output_path, f)))
+                    elif step == 'transcribe_speclabels':
+                        # Check for location_frags.csv in specimen_level
+                        has_output = os.path.exists(os.path.join(output_path, 'location_frags.csv'))
+                    elif step == 'validate_speclabels':
+                        # Check for location_checked.csv in specimen_level
+                        has_output = os.path.exists(os.path.join(output_path, 'location_checked.csv'))
+                    elif step == 'transcribe_barcodes':
+                        # Check for unit_barcodes.csv in tray_level
+                        has_output = os.path.exists(os.path.join(output_path, 'unit_barcodes.csv'))
+                    elif step == 'transcribe_geocodes':
+                        # Check for geocodes.csv in tray_level
+                        has_output = os.path.exists(os.path.join(output_path, 'geocodes.csv'))
+                    elif step == 'transcribe_taxonomy':
+                        # Check for taxonomy.csv in tray_level
+                        has_output = os.path.exists(os.path.join(output_path, 'taxonomy.csv'))
                     elif step == 'merge_data':
-                        # Check for any timestamped folders
-                        has_output = any(os.path.isdir(os.path.join(output_path, item)) for item in os.listdir(output_path))
+                        # Check for any timestamped folders and get most recent
+                        timestamped_dirs = [item for item in os.listdir(output_path) 
+                                          if os.path.isdir(os.path.join(output_path, item))]
+                        has_output = len(timestamped_dirs) > 0
+                        if has_output:
+                            # Find most recent timestamp
+                            most_recent = max(timestamped_dirs)
+                            drawer_status['merge_data_timestamp'] = most_recent
+                    elif step in ['crop_specimens', 'outline_specimens', 'create_masks', 'censor_background', 
+                                'outline_pins', 'create_pinmask', 'create_transparency']:
+                        # These steps create tray-specific subfolders, check for any subfolder with files
+                        has_output = False
+                        try:
+                            # Look for any subdirectories (tray folders)
+                            subdirs = [item for item in os.listdir(output_path) 
+                                     if os.path.isdir(os.path.join(output_path, item))]
+                            for subdir in subdirs:
+                                subdir_path = os.path.join(output_path, subdir)
+                                # Check if this tray folder has any files
+                                if any(os.path.isfile(os.path.join(subdir_path, f)) 
+                                      for f in os.listdir(subdir_path)):
+                                    has_output = True
+                                    break
+                        except (OSError, PermissionError):
+                            has_output = False
                     else:
-                        # Check for any files in the directory
+                        # Check for any files in the directory (for non-nested steps)
                         has_output = any(os.path.isfile(os.path.join(output_path, f)) for f in os.listdir(output_path))
                 
                 if has_output:
                     outputs_found.append(step)
+                    drawer_status[step] = 'complete'
                 else:
                     outputs_missing.append(step)
+                    drawer_status[step] = 'missing'
                     
             except Exception:
                 outputs_missing.append(step)
+                drawer_status[step] = 'missing'
         
         # Display results
         if outputs_found:
@@ -592,18 +631,67 @@ def generate_status_report(config):
         if outputs_missing:
             log(f"  ✗ Missing:   {', '.join(outputs_missing)}")
         
+        # Special display for merge_data timestamp
+        if 'merge_data_timestamp' in drawer_status:
+            log(f" Most recent merge: {drawer_status['merge_data_timestamp']}")
+        
         if not outputs_found and not outputs_missing:
             log("  (No outputs detected)")
+        
+        # Add to report data
+        report_data.append(drawer_status)
     
     log("\n" + "=" * 80)
+    
+    # Write CSV report if requested
+    if write_report:
+        write_status_csv_report(config, report_data, step_outputs.keys())
+
+def write_status_csv_report(config, report_data, step_names):
+    """
+    Write a timestamped CSV report to the status_reports folder.
+    """
+    # Create status_reports directory in the same directory as process_images.py
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    status_reports_dir = os.path.join(script_dir, 'status_reports')
+    os.makedirs(status_reports_dir, exist_ok=True)
+    
+    # Generate timestamp
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    report_filename = f"report_{timestamp}.csv"
+    report_path = os.path.join(status_reports_dir, report_filename)
+    
+    # Get Roboflow model info from config
+    model_info = {}
+    if hasattr(config, 'roboflow_models'):
+        for model_name, model_config in config.roboflow_models.items():
+            model_info[f'{model_name}_endpoint'] = model_config.get('endpoint', 'N/A')
+            model_info[f'{model_name}_version'] = model_config.get('version', 'N/A')
+    
+    # Prepare CSV headers
+    headers = ['drawer_id'] + list(step_names) + ['merge_data_timestamp'] + list(model_info.keys())
+    
+    # Write CSV
+    with open(report_path, 'w', newline='', encoding='utf-8') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=headers)
+        writer.writeheader()
+        
+        for drawer_data in report_data:
+            # Merge drawer data with model info
+            row_data = {**drawer_data, **model_info}
+            # Fill missing values with empty strings
+            for header in headers:
+                if header not in row_data:
+                    row_data[header] = ''
+            writer.writerow(row_data)
+    
+    log(f"CSV report written to: {report_path}")
 
 # Main Function
 def main():
     start_time = time.time()
     
     config = DrawerDissectConfig()
-    
-    from functions.drawer_management import get_drawers_to_process, validate_drawer_structure, is_specimen_only_drawer
     
     all_steps = [
         'resize_drawers', 'find_trays', 'crop_trays',
@@ -627,11 +715,10 @@ def main():
         
         # Handle status report
         if args.status:
-            generate_status_report(config)
+            generate_status_report(config, write_report=args.write_report)
             return
         
         if args.list_drawers:
-            from functions.drawer_management import discover_and_sort_drawers
             discover_and_sort_drawers(config)  # Sort any unsorted images first
             available = config.get_existing_drawers()
             if available:

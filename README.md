@@ -32,7 +32,7 @@ Current Version: v0.1.0
 
 ## Citation
 
-Postema, E.G., Briscoe, L., Harder, C., Hancock, G.R.A., Guarnieri, L.D, Eisel, T., Welch, K., Fischer, N., Johnson, C., Souza, D., Sepulveda, T., Phillip, D., Baquiran, R., de Medeiros, B.A.S. 2025. **DrawerDissect: Whole-drawer insect imaging, segmentation, and trait extraction using AI.** <i>EcoEvoRxiv (pre-print)</i>. https://doi.org/10.32942/X2QW84
+Postema, E.G., Briscoe, L., Harder, C., Hancock, G.R.A., Guarnieri, L.D, Eisel, T., Welch, K., Fisher, N., Johnson, C., Souza, D., Sepulveda, T., Phillip, D., Baquiran, R., de Medeiros, B.A.S. 2025. **DrawerDissect: Whole-drawer insect imaging, segmentation, and trait extraction using AI.** <i>EcoEvoRxiv (pre-print)</i>. https://doi.org/10.32942/X2QW84
 
 ## Installation
 
@@ -217,9 +217,9 @@ merge_data             # Combine all data into final CSVs
 Use the --rerun flag to redo steps, overwriting previous outputs
 
 ```bash
-python process_images.py {step} --rerun                                     # reruns {step} for all drawers
-python process_images.py {step} --drawers drawer_001                        # reruns {step} for specific drawer(s)
-python process_images.py --from {step} --until {step} --drawers drawer_001  # reruns range of steps for specific drawer(s)
+python process_images.py {step} --rerun                                             # reruns {step} for all drawers
+python process_images.py {step} --rerun --drawers drawer_001                        # reruns {step} for specific drawer(s)
+python process_images.py --from {step} --until {step} --rerun --drawers drawer_001  # reruns range of steps for specific drawer(s)
 ```
 ![Screenshot 2025-07-09 142726](https://github.com/user-attachments/assets/08ba4c7f-a53b-4739-8016-9e20e0d44f52)
 
@@ -227,6 +227,7 @@ python process_images.py --from {step} --until {step} --drawers drawer_001  # re
 
 ```bash
 python process_images.py --status
+python process_images.py --status --write-report  # creates a timestamped CSV for the report
 ```
 
 ![Screenshot 2025-07-09 142902](https://github.com/user-attachments/assets/63e64440-4911-4a52-99b6-5d83160245ed)

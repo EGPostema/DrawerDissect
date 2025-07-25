@@ -87,26 +87,36 @@ def process_single_image(args: Tuple[str, str, str, str]) -> bool:
         return False
         
     try:
-        with Image.open(specimen_path).convert("RGBA") as specimen_image:
-            with Image.open(mask_path).convert("L") as mask_image:
-                # No need to resize - we assume they're already the same size
+        # Load and process images with explicit context management
+        with Image.open(specimen_path) as specimen_img:
+            specimen_image = specimen_img.convert("RGBA").copy()  # Create copy to detach from file
+            
+        with Image.open(mask_path) as mask_img:
+            mask_image = mask_img.convert("L").copy()  # Create copy to detach from file
                 
-                # Enhance the mask for clearer edges
-                enhanced_mask = mask_image.point(lambda x: 255 if x > 128 else 0)
-                r, g, b, _ = specimen_image.split()
-                alpha = enhanced_mask.point(lambda x: 255 if x > 128 else 0)
-                
-                # Create transparent version
-                transparent_image = Image.merge('RGBA', (r, g, b, alpha))
-                transparent_image.save(transparent_output_path, "PNG", optimize=True)
-                
-                # Create white background version
-                white_bg = Image.new('RGB', specimen_image.size, (255, 255, 255))
-                white_bg.paste(transparent_image, mask=alpha)
-                white_bg.save(whitebg_output_path)
-                
-                # Success without printing each file
-                return True
+        # Enhance the mask for clearer edges
+        enhanced_mask = mask_image.point(lambda x: 255 if x > 128 else 0)
+        r, g, b, _ = specimen_image.split()
+        alpha = enhanced_mask.point(lambda x: 255 if x > 128 else 0)
+        
+        # Create transparent version
+        transparent_image = Image.merge('RGBA', (r, g, b, alpha))
+        transparent_image.save(transparent_output_path, "PNG", optimize=True)
+        
+        # Create white background version
+        white_bg = Image.new('RGB', specimen_image.size, (255, 255, 255))
+        white_bg.paste(transparent_image, mask=alpha)
+        white_bg.save(whitebg_output_path)
+        
+        # Explicitly close all images to prevent cleanup issues
+        enhanced_mask.close()
+        alpha.close()
+        transparent_image.close()
+        white_bg.close()
+        specimen_image.close()
+        mask_image.close()
+        
+        return True
                 
     except Exception as e:
         print(f"Error: {os.path.basename(specimen_path)} - {str(e)}")
@@ -160,7 +170,7 @@ def create_transparency(specimen_input_dir: str, mask_input_dir: str,
         batch_size: Process images in batches of this size
     """
     tasks: List[Tuple[str, str, str, str]] = []
-    skipped = missing_masks = 0
+    missing_masks = 0
 
     supported_formats = ('.jpg', '.jpeg', '.tif', '.tiff', '.png')
     for root, _, files in os.walk(specimen_input_dir):
@@ -205,11 +215,13 @@ def create_transparency(specimen_input_dir: str, mask_input_dir: str,
     num_workers = determine_optimal_workers(len(tasks), sequential, max_workers)
     print(f"Processing {len(tasks)} images with {num_workers} workers")
     
+    # Initialize tracking variables
+    processed = 0
+    skipped = 0
+    
     # Process in batches if batch_size is specified
     if batch_size and batch_size < len(tasks):
         print(f"Processing in batches of {batch_size}")
-        processed = 0
-        skipped = 0
         total_batches = (len(tasks) + batch_size - 1) // batch_size
         
         for i in range(0, len(tasks), batch_size):
@@ -233,8 +245,6 @@ def create_transparency(specimen_input_dir: str, mask_input_dir: str,
         print()  # Final newline after batches complete
     else:
         # Process all at once with progress indicator
-        processed = 0
-        skipped = 0
         progress_interval = 100  # Update progress bar every 100 images
         
         with ThreadPoolExecutor(max_workers=num_workers) as executor:
@@ -246,9 +256,3 @@ def create_transparency(specimen_input_dir: str, mask_input_dir: str,
                     processed += 1
                 else:
                     skipped += 1
-                
-                # Show progress periodically
-                if (i + 1) % progress_interval == 0 or (i + 1) == len(tasks):
-                    print(f"\rProcessed {i + 1}/{len(tasks)} images", end="", flush=True)
-        
-        print()  # Final newline
