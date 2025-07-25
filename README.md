@@ -232,6 +232,17 @@ python process_images.py --status --write-report  # creates a timestamped CSV fo
 
 ![Screenshot 2025-07-09 142902](https://github.com/user-attachments/assets/63e64440-4911-4a52-99b6-5d83160245ed)
 
+### Specimen-Only Projects
+
+To start with specimen images rather than whole-drawer images:
+- In `drawers`, create the folders `{your_folder_name}\specimens`
+- Add specimen images to `{your_folder_name}\specimens`
+- Run specimen-specific steps, e.g.:
+
+```bash
+python process_images.py --drawers {your_folder_name} --from outline_specimens --until create_transparency
+```
+
 ---
 
 ## Example Outputs

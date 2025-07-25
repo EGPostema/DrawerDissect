@@ -142,6 +142,7 @@ def generate_csv_with_measurements(mask_dir, output_dir, csv_filename='measureme
     """
     Generate or update a CSV file of measurements for all valid masks.
     Skip already processed images and append data for new ones.
+    Handles both standard specimen naming and custom filenames.
     
     Args:
         mask_dir: Directory containing mask PNG files
@@ -176,9 +177,17 @@ def generate_csv_with_measurements(mask_dir, output_dir, csv_filename='measureme
                         logger.info(f"Skipping already processed image: {full_id}")
                         continue
                         
-                    # Extract drawer_id and tray_id
-                    drawer_id = full_id.split('_tray_')[0]
-                    tray_id = full_id.split('_spec')[0]
+                    # Try to extract drawer_id and tray_id from standard naming
+                    # If it fails, use the filename as-is
+                    if '_tray_' in full_id and '_spec' in full_id:
+                        # Standard naming: drawer_id_tray_XX_spec_YY
+                        drawer_id = full_id.split('_tray_')[0]
+                        tray_id = full_id.split('_spec')[0]
+                    else:
+                        # Non-standard naming: use filename as full_id
+                        # For drawer_id and tray_id, try to extract meaningful parts or use "unknown"
+                        drawer_id = "custom_specimens"
+                        tray_id = "custom_specimens"
                     
                     file_info.append({
                         'spec_filename': f,

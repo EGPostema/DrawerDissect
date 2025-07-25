@@ -1,6 +1,6 @@
 import os
 from PIL import Image
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 import multiprocessing
 import logging
 from typing import Tuple, List, Optional
@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 def find_mask_path(specimen_path: str, mask_dir: str) -> Optional[str]:
     """
     Find the corresponding mask for a specimen image with _masked in the filename.
+    Supports both tray-based and specimen-only directory structures.
     
     Args:
         specimen_path: Path to the specimen image
@@ -21,24 +22,52 @@ def find_mask_path(specimen_path: str, mask_dir: str) -> Optional[str]:
         Optional[str]: Path to the mask file or None if not found
     """
     path_parts = os.path.normpath(specimen_path).split(os.sep)
-    if len(path_parts) < 4:
-        return None
-        
-    drawer_id = path_parts[-3]
-    tray_id = path_parts[-2]
     specimen_name = os.path.splitext(path_parts[-1])[0]
     
     # Remove _masked suffix from specimen name to find the corresponding mask
     specimen_base = specimen_name.replace('_masked', '')
     
-    # Look for mask files
-    mask_subdir = os.path.join(mask_dir, tray_id)
+    # Method 1: Try tray-based structure (for standard drawers)
+    if len(path_parts) >= 4:
+        drawer_id = path_parts[-3]
+        tray_id = path_parts[-2]
+        
+        # Check if this follows standard naming pattern
+        if '_tray_' in specimen_base and '_spec' in specimen_base:
+            mask_subdir = os.path.join(mask_dir, tray_id)
+            mask_options = [f"{specimen_base}_fullmask.png", f"{specimen_base}_fullmask_unedited.png"]
+            
+            for mask_name in mask_options:
+                mask_path = os.path.join(mask_subdir, mask_name)
+                if os.path.exists(mask_path):
+                    return mask_path
+    
+    # Method 2: Try direct lookup in mask_dir (for specimen-only drawers)
     mask_options = [f"{specimen_base}_fullmask.png", f"{specimen_base}_fullmask_unedited.png"]
     
+    # Check for numbered masks as well
+    for i in range(1, 10):
+        mask_options.append(f"{specimen_base}_fullmask_{i}.png")
+    
+    # First try the root mask directory
     for mask_name in mask_options:
-        mask_path = os.path.join(mask_subdir, mask_name)
-        if os.path.exists(mask_path):
-            return mask_path
+        direct_mask_path = os.path.join(mask_dir, mask_name)
+        if os.path.exists(direct_mask_path):
+            return direct_mask_path
+    
+    # Method 3: Search recursively in subdirectories
+    for root, _, files in os.walk(mask_dir):
+        for mask_name in mask_options:
+            if mask_name in files:
+                return os.path.join(root, mask_name)
+    
+    # Method 4: Try flat structure assuming specimens are not in tray subfolders
+    if len(path_parts) >= 2:
+        specimens_subdir = path_parts[-2]  # Could be a subfolder within specimens
+        for mask_name in mask_options:
+            mask_path = os.path.join(mask_dir, specimens_subdir, mask_name)
+            if os.path.exists(mask_path):
+                return mask_path
             
     return None
 
@@ -129,6 +158,7 @@ def create_transparency(specimen_input_dir: str, mask_input_dir: str,
                       batch_size: Optional[int] = None) -> None:
     """
     Create transparent and white background versions of specimens using masks.
+    Supports both tray-based and specimen-only directory structures.
     
     Args:
         specimen_input_dir: Directory containing specimen images (with _masked in filenames)
@@ -137,7 +167,7 @@ def create_transparency(specimen_input_dir: str, mask_input_dir: str,
         whitebg_output_dir: Directory to save white background images
         sequential: If True, process one at a time
         max_workers: Maximum number of parallel workers
-        batch_size: Process in batches of this size (for memory constraints)
+        batch_size: Process images in batches of this size
     """
     tasks: List[Tuple[str, str, str, str]] = []
     missing_masks = 0
@@ -152,9 +182,17 @@ def create_transparency(specimen_input_dir: str, mask_input_dir: str,
                 missing_masks += 1
                 continue
                 
+            # Create output structure that mirrors input structure
             relative_path = os.path.relpath(root, specimen_input_dir)
-            transparent_subfolder = os.path.join(transparent_output_dir, relative_path)
-            whitebg_subfolder = os.path.join(whitebg_output_dir, relative_path)
+            if relative_path == '.':
+                # Files are in the root - put outputs in root of output dirs
+                transparent_subfolder = transparent_output_dir
+                whitebg_subfolder = whitebg_output_dir
+            else:
+                # Files are in subdirectories - mirror the structure
+                transparent_subfolder = os.path.join(transparent_output_dir, relative_path)
+                whitebg_subfolder = os.path.join(whitebg_output_dir, relative_path)
+            
             os.makedirs(transparent_subfolder, exist_ok=True)
             os.makedirs(whitebg_subfolder, exist_ok=True)
             
@@ -169,6 +207,9 @@ def create_transparency(specimen_input_dir: str, mask_input_dir: str,
     if not tasks:
         print("No valid image pairs found")
         return
+
+    if missing_masks > 0:
+        print(f"Warning: {missing_masks} specimens had no corresponding masks")
 
     # Determine optimal worker count based on configuration
     num_workers = determine_optimal_workers(len(tasks), sequential, max_workers)
@@ -190,9 +231,9 @@ def create_transparency(specimen_input_dir: str, mask_input_dir: str,
             # Show batch progress
             print(f"\rProcessing batch {batch_num}/{total_batches} [{i}/{len(tasks)} images]", end="", flush=True)
             
-            with ProcessPoolExecutor(max_workers=num_workers) as executor:
+            with ThreadPoolExecutor(max_workers=num_workers) as executor:
                 batch_results = list(executor.map(process_single_image, batch))
-                    
+                
             batch_processed = sum(1 for r in batch_results if r)
             batch_skipped = sum(1 for r in batch_results if not r)
             processed += batch_processed
@@ -203,17 +244,15 @@ def create_transparency(specimen_input_dir: str, mask_input_dir: str,
             
         print()  # Final newline after batches complete
     else:
-        # Process all at once
-        with ProcessPoolExecutor(max_workers=num_workers) as executor:
+        # Process all at once with progress indicator
+        progress_interval = 100  # Update progress bar every 100 images
+        
+        with ThreadPoolExecutor(max_workers=num_workers) as executor:
             futures = [executor.submit(process_single_image, task) for task in tasks]
             
-            # Process results
-            for future in futures:
-                if future.result():
+            for i, future in enumerate(futures):
+                result = future.result()
+                if result:
                     processed += 1
                 else:
                     skipped += 1
-
-    print(f"Transparency creation complete: {processed} processed, {skipped} skipped")
-    if missing_masks > 0:
-        print(f"Warning: {missing_masks} specimens had no corresponding masks")

@@ -69,8 +69,6 @@ def process_image(args):
     """Process a single image to detect pins."""
     # Updated args to include model creation parameters instead of model instance
     workspace_instance, model_endpoint, version, input_dir, output_dir, root, file, confidence, current, total = args
-    
-    # Create model instance per thread - this is the key fix!
     project = workspace_instance.project(model_endpoint)
     model = project.version(version).model
     

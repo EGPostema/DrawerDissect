@@ -72,8 +72,14 @@ def process_image(args):
     # Extract path information
     relative_path = os.path.relpath(root, input_dir)
     
-    # Create output subfolder
-    output_subfolder = os.path.join(output_dir, relative_path)
+    # Create output structure that mirrors input
+    if relative_path == '.':
+        # Files are in the root of input_dir - put outputs in root of output_dir
+        output_subfolder = output_dir
+    else:
+        # Files are in subdirectories - mirror the structure
+        output_subfolder = os.path.join(output_dir, relative_path)
+    
     os.makedirs(output_subfolder, exist_ok=True)
     
     # Define output JSON path
@@ -120,6 +126,7 @@ def infer_beetles(
 ):
     """
     Segment specimens in images using the Roboflow model.
+    Supports both tray-based and specimen-only directory structures.
     
     Args:
         input_dir: Directory containing specimen images
@@ -184,10 +191,3 @@ def infer_beetles(
             results = list(executor.map(process_image, tasks))
             processed = sum(1 for r in results if r)
             skipped = len(tasks) - processed - errors
-
-
-
-
-
-
-

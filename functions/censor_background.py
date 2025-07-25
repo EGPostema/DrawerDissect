@@ -54,26 +54,54 @@ def process_masking(args):
         return False
 
 def find_mask_path(specimen_path, mask_dir):
-    """Find the corresponding mask for a specimen image."""
+    """
+    Find the corresponding mask for a specimen image.
+    Handles both standard tray-based naming and custom specimen-only naming.
+    """
     # Extract full_id from specimen path
     base_name = os.path.splitext(os.path.basename(specimen_path))[0]
     
-    # Extract drawer and tray ids from the specimen path
+    # Method 1: Try standard tray-based structure first
     path_parts = os.path.normpath(specimen_path).split(os.sep)
-    if len(path_parts) < 3:
-        return None
+    if len(path_parts) >= 3:
+        drawer_id = path_parts[-3]  # Three levels up for drawer
+        tray_id = path_parts[-2]    # Two levels up for tray
         
-    drawer_id = path_parts[-3]  # Three levels up for drawer
-    tray_id = path_parts[-2]    # Two levels up for tray
+        # Check if this follows standard naming pattern
+        if '_tray_' in base_name and '_spec' in base_name:
+            # Standard naming: construct mask path with tray subfolder
+            mask_path = os.path.join(mask_dir, tray_id, f"{base_name}.png")
+            if os.path.exists(mask_path):
+                return mask_path
     
-    # Construct mask path
-    mask_path = os.path.join(mask_dir, tray_id, f"{base_name}.png")
+    # Method 2: Try direct mask lookup (for custom specimen naming)
+    # Look for mask directly in mask_dir or its subdirectories
+    mask_filename = f"{base_name}.png"
     
-    return mask_path if os.path.exists(mask_path) else None
+    # First try the root mask directory
+    direct_mask_path = os.path.join(mask_dir, mask_filename)
+    if os.path.exists(direct_mask_path):
+        return direct_mask_path
+    
+    # Search recursively in subdirectories
+    for root, _, files in os.walk(mask_dir):
+        if mask_filename in files:
+            return os.path.join(root, mask_filename)
+    
+    # Method 3: Try flat structure assuming specimens are not in tray subfolders
+    # This handles the case where specimens are directly in the specimens folder
+    if len(path_parts) >= 2:
+        specimens_subdir = path_parts[-2]  # Could be a subfolder within specimens
+        mask_path = os.path.join(mask_dir, specimens_subdir, f"{base_name}.png")
+        if os.path.exists(mask_path):
+            return mask_path
+    
+    return None
 
 def censor_background(specimens_dir, mask_dir, masked_specs_dir):
     """
     Apply masks to specimen images to replace backgrounds with white.
+    Supports both standard tray-based structure and specimen-only custom naming.
     
     Args:
         specimens_dir: Directory containing specimen images
@@ -96,6 +124,9 @@ def censor_background(specimens_dir, mask_dir, masked_specs_dir):
             mask_path = find_mask_path(specimen_path, mask_dir)
             
             if not mask_path:
+                # Log missing masks for debugging
+                base_name = os.path.splitext(file)[0]
+                log(f"Warning: No mask found for specimen {base_name}")
                 continue
                 
             # Create output path with the same folder structure
@@ -132,5 +163,3 @@ def censor_background(specimens_dir, mask_dir, masked_specs_dir):
             processed += 1
         else:
             skipped += 1
-
-

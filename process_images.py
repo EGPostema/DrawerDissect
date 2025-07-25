@@ -11,7 +11,7 @@ from functools import lru_cache
 from typing import Tuple, Dict, Any
 from config import DrawerDissectConfig
 from logging_utils import log, StepTimer
-from functions.drawer_management import get_drawers_to_process, validate_drawer_structure, discover_and_sort_drawers
+from functions.drawer_management import get_drawers_to_process, validate_drawer_structure, discover_and_sort_drawers, is_specimen_only_drawer
 from functions.resize_drawer import resize_drawer_images
 from functions.infer_drawers import infer_drawers
 from functions.crop_trays import crop_trays_from_fullsize
@@ -549,7 +549,8 @@ def generate_status_report(config, write_report=False):
     report_data = []
     
     for drawer_id in available_drawers:
-        log(f"\n{drawer_id}:")
+        drawer_type = "specimen-only" if is_specimen_only_drawer(config, drawer_id) else "standard"
+        log(f"\n{drawer_id} ({drawer_type}):")
         log("-" * 40)
         
         outputs_found = []
@@ -702,6 +703,13 @@ def main():
         'transcribe_taxonomy', 'merge_data'
     ]
     
+    # Define steps that are valid for specimen-only drawers
+    specimen_only_steps = [
+        'outline_specimens', 'create_masks', 'fix_masks', 'measure_specimens',
+        'censor_background', 'outline_pins', 'create_pinmask', 'create_transparency',
+        'transcribe_speclabels', 'validate_speclabels', 'merge_data'
+    ]
+    
     try:
         args = parse_arguments()
         
@@ -716,7 +724,8 @@ def main():
             if available:
                 log("Available drawers:")
                 for drawer in available:
-                    log(f"  - {drawer}")
+                    drawer_type = "specimen-only" if is_specimen_only_drawer(config, drawer) else "standard"
+                    log(f"  - {drawer} ({drawer_type})")
             else:
                 log("No drawers found")
             return
@@ -732,11 +741,15 @@ def main():
             log("No drawers to process")
             return
         
-        # Validate drawer structures
+        # Validate drawer structures and categorize
         valid_drawers = []
+        specimen_only_drawers = []
+        
         for drawer_id in drawers_to_process:
             if validate_drawer_structure(config, drawer_id):
                 valid_drawers.append(drawer_id)
+                if is_specimen_only_drawer(config, drawer_id):
+                    specimen_only_drawers.append(drawer_id)
             else:
                 log(f"Skipping invalid drawer: {drawer_id}")
         
@@ -756,7 +769,15 @@ def main():
             log("Clearing existing outputs...")
             for drawer_id in valid_drawers:
                 clear_existing_outputs(config, drawer_id, steps_to_run)
-            
+        
+        # Filter steps for specimen-only drawers
+        if specimen_only_drawers:
+            invalid_steps_for_specimens = [step for step in steps_to_run 
+                                         if step not in specimen_only_steps]
+            if invalid_steps_for_specimens:
+                log(f"Warning: Steps {invalid_steps_for_specimens} not supported for specimen-only drawers")
+                log(f"Specimen-only drawers ({specimen_only_drawers}) will skip these steps")
+        
     except ValueError as e:
         log(f"Error: {e}")
         return
@@ -765,6 +786,8 @@ def main():
     log("DrawerDissect Pipeline")
     log("=====================")
     log(f"Processing drawers: {', '.join(valid_drawers)}")
+    if specimen_only_drawers:
+        log(f"Specimen-only drawers: {', '.join(specimen_only_drawers)}")
     log(f"Running steps: {', '.join(steps_to_run)}")
     if args.rerun:
         log("Mode: RERUN (overwriting existing outputs)")
@@ -780,7 +803,21 @@ def main():
     for drawer_id in valid_drawers:
         log(f"\n{'='*20} Processing {drawer_id} {'='*20}")
         
+        # Determine which steps to run for this drawer
+        is_specimen_only = drawer_id in specimen_only_drawers
+        drawer_steps = []
+        
         for step in steps_to_run:
+            if is_specimen_only and step not in specimen_only_steps:
+                log(f"Skipping {step} for specimen-only drawer {drawer_id}")
+                continue
+            drawer_steps.append(step)
+        
+        if not drawer_steps:
+            log(f"No valid steps to run for drawer {drawer_id}")
+            continue
+        
+        for step in drawer_steps:
             log(f"Running {step} for {drawer_id}")
             run_step_for_drawer(step, config, drawer_id, args, rf_instance, workspace_instance)
 
