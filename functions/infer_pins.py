@@ -67,10 +67,7 @@ def retry_with_backoff(func, max_retries=3, base_delay=2, max_delay=60):
 
 def process_image(args):
     """Process a single image to detect pins."""
-    # Updated args to include model creation parameters instead of model instance
-    workspace_instance, model_endpoint, version, input_dir, output_dir, root, file, confidence, current, total = args
-    project = workspace_instance.project(model_endpoint)
-    model = project.version(version).model
+    model, input_dir, output_dir, root, file, confidence, current, total = args
     
     # Create output structure that mirrors input
     relative_path = os.path.relpath(root, input_dir)
@@ -145,8 +142,10 @@ def infer_pins(
         sequential: Whether to process sequentially to save memory
         max_workers: Maximum number of concurrent workers (None = auto)
     """
-    # Don't initialize model here anymore - let each thread create its own
+    # Initialize model once - this is the key fix!
     log(f"Using model: {model_endpoint} v{version} (confidence: {confidence})")
+    project = workspace_instance.project(model_endpoint)
+    model = project.version(version).model
     
     # Find all masked specimen images
     image_files = []
@@ -166,8 +165,8 @@ def infer_pins(
         
     log_found("masked specimens", len(image_files))
     
-    # Prepare tasks with model creation parameters instead of model instance
-    tasks = [(workspace_instance, model_endpoint, version, input_dir, output_dir, root, file, confidence, i+1, len(image_files)) 
+    # Prepare tasks with the shared model instance (like infer_beetles.py)
+    tasks = [(model, input_dir, output_dir, root, file, confidence, i+1, len(image_files)) 
              for i, (root, file) in enumerate(image_files)]
     
     # Counters for tracking results
@@ -190,15 +189,11 @@ def infer_pins(
                 errors += 1
     else:
         # Determine number of workers
-        workers = max_workers if max_workers is not None else min(8, os.cpu_count())  # Reduced from 32
+        workers = max_workers if max_workers is not None else min(32, os.cpu_count() * 2)
         log(f"Processing images in parallel with {workers} workers")
         
         # Use ThreadPoolExecutor for I/O bound tasks
         with ThreadPoolExecutor(max_workers=workers) as executor:
-            try:
-                results = list(executor.map(process_image, tasks))
-                processed = sum(1 for r in results if r)
-                skipped = len(tasks) - processed - errors
-            except Exception as e:
-                log(f"Error in parallel processing: {e}")
-                errors += 1
+            results = list(executor.map(process_image, tasks))
+            processed = sum(1 for r in results if r)
+            skipped = len(tasks) - processed - errors
