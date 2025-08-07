@@ -8,6 +8,10 @@ from contextlib import contextmanager
 from concurrent.futures import ThreadPoolExecutor
 from typing import Optional
 from logging_utils import log, log_found, log_progress
+import warnings
+
+warnings.filterwarnings("ignore")
+os.environ['PYTHONWARNINGS'] = 'ignore::RuntimeWarning'
 
 @contextmanager
 def temporary_jpg_if_needed(image_path):
