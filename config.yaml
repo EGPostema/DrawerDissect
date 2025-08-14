@@ -18,27 +18,27 @@ roboflow:
   models:
     drawer:
       endpoint: "trayfinder-base" # obj detection, finds trays in drawers (use trayfinder-popup for popup labels)
-      version: 2
+      version: 5
       confidence: 50 # adjustable, set from 1-99 (higher # = greater threshold for predictions)
       overlap: 50 # adjustable, set from 1-99 (higher # = higher expected overlap between bounding boxes)
     tray:
       endpoint: "bugfinder-kdn9e" # obj detection, finds specimens in trays
-      version: 16
-      confidence: 50
+      version: 18
+      confidence: 48
       overlap: 50
     label:
       endpoint: "labelfinder" # obj detection, finds label parts
-      version: 7
-      confidence: 50
-      overlap: 50
+      version: 10
+      confidence: 5
+      overlap: 20
     mask:
       endpoint: "bugmasker-all"  # segmentation, outlines specimen bodies
-      version: 8 
-      confidence: 50
+      version: 9 
+      confidence: 71
     pin:
       endpoint: "pinmasker" # segmentation, outlines pin
       version: 6
-      confidence: 50
+      confidence: 13
 
 prompts:
   barcode: # prompt for transcribing barcodes
