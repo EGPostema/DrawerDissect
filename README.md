@@ -4,7 +4,7 @@
 
 ---
 
-<img width="1000" src="https://github.com/user-attachments/assets/20e3abb8-18d4-45cd-9b83-3c67048e24b0" />
+![drawerdissectdemo (1)](https://github.com/user-attachments/assets/b9a9e5be-4c41-493e-8bc6-fe43b31659cd)
 
 ---
 
