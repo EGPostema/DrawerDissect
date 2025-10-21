@@ -4,7 +4,7 @@
 
 ---
 
-![drawerdissectdemo_optimized](https://github.com/user-attachments/assets/2942410d-48d3-420f-a7a3-aecc5d6f3033)
+![smalldemo](https://github.com/user-attachments/assets/46c1ce5d-7281-401e-b763-0ec498b1bc0a)
 
 ---
 
