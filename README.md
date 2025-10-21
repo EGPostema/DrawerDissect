@@ -4,10 +4,7 @@
 
 ---
 
-<video width="853" autoplay loop muted playsinline>
-  <source src="https://github.com/user-attachments/assets/388506e3-a784-4930-a288-3662e9de8b11" type="video/mp4">
-  Your browser doesn't support video tags.
-</video>
+![drawerdissectdemo_optimized](https://github.com/user-attachments/assets/2942410d-48d3-420f-a7a3-aecc5d6f3033)
 
 ---
 
