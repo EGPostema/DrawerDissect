@@ -13,7 +13,9 @@ from config import DrawerDissectConfig
 from logging_utils import log, StepTimer
 from functions.drawer_management import get_drawers_to_process, validate_drawer_structure, discover_and_sort_drawers, is_specimen_only_drawer
 from functions.resize_drawer import resize_drawer_images
+from functions.infer_color import infer_color
 from functions.infer_drawers import infer_drawers
+from functions.crop_color import crop_color_from_fullsize
 from functions.crop_trays import crop_trays_from_fullsize
 from functions.resize_trays import resize_tray_images
 from functions.infer_labels import infer_tray_labels
@@ -59,7 +61,7 @@ def run_step_for_drawer(step, config, drawer_id, args, rf_instance=None, workspa
         if sequential or max_workers is not None or batch_size is not None:
             log(f"Memory settings: sequential={sequential}, max_workers={max_workers}, batch_size={batch_size}")
         
-        if step in {'find_trays', 'find_traylabels', 'find_specimens', 
+        if step in {'find_color','find_trays', 'find_traylabels', 'find_specimens', 
                     'outline_specimens', 'outline_pins'} and not rf_instance:
                 rf_instance, workspace_instance = get_roboflow_instance(config)
                 
@@ -72,6 +74,30 @@ def run_step_for_drawer(step, config, drawer_id, args, rf_instance=None, workspa
                 batch_size=batch_size
             )
         
+        elif step == 'find_color':
+            color_model = config.roboflow_models['color']
+            infer_color(
+                config.get_drawer_directory(drawer_id, 'resized'),
+                config.get_drawer_directory(drawer_id, 'color_coordinates'),
+                rf_instance,
+                workspace_instance,
+                color_model['endpoint'],
+                color_model['version'],
+                confidence=args.color_confidence or color_model['confidence'],
+                overlap=args.color_overlap or color_model['overlap']
+            )
+
+        elif step == 'crop_color':
+            crop_color_from_fullsize(
+                config.get_drawer_directory(drawer_id, 'fullsize'),
+                config.get_drawer_directory(drawer_id, 'resized'),
+                config.get_drawer_directory(drawer_id, 'colorstandard'),
+                sequential=sequential,
+                max_workers=max_workers,
+                batch_size=batch_size
+            )
+        
+
         elif step == 'find_trays':
             drawer_model = config.roboflow_models['drawer']
             infer_drawers(
@@ -322,7 +348,7 @@ def run_step_for_drawer(step, config, drawer_id, args, rf_instance=None, workspa
 
 def parse_arguments():
     all_steps = [
-        'resize_drawers', 'find_trays', 'crop_trays',
+        'resize_drawers', 'find_color', 'crop_color', 'find_trays', 'crop_trays',
         'resize_trays', 'find_traylabels', 'crop_labels', 'find_specimens',
         'crop_specimens', 'create_traymaps', 'outline_specimens', 'create_masks',
         'fix_masks', 'measure_specimens', 'censor_background', 'outline_pins',
@@ -373,7 +399,7 @@ def parse_arguments():
     
     # Model confidence and overlap parameters; overlap for object detection only
     model_group = parser.add_argument_group('Model Parameters')
-    for model in ['drawer', 'tray', 'label', 'beetle', 'pin']:
+    for model in ['drawer', 'tray', 'label', 'beetle', 'pin', 'color']:
         model_group.add_argument(f'--{model}_confidence', type=float,
                                help=f'Confidence threshold for {model} detection')
         if model not in ['beetle', 'pin']:
@@ -455,6 +481,8 @@ def clear_existing_outputs(config, drawer_id, steps_to_run):
     # Define what outputs to clear for each step
     step_clear_mapping = {
         'resize_drawers': ['resized'],
+        'find_color': ['color_coordinates'],
+        'crop_color': ['colorstandard'],
         'find_trays': ['coordinates'], 
         'crop_trays': ['trays'],
         'resize_trays': ['resized_trays'],
@@ -518,6 +546,8 @@ def generate_status_report(config, write_report=False):
     # Define the outputs to check for each step (removed fix_masks)
     step_outputs = {
         'resize_drawers': 'resized',
+        'find_color': 'color_coordinates',
+        'crop_color': 'colorstandard',
         'find_trays': 'coordinates', 
         'crop_trays': 'trays',
         'resize_trays': 'resized_trays',
@@ -694,7 +724,7 @@ def main():
     config = DrawerDissectConfig()
     
     all_steps = [
-        'resize_drawers', 'find_trays', 'crop_trays',
+        'resize_drawers', 'find_color', 'crop_color', 'find_trays', 'crop_trays',
         'resize_trays', 'find_traylabels', 'crop_labels', 'find_specimens',
         'crop_specimens', 'create_traymaps', 'outline_specimens', 'create_masks',
         'fix_masks', 'measure_specimens', 'censor_background', 'outline_pins',
@@ -794,7 +824,7 @@ def main():
     
     # Initialize Roboflow if needed
     rf_instance = workspace_instance = None
-    roboflow_steps = {'find_trays', 'find_traylabels', 'find_specimens', 
+    roboflow_steps = {'find_color','find_trays', 'find_traylabels', 'find_specimens', 
                     'outline_specimens', 'outline_pins'}
     if set(steps_to_run) & roboflow_steps:
         rf_instance, workspace_instance = get_roboflow_instance(config)
