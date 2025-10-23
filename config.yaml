@@ -39,6 +39,11 @@ roboflow:
       endpoint: "pinmasker" # segmentation, outlines pin
       version: 6
       confidence: 13
+    color:
+      endpoint: "colorfinder-vkzse" # find colorstandard
+      version: 2
+      confidence: 48
+      overlap: 1
 
 prompts:
   barcode: # prompt for transcribing barcodes
@@ -171,6 +176,8 @@ directories:
     fullsize: "fullsize"
     resized: "resized"
     coordinates: "resized/coordinates" 
+    color_coordinates: "resized/color_coordinates"
+    colorstandard: "colorstandard"
     trays: "trays"
     guides: "guides"
     resized_trays: "resized_trays"
@@ -201,6 +208,9 @@ resources:
       resize_drawers:    
         sequential: true # Process one image at a time, better for large images
         batch_size: 1    # One image per batch
+      crop_color:    
+        sequential: true # Process one image at a time, better for large images
+        batch_size: 1  
       crop_trays:    
         sequential: true # Process one image at a time, better for large images
         batch_size: 1    
