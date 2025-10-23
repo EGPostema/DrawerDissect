@@ -64,9 +64,16 @@ DrawerDissect supports two methods for providing API keys:
 
 Set environment variables in your shell:
 
+Unix systems (Mac, Linux)
 ```bash
 export ANTHROPIC_API_KEY="your_anthropic_key_here"
 export ROBOFLOW_API_KEY="your_roboflow_key_here"
+```
+
+Windows
+```bash
+$env:ANTHROPIC_API_KEY="your_anthropic_key_here"
+$env:ROBOFLOW_API_KEY="your_roboflow_key_here"
 ```
 
 **Option 2: Direct Configuration**
@@ -145,7 +152,15 @@ Download and test with sample image:
 
 ```bash
 # Download test image
+
+# For Mac/Linux:
 curl -L -o drawers/unsorted/FMNH_cicindelidae_34_5_7.jpg https://github.com/EGPostema/DrawerDissect/releases/download/v0.1.0/FMNH_cicindelidae_34_5_7.jpg
+
+# For Windows cmd
+curl -L -o "drawers/unsorted/FMNH_cicindelidae_34_5_7.jpg" "https://github.com/EGPostema/DrawerDissect/releases/download/v0.1.0/FMNH_cicindelidae_34_5_7.jpg"
+
+# For Windows Powershell
+iwr "https://github.com/EGPostema/DrawerDissect/releases/download/v0.1.0/FMNH_cicindelidae_34_5_7.jpg" -OutFile "drawers/unsorted/FMNH_cicindelidae_34_5_7.jpg"
 
 # Run the pipeline
 python process_images.py all
