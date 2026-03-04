@@ -461,7 +461,7 @@ roboflow:
 
 🤖 **Local YOLO Models**
 
-Pre-trained FMNH weights (last updated: 2025-03-04) are included in the `weights/` folder:
+Pre-trained FMNH weights (last updated: 2026-03-04) are included in the `weights/` folder:
 
 ```
 weights/
