@@ -1,0 +1,13 @@
+# Virtual environment
+dissectenv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Status reports
+status_reports/
+
+# Drawer data - ignore everything except the unsorted folder
+drawers/*
+!drawers/unsorted/

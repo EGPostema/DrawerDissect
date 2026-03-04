@@ -380,3 +380,4 @@ async def process_specimen_labels(folder_path: str, output_csv: str, api_key: st
     except Exception as e:
         log(f"Failed to process folder: {e}")
         raise
+

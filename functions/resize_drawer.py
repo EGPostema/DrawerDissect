@@ -6,15 +6,7 @@ from multiprocessing import Pool, cpu_count
 from typing import List, Set, Tuple, Optional
 
 # Import simplified logging
-from logging_utils import (
-    log, 
-    log_found,
-    log_found_previous,
-    log_progress, 
-    log_skipped,
-    increment_processed, 
-    increment_skipped
-)
+from logging_utils import log, log_found, log_progress
 
 # Allow PIL to handle very large images
 Image.MAX_IMAGE_PIXELS = None
@@ -48,7 +40,6 @@ def resize_image(args: Tuple[str, str, Set[str], int, int]) -> bool:
     
     if output_filename in completed_files:
         log_progress("resize_drawers", current, total, f"Skipped (already exists)")
-        increment_skipped("resize_drawers")
         return False
         
     try:
@@ -71,7 +62,6 @@ def resize_image(args: Tuple[str, str, Set[str], int, int]) -> bool:
             resized.save(output_path, 'JPEG', quality=95, optimize=True, progressive=True)
         
         log_progress("resize_drawers", current, total, filename)
-        increment_processed("resize_drawers")
         return True
             
     except Exception as e:
@@ -117,7 +107,7 @@ def resize_drawer_images(
     
     log_found("images", total_files)
     if completed_files:
-        log_found_previous("images", len(completed_files))
+        log(f"Found {len(completed_files)} previously processed images")
     
     # Determine parallelization settings
     if sequential:

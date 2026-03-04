@@ -1,59 +1,123 @@
+# ============================================================
+# DrawerDissect Configuration
+# ============================================================
+
+# ------------------------------------------------------------
+# Deployment
+# ------------------------------------------------------------
+# Controls whether CV models are run via Roboflow (cloud) or
+# locally using downloaded .pt weights.
+#
+# Options:
+#   "roboflow" - use Roboflow API (default, requires API key)
+#   "local"    - use local .pt weights via ultralytics YOLO
+
+deployment: "roboflow"
+
+# ------------------------------------------------------------
+# API Keys 
+# ------------------------------------------------------------
 api_keys:
-  anthropic: "ANTHROPIC_API_KEY" # Environment variable or actual key
-  roboflow: "ROBOFLOW_API_KEY" # Environment variable or actual key
+  anthropic: "ANTHROPIC_API_KEY" 
+  roboflow: "ROBOFLOW_API_KEY"   # (not needed when deployment: local)
 
-processing:
-  measurement_visualizations: "rand_sample"  # "on", "off", or "rand_sample" (max 20 random visualizations)
-  transcribe_barcodes: false  # Set to true for tray-level barcodes
-  transcribe_geocodes: false  # Set to true for tray-level geocodes
-  transcribe_taxonomy: true  # Set to false to skip taxonomy transcription
-  transcribe_specimen_labels: false  # Set to true for specimen label transcription (experimental)
-
+# ------------------------------------------------------------
+# Claude (LLM for transcription steps)
+# ------------------------------------------------------------
 claude:
-  model: "claude-sonnet-4-20250514"  # subsitute with any claude model; accuracy, price, and speed may vary
-  max_tokens: 600  # Default max tokens - increase for more complicated tasks,  decrease for simple tasks
+  model: "claude-sonnet-4-20250514"  # substitute with any claude model; price may vary
+  max_tokens: 600  # default max tokens; increase for complicated tasks, decrease for simple ones
 
+# ------------------------------------------------------------
+# Roboflow  (used when deployment: "roboflow")
+# ------------------------------------------------------------
 roboflow:
   workspace: "field-museum" # FMNH workspace is default
   models:
     drawer:
-      endpoint: "trayfinder-base" # obj detection, finds trays in drawers (use trayfinder-popup for popup labels)
-      version: 5
-      confidence: 50 # adjustable, set from 1-99 (higher # = greater threshold for predictions)
-      overlap: 50 # adjustable, set from 1-99 (higher # = higher expected overlap between bounding boxes)
+      endpoint: "trayfinder-base" # obj detection, finds trays in drawers
+      version: 6
+      confidence: 70 # adjustable, set from 1-99 (higher # = greater threshold for predictions)
+      overlap: 50    # adjustable, set from 1-99 (higher # = higher expected overlap between bounding boxes)
     tray:
       endpoint: "bugfinder-kdn9e" # obj detection, finds specimens in trays
-      version: 18
-      confidence: 48
+      version: 20
+      confidence: 50
       overlap: 50
     label:
       endpoint: "labelfinder" # obj detection, finds label parts
       version: 10
-      confidence: 5
-      overlap: 20
+      confidence: 10
+      overlap: 50
     mask:
       endpoint: "bugmasker-all"  # segmentation, outlines specimen bodies
-      version: 9 
-      confidence: 71
+      version: 12
+      confidence: 50
     pin:
       endpoint: "pinmasker" # segmentation, outlines pin
       version: 6
-      confidence: 13
+      confidence: 70
 
+# ------------------------------------------------------------
+# Local Inference  (used when deployment: "local")
+# ------------------------------------------------------------
+local:
+  # Expected layout:
+  #   weights/
+  #   ├── drawer/   drawer -> tray model .pt
+  #   ├── tray/     tray -> specimen model .pt
+  #   ├── label/    tray -> tray label text model .pt
+  #   ├── mask/     specimen -> masked specimen model .pt
+  #   └── pin/      masked specimen -> masked pin .pt
+  weights_dir: "weights"
+
+  # Compute device for YOLO inference.
+  # Options:
+  #   "auto"   - auto-detect: CUDA → MPS → CPU (recommended)
+  #   "cpu"    - force CPU
+  #   "cuda"   - force NVIDIA GPU
+  #   "mps"    - force Apple Silicon GPU
+  device: "auto"
+
+  # Optional: manually specify weights filenames.
+  # Only needed if a folder contains multiple .pt files and you want
+  # to control which one is used. Otherwise leave blank and the file
+  # will be detected automatically.
+  models:
+    drawer: # optional: specify filename HERE if folder contains multiple .pt files
+    tray:   # optional: specify filename HERE if folder contains multiple .pt files
+    label:  # optional: specify filename HERE if folder contains multiple .pt files
+    mask:   # optional: specify filename HERE if folder contains multiple .pt files
+    pin:    # optional: specify filename HERE if folder contains multiple .pt files
+
+
+# ------------------------------------------------------------
+# Processing toggles
+# ------------------------------------------------------------
+processing:
+  measurement_visualizations: "off"  # "on", "off", or "rand_sample" (max 20 random visualizations)
+  transcribe_barcodes: false         # set to true for tray-level barcodes
+  transcribe_geocodes: false         # set to true for tray-level geocodes
+  transcribe_taxonomy: false         # set to true for taxonomic label transcription
+  transcribe_specimen_labels: false   # set to true for specimen label transcription (experimental)
+
+# ------------------------------------------------------------
+# Prompts (for LLM transcription steps)
+# ------------------------------------------------------------
 prompts:
   barcode: # prompt for transcribing barcodes
     system: |
-      You are a barcode reading tool. You should output only the number 
-      (or letter-number string) found in the image. If no valid barcode 
-      is found, output 'none'.
+      You are a barcode reading tool. You should output only the numbers found in the image.
+      The barcode always starts with an 8 and is five digits long.
+      If no valid barcode is found, output 'none'.
     user: |
       Read the barcode number. Output only the code, no explanations.
-  
+
   geocode: # prompt for recognizing 3-letter geocodes
     system: |
-      You are a geocode recognition tool for natural history specimens. 
+      You are a geocode recognition tool for natural history specimens.
       Your task is to identify the 3-letter geocode visible in the image.
-      
+
       The geocode is always a 3-letter code (all capital letters):
       - "NEO"
       - "PAL"
@@ -62,48 +126,48 @@ prompts:
       - "ORI"
       - "AUS"
       - "PAC"
-      
-      Output only the 3-letter geocode. If no valid 3-letter geocode is visible 
+
+      Output only the 3-letter geocode. If no valid 3-letter geocode is visible
       or if the text is unclear, output 'UNK' (Unknown).
     user: |
       Identify the 3-letter geocode visible in this image. Output only the code (e.g., NEO, PAL), no explanations.
-    
+
   taxonomy: # prompt for transcribing and organizing taxonomic IDs
     system: |
-      You are a taxonomic label transcription tool specializing in natural 
+      You are a taxonomic label transcription tool specializing in natural
       history specimens. Your task is to:
       1. Provide a complete transcription of the entire label, which may be handwritten
-      2. Extract the taxonomic name, including any genus, subgenus, species, 
+      2. Extract the taxonomic name, including any genus, subgenus, species,
          and subspecies information
       3. If ONLY higher order taxonomic information is available (family -dae, tribe -ini, subfamily -nae), report this in 'taxonomy'
       4. Extract the taxonomic authority (author and/or year)
 
-      For missing elements, output 'none'. Format your response as a structured 
+      For missing elements, output 'none'. Format your response as a structured
       dictionary with these three keys:
       {
         'full_transcription': 'complete text as shown',
-        'taxonomy': 'only taxonomic name (Genus (Subgenus) species subspecies) OR higher-order taxonomy', 
+        'taxonomy': 'only taxonomic name (Genus (Subgenus) species subspecies) OR higher-order taxonomy',
         'authority': 'author, year'
       }
     user: |
-      Transcribe this taxonomic label, preserving the exact text and extracting 
+      Transcribe this taxonomic label, preserving the exact text and extracting
       the taxonomic name and authority. Output only the dictionary, no explanations.
-  
+
   specimen_label: # prompt for transcribing any visible text, verbatim, from specimen labels
     system: |
-     You are a natural history specimen label transcription tool specializing in precise, verbatim transcription. Your task is to:
+      You are a natural history specimen label transcription tool specializing in precise, verbatim transcription. Your task is to:
           1. Transcribe ALL visible text exactly as it appears, including:
              - Unclear, handwritten, or partially visible text
           2. Do not interpret, correct, or standardize any text
-          3. Most text will be horizontal, read left-to-right. 
+          3. Most text will be horizontal, read left-to-right.
           4. Occasionally, text may be vertical or upside-down.
     user: |
-      Transcribe any visible text. Output 'no text found' if none visible. 
+      Transcribe any visible text. Output 'no text found' if none visible.
       Transcribe text verbatim. No explanations, descriptions, or commentary.
-  
+
   location: # prompt for estimating locations from verbatim text
     system: |
-      You are a geographic data extractor specialized in natural history specimen labels. 
+      You are a geographic data extractor specialized in natural history specimen labels.
       Your task is to:
       1. Look for geographic information only, considering:
          - Country, state/province, county, city, specific locality
@@ -118,13 +182,13 @@ prompts:
       4. Handle special cases:
          - Historical place names: use historical name, add modern name in brackets
     user: |
-      Extract geographic location from this text: {text}. Format: largest to 
-      smallest unit, comma-separated. Output 'no location found' if none present. 
+      Extract geographic location from this text: {text}. Format: largest to
+      smallest unit, comma-separated. Output 'no location found' if none present.
       No explanations or notes.
-  
+
   validation: # prompt for comparing/validating estimated locations to the verbatim text
     system: |
-      You are a geographic data validator specializing in museum specimen labels. 
+      You are a geographic data validator specializing in museum specimen labels.
       Your task is to:
       1. Examine the transcribed text and interpreted location to evaluate whether they are a strong match
       2. Make a final location determination considering:
@@ -133,10 +197,10 @@ prompts:
          - Standard geographic abbreviations in specimen labels (e.g., USA: MT = USA, Montana)
          - Some partial information is still valid (e.g., a clear state/province even without city/county)
          - Conventional collection abbreviations, e.g. Det. / Col. are typically not locations
-         - Locations derived from 'Field Museum' or 'FMNH' or 'Chicago Field Museum' 
+         - Locations derived from 'Field Museum' or 'FMNH' or 'Chicago Field Museum'
            are not valid, as this is where many specimens are housed
          - Avoid specific directional information as this easy to misinterpret
-           
+
       3. Respond with a dictionary containing these fields:
         {
           'verbatim_text': The raw text exactly as transcribed from the original image,
@@ -165,12 +229,15 @@ prompts:
       Transcribed text: {transcribed_text}
       Proposed location: {proposed_location}
 
+# ------------------------------------------------------------
+# Directories
+# ------------------------------------------------------------
 directories:
   unsorted: "drawers/unsorted"
   drawer_subdirs:
     fullsize: "fullsize"
     resized: "resized"
-    coordinates: "resized/coordinates" 
+    coordinates: "resized/coordinates"
     trays: "trays"
     guides: "guides"
     resized_trays: "resized_trays"
@@ -190,26 +257,29 @@ directories:
     tray_level: "transcriptions/tray_labels"
     data: "data"
 
+# ------------------------------------------------------------
+# Resources
+# ------------------------------------------------------------
 resources:
   memory:
-    sequential: false    # Process in parallel by default
-    max_workers: null    # null = automatic based on CPU
-    batch_size: null     # null = process all at once
-    
-    # Step-specific overrides for memory-heavy steps
+    sequential: false  # process in parallel by default
+    max_workers: null  # null = automatic based on CPU
+    batch_size: null   # null = process all at once
+
+    # Step-specific overrides (only for steps that need special handling)
     step_overrides:
-      resize_drawers:    
-        sequential: true # Process one image at a time, better for large images
-        batch_size: 1    # One image per batch
-      crop_trays:    
-        sequential: true # Process one image at a time, better for large images
-        batch_size: 1    
+      resize_drawers:
+        sequential: false
+        batch_size: null
+      crop_trays:
+        sequential: true
+        batch_size: 1
       outline_specimens:
         sequential: false
-        max_workers: 40
+        max_workers: null
       outline_pins:
         sequential: false
-        max_workers: 40
+        max_workers: null
       create_transparency:
         sequential: false
         max_workers: 40
