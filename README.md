@@ -12,9 +12,8 @@
 
 - [Python](https://www.python.org/downloads/) (ver. 3+)
 - [Git](https://git-scm.com/downloads)
-- API keys from:
-  - [Roboflow](roboflow.com) - for detecting and segmenting specimens
-  - [Anthropic](anthropic.com) - for reading tray and specimen labels
+- An [Anthropic API key](https://support.anthropic.com/en/articles/8114521-how-can-i-access-the-anthropic-api) for reading tray and specimen labels
+- A [Roboflow API key](https://docs.roboflow.com/api-reference/authentication) (only needed for Roboflow cloud deployment -- see [Deployment Options](#deployment-options))
 - Supported image formats: TIF/TIFF, PNG, JPG/JPEG
 
 DrawerDissect has run successfully on the following systems:
@@ -34,9 +33,11 @@ Current Version: v0.1.0
 
 Postema, E.G., Briscoe, L., Harder, C., Hancock, G.R.A., Guarnieri, L.D, Eisel, T., Welch, K., Fisher, N., Johnson, C., Souza, D., Sepulveda, T., Phillip, D., Baquiran, R., de Medeiros, B.A.S. 2025. **DrawerDissect: Whole-drawer insect imaging, segmentation, and trait extraction using AI.** <i>EcoEvoRxiv (pre-print)</i>. https://doi.org/10.32942/X2QW84
 
+---
+
 ## Installation
 
-**Set Up Project in a Python Environment**
+**1. Clone the repository and set up a Python environment**
 
 Unix systems (Mac, Linux)
 ```sh
@@ -44,7 +45,6 @@ git clone https://github.com/EGPostema/DrawerDissect.git
 cd DrawerDissect
 python -m venv dissectenv
 source ./dissectenv/bin/activate
-pip install -r requirements.txt
 ```
 
 Windows
@@ -53,16 +53,36 @@ git clone https://github.com/EGPostema/DrawerDissect.git
 cd DrawerDissect
 python -m venv dissectenv
 .\dissectenv\Scripts\activate
+```
+
+**2. Install PyTorch (local deployment only)**
+
+If you plan to run models locally on your own hardware, install PyTorch *before* the next step. The correct version depends on your hardware:
+
+```bash
+# NVIDIA GPU (Windows/Linux)
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+
+# Apple Silicon (Mac M1/M2/M3)
+pip install torch torchvision
+
+# CPU only
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+```
+
+Skip this step if using Roboflow cloud deployment.
+
+**3. Install dependencies**
+
+```sh
 pip install -r requirements.txt
 ```
 
-**Configure API Keys**
+**4. Configure API keys**
 
-DrawerDissect supports two methods for providing API keys:
+DrawerDissect checks for API keys in two places, in this order:
 
-**Option 1: Environment Variables (Recommended)**
-
-Set environment variables in your shell:
+*Option 1: Environment variables (recommended)*
 
 Unix systems (Mac, Linux)
 ```bash
@@ -76,24 +96,54 @@ $env:ANTHROPIC_API_KEY="your_anthropic_key_here"
 $env:ROBOFLOW_API_KEY="your_roboflow_key_here"
 ```
 
-**Option 2: Direct Configuration**
-
-Open `config.yaml` in the main directory, and replace the default values with your actual API keys:
+*Option 2: Direct configuration in `config.yaml`*
 
 ```yaml
 api_keys:
-  anthropic: "your_anthropic_key_here"  # replace with your actual key
-  roboflow: "your_roboflow_key_here"    # replace with your actual key
+  anthropic: "your_anthropic_key_here"
+  roboflow: "your_roboflow_key_here"
 ```
 
-**How it works:**
-- DrawerDissect first checks for environment variables `ANTHROPIC_API_KEY` and `ROBOFLOW_API_KEY`
-- If environment variables are not found, it uses the values directly from `config.yaml`
-- The program will report where each API key is being loaded from in the logs
+---
 
-**Get your API keys:**
-- [Get Anthropic API Key](https://support.anthropic.com/en/articles/8114521-how-can-i-access-the-anthropic-api)
-- [Get Roboflow API Key](https://docs.roboflow.com/api-reference/authentication)
+## Deployment Options
+
+DrawerDissect supports two modes for running computer vision models, switchable with a single line in `config.yaml`:
+
+```yaml
+deployment: "roboflow"  # or "local"
+```
+
+**Roboflow (cloud):** Runs models via the Roboflow API. Requires a Roboflow API key and internet connection. Easiest option to get started.
+
+**Local:** Runs models directly on your machine using `.pt` weight files. No internet connection or Roboflow account required after setup. Pre-trained FMNH weights (last updated: 2025-03-04) are included in the `weights/` folder. See [Local YOLO Models](#-local-yolo-models) for details.
+
+The compute device for local inference is detected automatically but can be overridden:
+
+```yaml
+local:
+  device: "auto"   # auto-detect: CUDA > MPS > CPU (recommended)
+  # device: "cpu"  # force CPU
+  # device: "cuda" # force NVIDIA GPU
+  # device: "mps"  # force Apple Silicon GPU
+```
+
+To verify your GPU is detected:
+```bash
+python -c "import torch; print(torch.cuda.is_available()); print(torch.cuda.get_device_name(0))"
+```
+
+### Performance Comparison
+
+Benchmarks recorded processing a single drawer of 316 specimens (19 trays):
+
+| Deployment | Hardware | Time (seconds) |
+|------------|----------|---------------|
+| roboflow | Roboflow Cloud (API) | 232.7 |
+| local: cuda | NVIDIA GeForce RTX 4060 | 174.1 |
+| local: cpu | AMD Ryzen 7 7800X3D | 214.1 |
+
+> **Note:** CPU times vary significantly by processor. CPU-only deployment is not recommended for processing large numbers of drawers.
 
 ---
 
@@ -104,7 +154,7 @@ Place all drawer images in the `drawers/unsorted` folder:
 ```
 DrawerDissect/
 ├── drawers/
-│   └── unsorted/              ← Place your drawer images here
+│   └── unsorted/              <- Place your drawer images here
 │       ├── drawer_001.tif
 │       ├── drawer_002.tif
 │       └── drawer_003.jpg
@@ -151,25 +201,20 @@ python process_images.py all
 Download and test with sample image:
 
 ```bash
-# Download test image
-
 # For Mac/Linux:
 curl -L -o drawers/unsorted/FMNH_cicindelidae_34_5_7.jpg https://github.com/EGPostema/DrawerDissect/releases/download/v0.1.0/FMNH_cicindelidae_34_5_7.jpg
 
-# For Windows cmd
+# For Windows cmd:
 curl -L -o "drawers/unsorted/FMNH_cicindelidae_34_5_7.jpg" "https://github.com/EGPostema/DrawerDissect/releases/download/v0.1.0/FMNH_cicindelidae_34_5_7.jpg"
 
-# For Windows Powershell
+# For Windows Powershell:
 iwr "https://github.com/EGPostema/DrawerDissect/releases/download/v0.1.0/FMNH_cicindelidae_34_5_7.jpg" -OutFile "drawers/unsorted/FMNH_cicindelidae_34_5_7.jpg"
 
-# Run the pipeline
+# Run the pipeline:
 python process_images.py all
 ```
 
-If automatic download fails:
-- Manually download from: https://github.com/EGPostema/DrawerDissect/releases/download/v0.1.0/FMNH_cicindelidae_34_5_7.jpg
-- Place in `drawers/unsorted/`
-- Run `python process_images.py all`
+If automatic download fails, manually download from the link above, place in `drawers/unsorted/`, and run `python process_images.py all`.
 
 ### Advanced Usage
 
@@ -314,8 +359,7 @@ drawer01/
 │   │       ├── unit_barcodes.csv
 │   │       └── location_checked.csv
 │   └── merged_data_01_05_2025_14_22/    # timestamped folder from previous run
-│       └── ... (same files)                 # (same structure as above)
-
+│       └── ... (same files)
 ```
 
 ---
@@ -326,7 +370,7 @@ Key aspects of the pipeline can be adjusted by directly editing the `config.yaml
 
 ```
 DrawerDissect/
-├── config.yaml  ← EDIT SETTINGS HERE
+├── config.yaml  <- EDIT SETTINGS HERE
 └── ...
 ```
 
@@ -358,23 +402,23 @@ Example settings:
 
 ```yaml
 claude:
-  model: "claude-sonnet-4-20250514"  # subsitute with any claude model
-  max_tokens: 600  # Default max tokens - increase for complicated tasks, decrease for simpler tasks
+  model: "claude-sonnet-4-20250514"  # substitute with any Claude model
+  max_tokens: 600  # increase for complicated tasks, decrease for simpler tasks
 ```
 
-📷 **Field Museum Roboflow Models (Default & Recommended)**
+📷 **Field Museum Roboflow Models (Default)**
 
 Uses pre-trained FMNH models - these defaults will work in most cases:
 
 ```yaml
 roboflow:
-  workspace: "field-museum" # FMNH workspace is default
+  workspace: "field-museum"
   models:
     drawer:
       endpoint: "trayfinder-base" # obj detection, finds trays in drawers
       version: 2
-      confidence: 50 # adjustable, set from 1-99 (higher # = greater threshold for predictions)
-      overlap: 50 # adjustable, set from 1-99 (higher # = higher overlap between objects, obj detection ONLY)
+      confidence: 50 # adjustable, set from 1-99 (higher = greater threshold for predictions)
+      overlap: 50 # adjustable, set from 1-99 (higher = more overlap allowed, obj detection only)
     tray:
       endpoint: "bugfinder-kdn9e" # obj detection, finds specimens in trays
       version: 16
@@ -390,22 +434,14 @@ roboflow:
       version: 8 
       confidence: 50
     pin:
-      endpoint: "pinmasker" # segmentation, outlines pin
+      endpoint: "pinmasker" # segmentation, outlines pins
       version: 6
       confidence: 50
 ```
 
-The most up-to-date FMNH models can be found at: [https://universe.roboflow.com/field-museum/](https://universe.roboflow.com/field-museum/)
-
-To find the model endpoint and version:
-- Click the link above
-- Select your desired model
-- Under 'Deploy' select 'Model'
-- Copy endpoint and version number (see below)
-- Add to `config.yaml`
+The most up-to-date FMNH models can be found at [https://universe.roboflow.com/field-museum/](https://universe.roboflow.com/field-museum/). To find the endpoint and version number, select your model, go to Deploy > Model, and copy the values into `config.yaml`.
 
 <img height="1000" alt="image" src="https://github.com/user-attachments/assets/df32c043-f4a1-49b7-8e9f-5dc7b5b7ebc8" />
-
 
 📷 **Use Your Own Roboflow Models**
 
@@ -413,26 +449,47 @@ Simply replace our models with yours:
 
 ```yaml
 roboflow:
-  workspace: "YOUR_WORKSPACE" # add your workspace here
+  workspace: "YOUR_WORKSPACE"
   models:
     drawer:
-      endpoint: "YOUR_DRAWER_MODEL" # add model ID here
+      endpoint: "YOUR_DRAWER_MODEL"
       version: 1
-      confidence: 50 # adjustable, set from 1-99 (higher # = greater threshold for predictions)
-      overlap: 50 # adjustable, set from 1-99 (higher # = higher overlap between objects, obj detection ONLY)
+      confidence: 50
+      overlap: 50
     # ... (configure all 5 model types)
 ```
 
-🤖 **Open-Source Alternatives**
+🤖 **Local YOLO Models**
 
-The images and annotations for all versions of all public CV models can be downloaded at: [https://universe.roboflow.com/field-museum/](https://universe.roboflow.com/field-museum/)
+Pre-trained FMNH weights (last updated: 2025-03-04) are included in the `weights/` folder:
 
-To download:
+```
+weights/
+├── drawer/   trayfinderpopupv17.pt
+├── tray/     bugfinderkdn9ev20.pt
+├── label/    labelfinderv8.pt
+├── mask/     bugmaskerv12.pt
+└── pin/      pinmaskerv6.pt
+```
+
+Set `deployment: "local"` in `config.yaml` to use them. Files are detected automatically with no additional configuration needed, unless you have multiple `.pt` files in the same folder:
+
+```yaml
+local:
+  models:
+    drawer: # optional: specify filename if folder contains multiple .pt files
+    tray:
+    label:
+    mask:
+    pin:
+```
+
+To use your own YOLO weights, replace the files in the `weights/` subfolders. The images and annotations for all FMNH models are available for download and retraining at [https://universe.roboflow.com/field-museum/](https://universe.roboflow.com/field-museum/).
+
+To download training data:
 - Select the desired model
 - Select 'Dataset' under 'Data'
-- Choose a version
-- Click the 'Download Dataset' button
-- Use our datasets to train your own models locally!
+- Choose a version and click 'Download Dataset'
 
 <img height="1000" alt="image" src="https://github.com/user-attachments/assets/ad8d7054-d678-4fe7-aad6-b96c227a2107" />
 
@@ -574,21 +631,24 @@ resources:
   memory:
     sequential: false    # true = process one image at a time (good for large-image steps)
     max_workers: null    # null = automatic (uses half CPU cores), or set number
-    batch_size: null     # Process in smaller batches if needed
+    batch_size: null     # process in smaller batches if needed
 ```
 
-## 📋 Troubleshooting
+---
+
+## Troubleshooting
 
 **Pipeline won't start?**
 - Ensure API keys are configured (either via environment variables or in `config.yaml`)
-- Check that virtual environment activated (`dissectenv`) with required packages (`pip install -r requirements.txt`)
-- Check your current directory (`cd`); it should be `Drawerdissect`
+- For local deployments, ensure `.pt` files are in the correct `weights/` subfolder
+- Check that the virtual environment is activated (`dissectenv`) with required packages installed (`pip install -r requirements.txt`)
+- Check your current directory (`cd`); it should be `DrawerDissect`
 
 **Models not performing well?**
 - Adjust confidence/overlap thresholds
-- Check image quality (small/low-resolution images may underperform)
+- Check image quality (small or low-resolution images may underperform)
 - Performance may vary for different taxa
-- Try out older model versions or add new training data to update a model
+- Try older model versions or add new training data to update a model
 
 **Transcription errors?**
 - Verify API keys are correct and have sufficient credits
