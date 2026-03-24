@@ -362,6 +362,8 @@ The `transcribe_specimens` step sends a combination of filtered specimen images,
    - parses text into DarwinCore fields,
    - then cross-references labels to find and group similar labels, based on visual & textual cues
 
+<img width="666" height="354" alt="Screenshot 2026-03-24 154919" src="https://github.com/user-attachments/assets/e369078f-1253-4942-a197-159e4dd7b5ae" />
+
 **Output:** `specimen_localities.csv` with one row per specimen containing:
 
 | Field | Description |
