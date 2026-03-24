@@ -319,15 +319,11 @@ python process_images.py --drawers {your_folder_name} --from outline_specimens -
 
 ### Individual Specimen Images
 
-<img src="https://github.com/user-attachments/assets/cef073ca-596a-4f2f-bb25-31c782b72945" height="200"> <img src="https://github.com/user-attachments/assets/acdb39bf-9a75-4812-8f07-32ac2a60fc7e" height="200"> <img src="https://github.com/user-attachments/assets/038e68c2-fd81-4374-9748-ea1d5c392bb8" height="200"> 
-
-<img src="https://github.com/user-attachments/assets/ce2c569d-a180-4828-a857-042dfeab77ea" height="200">  <img src="https://github.com/user-attachments/assets/e2666020-7062-4d9c-b884-58f17f2dd29c" height="200">
+<img src="https://github.com/user-attachments/assets/cef073ca-596a-4f2f-bb25-31c782b72945" height="200"> <img src="https://github.com/user-attachments/assets/acdb39bf-9a75-4812-8f07-32ac2a60fc7e" height="200">
 
 ### Masked Specimens
 
-<img src="https://github.com/user-attachments/assets/8735f8de-f3e2-4750-b0a8-14e53bba44cb" height="200"> <img src="https://github.com/user-attachments/assets/6db89295-0b42-47cb-9152-695e1c4747e2" height="200"> <img src="https://github.com/user-attachments/assets/6c1cf238-229a-4185-b878-d471b304b0f6" height="200"> 
-
-<img src="https://github.com/user-attachments/assets/697c5c1e-8015-43a0-9619-c74a4db8a8b5" height="200">  <img src="https://github.com/user-attachments/assets/acba309b-c3fd-4b84-9e4b-5ad5a9a9000c" height="200">
+<img src="https://github.com/user-attachments/assets/8735f8de-f3e2-4750-b0a8-14e53bba44cb" height="200"> <img src="https://github.com/user-attachments/assets/6db89295-0b42-47cb-9152-695e1c4747e2" height="200">
 
 ### Measurements
 
@@ -486,8 +482,6 @@ roboflow:
 
 The most up-to-date FMNH models can be found at [https://universe.roboflow.com/field-museum/](https://universe.roboflow.com/field-museum/). To find the endpoint and version number, select your model, go to Deploy > Model, and copy the values into `config.yaml`.
 
-<img height="1000" alt="image" src="https://github.com/user-attachments/assets/df32c043-f4a1-49b7-8e9f-5dc7b5b7ebc8" />
-
 📷 **Use Your Own Roboflow Models**
 
 Simply replace our models with yours:
@@ -535,8 +529,6 @@ To download training data:
 - Select the desired model
 - Select 'Dataset' under 'Data'
 - Choose a version and click 'Download Dataset'
-
-<img height="1000" alt="image" src="https://github.com/user-attachments/assets/ad8d7054-d678-4fe7-aad6-b96c227a2107" />
 
 ### Edit LLM Prompts
 
