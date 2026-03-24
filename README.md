@@ -4,10 +4,6 @@
 
 ---
 
-![smalldemo](https://github.com/user-attachments/assets/46c1ce5d-7281-401e-b763-0ec498b1bc0a)
-
----
-
 ## Prerequisites
 
 - [Python](https://www.python.org/downloads/) (ver. 3+)
