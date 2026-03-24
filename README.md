@@ -143,7 +143,7 @@ Benchmarks recorded processing a single drawer of 316 specimens (19 trays):
 | local: cuda | NVIDIA GeForce RTX 4060 | 174.1 |
 | local: cpu | AMD Ryzen 7 7800X3D | 214.1 |
 
-> **Note:** CPU times vary significantly by processor. CPU-only deployment is not recommended for processing large numbers of drawers.
+> **Note:** CPU times will vary significantly by processor.
 
 ---
 
@@ -179,6 +179,8 @@ DrawerDissect/
 │   │   ├── transparencies/      fully masked specimens (transparent bg)
 │   │   ├── whitebg_specimens/   fully masked specimens (white bg)
 │   │   ├── transcriptions/      text transcriptions
+│   │   │   ├── tray_labels/    tray-level (barcode, geocode, taxonomy)
+│   │   │   └── tray_context/   specimen locality transcriptions
 │   │   └── data/                final datasheets
 │   └── drawer_002/
 │       └── ... (same structure)
@@ -239,9 +241,9 @@ python process_images.py --until crop_trays   # from start to crop_trays
 
 **Combine flags for custom workflows:**
 ```bash
-python process_images.py transcribe_speclabels --from find_specimens --until create_transparencies --drawers drawer_03,drawer_08
+python process_images.py transcribe_specimens --from find_specimens --until create_transparency --drawers drawer_03,drawer_08
 ```
-This command would run all steps from find_specimens to create_transparencies, and then transcribe_speclabels, for drawer_03 & drawer_08.
+This command would run all steps from find_specimens to create_transparency, and then transcribe_specimens, for drawer_03 & drawer_08.
 
 ### List of Available Steps
 
@@ -267,8 +269,7 @@ create_transparency    # Create final masked specimen images
 transcribe_barcodes    # Read barcode numbers (if enabled)
 transcribe_geocodes    # Read geocode letters (if enabled)
 transcribe_taxonomy    # Read taxonomic names (if enabled)
-transcribe_speclabels  # Read specimen labels (if enabled)
-validate_speclabels    # Validate specimen transcriptions
+transcribe_specimens   # Read specimen locality labels (if enabled)
 merge_data             # Combine all data into final CSVs
 ```
 
@@ -340,9 +341,51 @@ python process_images.py --drawers {your_folder_name} --from outline_specimens -
 |--------|----|----|
 | 17.8 | 6.3 | 84.9 |
 
-### Specimen-level Transcriptions
+### Specimen Label Transcriptions
 
-<img src="https://github.com/user-attachments/assets/3b45f583-d0f8-450c-853a-bc95e537e056" height="500">
+**NOTE: This step is meant to be an aid to metadata transcription, NOT a replacement for manual transcription; all results should be carefully validated before permanently databasing**
+
+The `transcribe_specimens` step sends a combination of filtered specimen images, a full-tray reference image, and previously transcribed geocodes to Claude to estimate label metadata from fragments of visible text in the specimen dorsal images.
+
+**Pipeline flow:**
+
+1. **Bugcleaner filtering**: A Roboflow classification model (`bugcleaner`) examines each specimen crop and classifies it as "text" or "notext".
+   - Specimens classified as "notext" are skipped for the Claude API call.
+   - The results are cached in `bugcleaner_results.csv`.
+3. **Multi-crop API call**: For each tray, Claude receives:
+   - Tray header context (geocode) from earlier transcription steps, if available
+   - A downsized tray overview image (optional, for spatial context)
+   - Individual specimen crops
+   - Trays with many specimens are batched
+4. **Three-step transcription**:
+   - Claude transcribes each label independently,
+   - parses text into DarwinCore fields,
+   - then cross-references labels to find and group similar labels, based on visual & textual cues
+
+**Output:** `specimen_localities.csv` with one row per specimen containing:
+
+| Field | Description |
+|-------|-------------|
+| tray | Tray identifier |
+| specimen_id | Specimen identifier |
+| label_group | Group number (specimens that may share a collecting event) |
+| match_type | "identical", "similar", or "unique" |
+| verbatim_text | Raw label text as transcribed |
+| country, stateProvince, county, municipality, locality | Parsed DarwinCore geography |
+| collector | Collector name |
+| date | Collection date |
+| flags | Quality flags (e.g., handwritten_difficult, partial_text) |
+| model | model version used for transcription |
+
+**Configuration:**
+
+```yaml
+traycontext_settings:
+  bugcleaner_confidence_threshold: 95  # minimum confidence for text detection
+  max_tokens: 12000                    # max output tokens per API call
+  include_tray_image: true             # send tray overview image for spatial context
+  max_specimens_per_batch: 20          # split large trays into batches
+```
 
 ### Summary Data
 
@@ -357,7 +400,8 @@ drawer01/
 │   │       ├── measurements.csv
 │   │       ├── taxonomy.csv
 │   │       ├── unit_barcodes.csv
-│   │       └── location_checked.csv
+│   │       ├── geocodes.csv
+│   │       └── specimen_localities.csv
 │   └── merged_data_01_05_2025_14_22/    # timestamped folder from previous run
 │       └── ... (same files)
 ```
@@ -383,8 +427,8 @@ processing:
   measurement_visualizations: "rand_sample"  # "on", "off", or "rand_sample" (max. 20 random measurement maps)
   transcribe_barcodes: false  # Set to true for tray-level barcodes
   transcribe_geocodes: false  # Set to true for tray-level geocodes
-  transcribe_taxonomy: true  # Set to false to skip taxonomy transcription
-  transcribe_specimen_labels: false  # Set to true for specimen label transcription (experimental)
+  transcribe_taxonomy: true   # Set to false to skip taxonomy transcription
+  transcribe_specimens: true  # Set to true for specimen label transcription
 ```
 
 Example settings:
@@ -402,8 +446,8 @@ Example settings:
 
 ```yaml
 claude:
-  model: "claude-sonnet-4-20250514"  # substitute with any Claude model
-  max_tokens: 600  # increase for complicated tasks, decrease for simpler tasks
+  model: "claude-sonnet-4-6"  # substitute with any Claude model
+  max_tokens: 600  # lower max_tokens for header label transcription
 ```
 
 📷 **Field Museum Roboflow Models (Default)**
@@ -437,6 +481,9 @@ roboflow:
       endpoint: "pinmasker" # segmentation, outlines pins
       version: 6
       confidence: 50
+    bugcleaner:
+      endpoint: "bugcleaner" # classification, detects text on specimen crops
+      version: 3
 ```
 
 The most up-to-date FMNH models can be found at [https://universe.roboflow.com/field-museum/](https://universe.roboflow.com/field-museum/). To find the endpoint and version number, select your model, go to Deploy > Model, and copy the values into `config.yaml`.
@@ -456,7 +503,7 @@ roboflow:
       version: 1
       confidence: 50
       overlap: 50
-    # ... (configure all 5 model types)
+    # ... (configure all 6 model types)
 ```
 
 🤖 **Local YOLO Models**
@@ -484,7 +531,7 @@ local:
     pin:
 ```
 
-To use your own YOLO weights, replace the files in the `weights/` subfolders. The images and annotations for all FMNH models are available for download and retraining at [https://universe.roboflow.com/field-museum/](https://universe.roboflow.com/field-museum/).
+To use your own YOLO weights, replace the files in the `weights/` subfolders. The images and annotations for all FMNH models are available for download and local training at [https://universe.roboflow.com/field-museum/](https://universe.roboflow.com/field-museum/).
 
 To download training data:
 - Select the desired model
@@ -495,132 +542,14 @@ To download training data:
 
 ### Edit LLM Prompts
 
-```yaml
-prompts:
-  barcode: # prompt for transcribing barcodes
-    system: |
-      You are a barcode reading tool. You should output only the numbers found in the image.
-      The barcode always starts with an 8 and is five digits long. 
-      If no valid barcode is found, output 'none'.
-    user: |
-      Read the barcode number. Output only the code, no explanations.
-  
-  geocode: # prompt for recognizing 3-letter geocodes
-    system: |
-      You are a geocode recognition tool for natural history specimens. 
-      Your task is to identify the 3-letter geocode visible in the image.
-      
-      The geocode is always a 3-letter code (all capital letters):
-      - "NEO"
-      - "PAL"
-      - "NEA"
-      - "AFR"
-      - "ORI"
-      - "AUS"
-      - "PAC"
-      
-      Output only the 3-letter geocode. If no valid 3-letter geocode is visible 
-      or if the text is unclear, output 'UNK' (Unknown).
-    user: |
-      Identify the 3-letter geocode visible in this image. Output only the code (e.g., NEO, PAL), no explanations.
-    
-  taxonomy: # prompt for transcribing and organizing taxonomic IDs
-    system: |
-      You are a taxonomic label transcription tool specializing in natural 
-      history specimens. Your task is to:
-      1. Provide a complete transcription of the entire label, which may be handwritten
-      2. Extract the taxonomic name, including any genus, subgenus, species, 
-         and subspecies information
-      3. If ONLY higher order taxonomic information is available (family -dae, tribe -ini, subfamily -nae), report this in 'taxonomy'
-      4. Extract the taxonomic authority (author and/or year)
+All prompts are configured in `config.yaml` under the `prompts` section. Each prompt has a `system` (instructions) and `user` (per-image request) component.
 
-      For missing elements, output 'none'. Format your response as a structured 
-      dictionary with these three keys:
-      {
-        'full_transcription': 'complete text as shown',
-        'taxonomy': 'only taxonomic name (Genus (Subgenus) species subspecies) OR higher-order taxonomy', 
-        'authority': 'author, year'
-      }
-    user: |
-      Transcribe this taxonomic label, preserving the exact text and extracting 
-      the taxonomic name and authority. Output only the dictionary, no explanations.
-  
-  specimen_label: # prompt for transcribing any visible text, verbatim, from specimen labels
-    system: |
-     You are a natural history specimen label transcription tool specializing in precise, verbatim transcription. Your task is to:
-          1. Transcribe ALL visible text exactly as it appears, including:
-             - Unclear, handwritten, or partially visible text
-          2. Do not interpret, correct, or standardize any text
-          3. Most text will be horizontal, read left-to-right. 
-          4. Occasionally, text may be vertical or upside-down.
-    user: |
-      Transcribe any visible text. Output 'no text found' if none visible. 
-      Transcribe text verbatim. No explanations, descriptions, or commentary.
-  
-  location: # prompt for estimating locations from verbatim text
-    system: |
-      You are a geographic data extractor specialized in natural history specimen labels. 
-      Your task is to:
-      1. Look for geographic information only, considering:
-         - Country, state/province, county, city, specific locality
-      2. IGNORE non-geographic elements:
-         - Collection metadata (Det., Coll., FMNH, Field Museum, Museum)
-         - Taxonomic information
-         - Dates and collector names
-      3. For geographic inference:
-         - Only infer larger regions when unambiguous (e.g., "Paris, France" -> "France")
-         - Do not infer if multiple possibilities exist (e.g., "Springfield" could be many states)
-         - Include only explicitly stated or unambiguously implied locations
-      4. Handle special cases:
-         - Historical place names: use historical name, add modern name in brackets
-    user: |
-      Extract geographic location from this text: {text}. Format: largest to 
-      smallest unit, comma-separated. Output 'no location found' if none present. 
-      No explanations or notes.
-  
-  validation: # prompt for comparing/validating estimated locations to the verbatim text
-    system: |
-      You are a geographic data validator specializing in museum specimen labels. 
-      Your task is to:
-      1. Examine the transcribed text and interpreted location to evaluate whether they are a strong match
-      2. Make a final location determination considering:
-         - The verbatim transcribed text
-         - The proposed location
-         - Standard geographic abbreviations in specimen labels (e.g., USA: MT = USA, Montana)
-         - Some partial information is still valid (e.g., a clear state/province even without city/county)
-         - Conventional collection abbreviations, e.g. Det. / Col. are typically not locations
-         - Locations derived from 'Field Museum' or 'FMNH' or 'Chicago Field Museum' 
-           are not valid, as this is where many specimens are housed
-         - Avoid specific directional information as this easy to misinterpret
-           
-      3. Respond with a dictionary containing these fields:
-        {
-          'verbatim_text': The raw text exactly as transcribed from the original image,
-          'proposed_location': The location string being validated,
-          'validation_status': Must be one of these exact values:
-              'VERIFIED' - Use when:
-                  - Text contains clear geographic identifiers (e.g., standard country/state codes like "USA: MT")
-                  - Location matches established abbreviation conventions
-                  - Partial location information is okay if unambiguous (e.g., clear state without county)
-              'UNRELIABLE' - Use when:
-                  - Geographic terms are ambiguous or could be non-geographic
-                  - Location interpretation goes beyond what's supported by the text
-                  - Proposed location misinterprets collection abbreviations (e.g., reading 'Det.' as Detroit)
-              'UNKNOWN' - Use when no clear location information is found in the text,
-          'final_location': Must be either:
-              - A standardized location string from largest to smallest unit (e.g., "USA, Montana")
-                which can be:
-                * A new determination if the proposed location was incorrect
-                * An expansion of a previous valid determination with newly validated details
-                * A more conservative version of the proposed location if only part can be verified
-                (only if status is VERIFIED)
-              - 'UNKNOWN' (for UNRELIABLE or UNKNOWN status),
-        }
-    user: |
-      Validate this location data:
-      Transcribed text: {transcribed_text}
-      Proposed location: {proposed_location}
-```
+**Tray header prompts** (`barcode`, `geocode`, `taxonomy`) handle transcription of the printed labels at the top of each tray.
+
+**Specimen label prompt** (`traycontext`) handles the multi-image transcription of specimen labels.
+See [Specimen Label Transcriptions](#specimen-label-transcriptions) for details.
+
+To customize prompts for your collection, edit the `system` and `user` fields in `config.yaml`.
 
 ### Performance Settings
 
