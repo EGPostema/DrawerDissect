@@ -198,7 +198,6 @@ def run_step_for_drawer(step, config, drawer_id, args):
                 os.makedirs(tray_level_dir, exist_ok=True)
                 output_csv = os.path.join(tray_level_dir, csv_name)
 
-                # ocr_header determines barcode/geocode/taxonomy mode from the csv filename
                 prompt_key = {
                     "transcribe_barcodes": "barcode",
                     "transcribe_geocodes": "geocode",
@@ -208,9 +207,8 @@ def run_step_for_drawer(step, config, drawer_id, args):
                 asyncio.run(process_image_folder(
                     folder_path=config.get_drawer_directory(d, "labels"),
                     output_csv=output_csv,
-                    api_key=config.api_keys["anthropic"],
+                    config=config,
                     prompts=config.prompts.get(prompt_key, {}),
-                    model_config=config.claude_config,
                 ))
             else:
                 log(f"{step} skipped (disabled in config)")
