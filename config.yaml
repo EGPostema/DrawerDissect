@@ -66,7 +66,7 @@ roboflow:
 # ------------------------------------------------------------
 local:
   weights_dir: "weights"
-  device: "auto" # can force "CPU" or "GPU"
+  device: "auto" # can force "cpu", "cuda", or "mps"
   models:
     drawer:
     tray:
