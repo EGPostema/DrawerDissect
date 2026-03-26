@@ -261,9 +261,17 @@ prompts:
             "stateProvince": "",
             "county": "",
             "municipality": "",
-            "locality": "",
+            "verbatimLocality": "place description exactly as written on label",
+            "locality": "standardized/interpreted place description",
+            "waterBody": "",
+            "islandGroup": "",
+            "island": "",
+            "verbatimElevation": "elevation exactly as written (e.g. 1200ft, 3500m)",
+            "habitat": "",
+            "samplingProtocol": "",
             "collector": "",
-            "date": "",
+            "verbatimEventDate": "",
+            "identifiedBy": "",
             "flags": []
           }
         ]
@@ -273,17 +281,29 @@ prompts:
       - label_group: integer, starting at 1
       - specimen_ids: list of specimen ID strings
       - match_type: "identical", "similar", or "unique"
-      - verbatim_text: raw label text from the clearest specimen in the group
+      - verbatim_text: complete raw label text from the clearest specimen in the group
       - country, stateProvince, county (name only, e.g. "Jefferson", NOT "Jefferson County"): administrative geography
       - municipality: city or town (e.g. "Needles", "Pentwater", "Salt Lake City")
-      - locality: specific place within a municipality — parks, beaches, neighborhoods,
-        natural features, landmarks (e.g. "Indiana Dunes State Park", "Miller Beach",
-        "Hot Creek Falls")
+      - verbatimLocality: the place description EXACTLY as written on the label,
+        preserving original spelling, abbreviations, and punctuation
+        (e.g. "2mi. NW of Fox Lake, rt. 12", "Satpura H[ills?]", "Formosa")
+      - locality: standardized/interpreted place description — correct perceived errors,
+        expand abbreviations, modernize historical names
+        (e.g. "2 mi NW of Fox Lake, Route 12", "Satpura Hills", "Kohchun")
       For place names below county level, default to locality unless the
       name is obviously a city or town. When in doubt, use locality.
+      - waterBody: name of the water body (river, lake, sea, ocean) if mentioned
+      - islandGroup: name of the island group or archipelago if applicable
+      - island: name of the specific island if applicable
+      - verbatimElevation: elevation exactly as written on the label (e.g. "1200 ft", "3500 m", "ca. 800m")
+      - habitat: habitat description (e.g. "oak savanna", "pre-cordilleran steppe", "sandy beach")
+      - samplingProtocol: collection method (e.g. "malaise trap", "UV light trap", "hand collected",
+        "under bark of log") — from "leg.", "Col.", collection method notes
       - collector: person who collected (from "Col.", "Coll.", "leg.", etc.)
-      - date: collection date in ISO format (YYYY-MM-DD) if possible, otherwise
-        as written. Only collection dates, NOT determination dates.
+      - verbatimEventDate: the date exactly as written on the label, in any format
+        (e.g. "17IV1934", "spring 1910", "Marzo 2002", "1999-03-XX", "05-1970").
+        Only collection dates, NOT determination dates (those go in identifiedBy notes).
+      - identifiedBy: person who identified/determined the specimen (from "det.", "Det." labels)
       - flags: list of strings. Use when applicable:
           "no_location", "ambiguous_locality", "historical_name: X = Y",
           "handwritten_difficult", "partial_text", "multiple_labels",
