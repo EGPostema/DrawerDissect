@@ -95,7 +95,7 @@ processing:
 # Prompts
 # ------------------------------------------------------------
 prompts:
-  barcode: # prompt for transcribing barcodes
+  barcode: # prompt for transcribing FMNH-style unit tray barcodes
     system: |
       You are a barcode reading tool. You should output only the numbers found in the image.
       The barcode is always five digits long.
