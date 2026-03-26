@@ -5,7 +5,7 @@ Tray-level specimen label transcription using multi-crop approach.
 
 For each tray, this module:
   1. Finds all specimen crops and runs bugcleaner to filter out textless ones
-  2. Sends to Claude in one call (batched if >20 specimens):
+  2. Sends to LLM in one call (batched if >20 specimens):
      - Tray header context (geocode, taxonomy, barcode) from existing CSVs
      - A downsized tray image for spatial context (optional, configurable)
      - All passing specimen crops as separate labeled images
@@ -28,6 +28,7 @@ from PIL import Image
 from logging_utils import log, log_found
 
 from functions.model_runner import build_model_runner
+from functions.llm_client import build_llm_client
 from functions.geocode_lookup import check_geocode_country, check_ambiguous_locality
 
 
@@ -180,26 +181,23 @@ def find_tray_image(resized_trays_dir, tray_name, tray_stem):
 
 
 # ===================================================================
-# 5. CLAUDE CALL — tray image + individual crops + header context
+# 5. LLM CALL — tray image + individual crops + header context
 # ===================================================================
 
 def call_claude_multicrop(
     tray_image_path,
     specimen_crops,
     tray_context_str,
-    api_key,
-    model,
-    max_tokens,
+    llm_client,
+    model_config,
     system_prompt,
     user_prompt,
     include_tray_image=True,
 ):
     """
-    One Claude call with: optional tray image + all specimen crops + context.
+    One LLM call with: optional tray image + all specimen crops + context.
     Returns parsed response (list of group dicts), or None.
     """
-    import anthropic
-
     # Fill in user prompt template
     user_text = user_prompt.replace("{tray_context}", tray_context_str)
     user_text = user_text.replace("{specimen_ids}", ", ".join(specimen_crops.keys()))
@@ -207,7 +205,7 @@ def call_claude_multicrop(
     # Build content — context first, then images, then instructions
     content = []
 
-    # First: tray header context (geocode, taxonomy, barcode) so Claude is primed
+    # First: tray header context (geocode, taxonomy, barcode) so the LLM is primed
     content.append({
         "type": "text",
         "text": f"TRAY HEADER CONTEXT:\n{tray_context_str}",
@@ -246,14 +244,12 @@ def call_claude_multicrop(
     # Finally: the instructions
     content.append({"type": "text", "text": user_text})
 
-    client = anthropic.Anthropic(api_key=api_key)
-
     max_attempts = 2
     for attempt in range(max_attempts):
         try:
-            response = client.messages.create(
-                model=model,
-                max_tokens=max_tokens,
+            response = llm_client.create_message_sync(
+                model=model_config["model"],
+                max_tokens=model_config["max_tokens"],
                 system=system_prompt,
                 messages=[{"role": "user", "content": content}],
             )
@@ -272,7 +268,7 @@ def call_claude_multicrop(
             return None
 
         except Exception as e:
-            log(f"  Claude API error: {e}")
+            log(f"  LLM API error: {e}")
             if attempt < max_attempts - 1:
                 log(f"    Retrying...")
                 continue
@@ -280,7 +276,7 @@ def call_claude_multicrop(
 
 
 def parse_claude_response(raw_text):
-    """Parse Claude's JSON response into a list of group dicts."""
+    """Parse the LLM's JSON response into a list of group dicts."""
     cleaned = raw_text
     if "```" in cleaned:
         cleaned = re.sub(r"```(?:json)?\s*", "", cleaned)
@@ -306,7 +302,7 @@ def parse_claude_response(raw_text):
     except Exception:
         pass
 
-    log(f"  Warning: could not parse Claude response.")
+    log(f"  Warning: could not parse LLM response.")
     return None
 
 
@@ -315,7 +311,7 @@ def parse_claude_response(raw_text):
 # ===================================================================
 
 def validate_groups(groups, geocode_value):
-    """Run post-Claude validation. Modifies groups in place."""
+    """Run post-LLM validation. Modifies groups in place."""
     for group in groups:
         flags = group.get("flags", [])
         if isinstance(flags, str):
@@ -339,8 +335,12 @@ def validate_groups(groups, geocode_value):
 
         # Clean DarwinCore fields
         darwincore_fields = ["country", "stateProvince", "state_province",
-                            "county", "municipality", "locality",
-                            "collector", "date"]
+                            "county", "municipality",
+                            "verbatimLocality", "locality",
+                            "waterBody", "islandGroup", "island",
+                            "verbatimElevation",
+                            "habitat", "samplingProtocol",
+                            "collector", "verbatimEventDate", "identifiedBy"]
         for field in darwincore_fields:
             val = group.get(field, "")
             if isinstance(val, str):
@@ -351,7 +351,7 @@ def validate_groups(groups, geocode_value):
                     group[field] = cleaned
 
         # Normalize 'none'/'null' to empty
-        for field in darwincore_fields + ["verbatim_text"]:
+        for field in darwincore_fields + ["verbatim_text", "verbatimLocality"]:
             val = group.get(field, "")
             if isinstance(val, str) and val.strip().lower() in ("none", "null", "n/a"):
                 group[field] = ""
@@ -370,17 +370,26 @@ def write_outputs(groups, tray_name, notext_specimens, output_dir, model_name=""
     specimen_fields = [
         "tray", "specimen_id", "label_group", "match_type",
         "verbatim_text",
-        "country", "stateProvince", "county", "municipality", "locality",
-        "collector", "date",
-        "flags", "model",
+        "country", "stateProvince", "county", "municipality",
+        "verbatimLocality", "locality",
+        "waterBody", "islandGroup", "island",
+        "verbatimElevation",
+        "habitat", "samplingProtocol",
+        "collector", "verbatimEventDate",
+        "flags", "identifiedBy", "model",
     ]
 
     def _flatten_group(g, tray):
-        row = {"tray": tray, "model": model_name}
+        row = {"tray": tray, "model": f"original transcription by {model_name}" if model_name else ""}
         for field in ("label_group", "match_type", "verbatim_text",
                       "country", "stateProvince", "state_province",
-                      "county", "municipality", "locality",
-                      "collector", "date"):
+                      "county", "municipality",
+                      "verbatimLocality", "locality",
+                      "waterBody", "islandGroup", "island",
+                      "verbatimElevation",
+                      "habitat", "samplingProtocol",
+                      "collector", "verbatimEventDate",
+                      "identifiedBy"):
             val = g.get(field, "")
             if isinstance(val, list):
                 val = ", ".join(str(v) for v in val)
@@ -449,8 +458,10 @@ def process_tray_context(
     system_prompt = tc_prompts.get("system", "")
     user_prompt = tc_prompts.get("user", "")
 
-    # Get model name for tracking
-    model_name = config.claude_config.get("model", "")
+    # Build LLM client and model config for this run
+    llm_client = build_llm_client(config)
+    model_cfg = {**config.llm_config, "max_tokens": tc_max_tokens}
+    model_name = model_cfg.get("model", "")
 
     if not system_prompt or not user_prompt:
         log("Warning: traycontext prompts not found in config.yaml.")
@@ -550,7 +561,7 @@ def process_tray_context(
         # ----- Gather tray header context -----
         context_str, geocode_value = build_tray_context_string(tray_level_dir, tray_name)
 
-        # ----- Call Claude (with batch splitting for large trays) -----
+        # ----- Call LLM (with batch splitting for large trays) -----
         max_per_batch = settings.get("max_specimens_per_batch", 20)
         include_tray = settings.get("include_tray_image", True)
         spec_ids_list = list(text_crops.keys())
@@ -562,9 +573,8 @@ def process_tray_context(
                 tray_image_path=tray_image_path,
                 specimen_crops=text_crops,
                 tray_context_str=context_str,
-                api_key=config.api_keys["anthropic"],
-                model=config.claude_config["model"],
-                max_tokens=tc_max_tokens,
+                llm_client=llm_client,
+                model_config=model_cfg,
                 system_prompt=system_prompt,
                 user_prompt=user_prompt,
                 include_tray_image=include_tray,
@@ -588,16 +598,14 @@ def process_tray_context(
                     tray_image_path=tray_image_path,
                     specimen_crops=batch_crops,
                     tray_context_str=context_str,
-                    api_key=config.api_keys["anthropic"],
-                    model=config.claude_config["model"],
-                    max_tokens=tc_max_tokens,
+                    llm_client=llm_client,
+                    model_config=model_cfg,
                     system_prompt=system_prompt,
                     user_prompt=user_prompt,
                     include_tray_image=include_tray,
                 )
 
                 if batch_groups:
-                    # Renumber groups to avoid collisions across batches
                     for g in batch_groups:
                         g["label_group"] = g.get("label_group", 0) + group_offset
                     group_offset += len(batch_groups)
@@ -608,11 +616,11 @@ def process_tray_context(
             groups = all_groups if all_groups else None
 
         if groups is None:
-            log(f"    Claude returned unparseable output for {tray_name}")
+            log(f"    LLM returned unparseable output for {tray_name}")
             write_outputs([], tray_name, notext_specimens, output_dir, model_name)
             continue
 
-        log(f"    Claude returned {len(groups)} label group(s)")
+        log(f"    LLM returned {len(groups)} label group(s)")
 
         # ----- Validate -----
         validate_groups(groups, geocode_value)
