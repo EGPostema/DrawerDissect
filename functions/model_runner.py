@@ -188,11 +188,28 @@ def build_model_runner(config, model_key: str):
         runner = RoboflowModelRunner(rf_model)
 
     elif config.deployment == "local":
-        log(f"[local] {model_key}: {config.get_local_weights_path(model_key)}")
-        runner = LocalModelRunner(
-            config.get_local_weights_path(model_key),
-            device=config.local_device,
-        )
+        # Fall back to Roboflow for models with no local weights (e.g. bugcleaner)
+        local_weights = config._config.get("local", {}).get("models", {}).get(model_key)
+        if not local_weights:
+            log(f"[local] No weights for '{model_key}', falling back to Roboflow")
+            _, workspace_instance = config.get_roboflow_instance()
+            model_cfg = config.roboflow_models[model_key]
+            rf_model = (
+                workspace_instance
+                .project(model_cfg["endpoint"])
+                .version(model_cfg["version"])
+                .model
+            )
+            if hasattr(rf_model, "preprocessing") and "resize" in rf_model.preprocessing:
+                del rf_model.preprocessing["resize"]
+            log(f"[roboflow] {model_key}: {model_cfg['endpoint']} v{model_cfg['version']}")
+            runner = RoboflowModelRunner(rf_model)
+        else:
+            log(f"[local] {model_key}: {config.get_local_weights_path(model_key)}")
+            runner = LocalModelRunner(
+                config.get_local_weights_path(model_key),
+                device=config.local_device,
+            )
 
     else:
         raise ValueError(
