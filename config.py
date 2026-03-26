@@ -196,9 +196,17 @@ class DrawerDissectConfig:
     # ------------------------------------------------------------------
 
     @property
+    def llm_config(self) -> Dict[str, Any]:
+        """LLM settings: provider, model, max_tokens, and openai_compatible sub-section."""
+        defaults = {"provider": "anthropic", "model": "claude-sonnet-4-6", "max_tokens": 600}
+        # Accept either 'llm' (new) or 'claude' (legacy) section
+        raw = self._config.get("llm", self._config.get("claude", {}))
+        return {**defaults, **raw}
+
+    @property
     def claude_config(self) -> Dict[str, Any]:
-        defaults = {"model": "claude-sonnet-4-6", "max_tokens": 600}
-        return {**defaults, **self._config.get("claude", {})}
+        """Backward-compatible alias for llm_config."""
+        return self.llm_config
 
     @property
     def processing_flags(self) -> Dict[str, Any]:
