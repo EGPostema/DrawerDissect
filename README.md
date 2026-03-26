@@ -21,7 +21,7 @@ DrawerDissect has run successfully on the following systems:
 | Windows | Windows 11 | AMD Ryzen 7 7800X3D | 32 GB | NVIDIA GeForce RTX 4060 |
 | Windows | Windows 11 | Intel i5-13400F | 32 GB | NVIDIA GeForce RTX 4060 |
 
-Current Version: v0.2.0
+Current Version: **v0.3.0**
 
 ---
 
@@ -112,7 +112,7 @@ deployment: "roboflow"  # or "local"
 
 **Roboflow (cloud):** Runs models via the Roboflow API. Requires a Roboflow API key and internet connection. Easiest option to get started.
 
-**Local:** Runs models directly on your machine using `.pt` weight files. No internet connection or Roboflow account required after setup. Pre-trained FMNH weights (last updated: 2025-03-04) are included in the `weights/` folder. See [Local YOLO Models](#-local-yolo-models) for details.
+**Local:** Runs models directly on your machine using `.pt` weight files. No internet connection or Roboflow account required after setup. Pre-trained FMNH weights (last updated: 2026-03-04) are included in the `weights/` folder. See [Local YOLO Models](#-local-yolo-models) for details.
 
 The compute device for local inference is detected automatically but can be overridden:
 
