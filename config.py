@@ -37,19 +37,16 @@ class DrawerDissectConfig:
 
     @property
     def deployment(self) -> str:
-        """Active deployment mode: 'roboflow' or 'local'. Defaults to 'roboflow'."""
         return self._config.get("deployment", "roboflow")
 
     # ------------------------------------------------------------------
-    # Model runner cache (keyed by model_key)
+    # Model runner cache
     # ------------------------------------------------------------------
 
     def get_cached_runner(self, model_key: str):
-        """Return a cached model runner, or None if not yet built."""
         return self._runner_cache.get(model_key)
 
     def set_cached_runner(self, model_key: str, runner):
-        """Store a built model runner in the cache."""
         self._runner_cache[model_key] = runner
 
     # ------------------------------------------------------------------
@@ -58,18 +55,9 @@ class DrawerDissectConfig:
 
     @property
     def local_device(self) -> str:
-        """Device for local inference: 'auto', 'cpu', 'cuda', 'mps', etc."""
         return self._config.get("local", {}).get("device", "auto")
 
     def get_local_weights_path(self, model_key: str) -> str:
-        """
-        Resolve the .pt weights path for a given model key.
-
-        If config.yaml specifies a filename under local.models, that is used.
-        Otherwise the model's subfolder is scanned: if exactly one .pt file is
-        found it is used automatically. If there are multiple, the user is asked
-        to specify which one in config.yaml.
-        """
         local_cfg = self._config.get("local", {})
         weights_dir = Path(local_cfg.get("weights_dir", "weights"))
         model_dir = weights_dir / model_key
@@ -84,7 +72,6 @@ class DrawerDissectConfig:
                 )
             return str(full_path)
 
-        # No filename specified — scan the folder
         if not model_dir.exists():
             raise FileNotFoundError(
                 f"Weights folder not found: {model_dir.resolve()}\n"
@@ -103,7 +90,6 @@ class DrawerDissectConfig:
                 f"Place a .pt file there."
             )
 
-        # Multiple files — can't guess, ask the user to be specific
         names = ", ".join(f.name for f in pt_files)
         raise ValueError(
             f"Multiple .pt files found in {model_dir}: {names}\n"
@@ -115,7 +101,6 @@ class DrawerDissectConfig:
     # ------------------------------------------------------------------
 
     def get_roboflow_instance(self):
-        """Lazily initialise and cache the Roboflow API connection."""
         if self._roboflow_cache is not None:
             return self._roboflow_cache
 
@@ -142,7 +127,7 @@ class DrawerDissectConfig:
         return self._config["roboflow"]["workspace"]
 
     # ------------------------------------------------------------------
-    # API keys  (cached to avoid repeated env-var lookups and log spam)
+    # API keys
     # ------------------------------------------------------------------
 
     @property
@@ -168,7 +153,6 @@ class DrawerDissectConfig:
     # ------------------------------------------------------------------
 
     def get_existing_drawers(self) -> List[str]:
-        """List existing drawer folders (excludes 'unsorted')."""
         drawers_base = os.path.dirname(self.unsorted_directory)
         if not os.path.exists(drawers_base):
             return []
@@ -178,7 +162,6 @@ class DrawerDissectConfig:
         )
 
     def setup_drawer_directories(self, drawer_id: str):
-        """Create all subdirectories for a specific drawer."""
         drawer_base = self.get_drawer_path(drawer_id)
         Path(drawer_base).mkdir(parents=True, exist_ok=True)
         for subdir in self._config["directories"]["drawer_subdirs"].values():
@@ -196,7 +179,6 @@ class DrawerDissectConfig:
         return os.path.join(self.get_drawer_path(drawer_id), subdir)
 
     def move_image_to_drawer(self, drawer_id: str, filename: str) -> bool:
-        """Move an image from unsorted to the drawer's fullsize folder."""
         src = os.path.join(self.unsorted_directory, filename)
         if not os.path.exists(src):
             return False
@@ -215,7 +197,7 @@ class DrawerDissectConfig:
 
     @property
     def claude_config(self) -> Dict[str, Any]:
-        defaults = {"model": "claude-sonnet-4-20250514", "max_tokens": 600}
+        defaults = {"model": "claude-sonnet-4-6", "max_tokens": 600}
         return {**defaults, **self._config.get("claude", {})}
 
     @property
@@ -225,6 +207,16 @@ class DrawerDissectConfig:
     @property
     def prompts(self) -> Dict[str, Any]:
         return self._config.get("prompts", {})
+
+    @property
+    def traycontext_settings(self) -> Dict[str, Any]:
+        defaults = {
+            "bugcleaner_confidence_threshold": 95,
+            "max_tokens": 12000,
+            "include_tray_image": True,
+            "max_specimens_per_batch": 20,
+        }
+        return {**defaults, **self._config.get("traycontext_settings", {})}
 
     def get_memory_config(self, step: str) -> Dict[str, Any]:
         memory = self._config.get("resources", {}).get("memory", {})

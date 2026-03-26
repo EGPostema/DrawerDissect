@@ -29,8 +29,7 @@ from functions.infer_pins import infer_pins
 from functions.create_pinmask import create_pinmask
 from functions.create_transparency import create_transparency
 from functions.ocr_header import process_image_folder
-from functions.ocr_label import process_specimen_labels
-from functions.ocr_validation import validate_transcriptions
+from functions.ocr_specimenlabels import process_tray_context
 from functions.merge_data import merge_data
 
 
@@ -38,8 +37,6 @@ def _model_param(args_val, config, model_key: str, param: str, default: float = 
     """
     Return the effective value for a model parameter (confidence or overlap).
     Priority: CLI argument > config.yaml value > hard default.
-    For local deployment the config dict is empty, so the default is used unless
-    the user passes a CLI flag.
     """
     if args_val is not None:
         return args_val
@@ -59,7 +56,7 @@ def run_step_for_drawer(step, config, drawer_id, args):
         if sequential or max_workers is not None or batch_size is not None:
             log(f"Memory settings: sequential={sequential}, max_workers={max_workers}, batch_size={batch_size}")
 
-        d = drawer_id  # shorthand for directory lookups below
+        d = drawer_id
 
         if step == "resize_drawers":
             resize_drawer_images(
@@ -188,52 +185,53 @@ def run_step_for_drawer(step, config, drawer_id, args):
                 sequential=sequential, max_workers=max_workers, batch_size=batch_size,
             )
 
-        elif step == "transcribe_speclabels":
-            if config.processing_flags.get("transcribe_specimen_labels", False):
-                spec_csv = os.path.join(config.get_drawer_directory(d, "specimen_level"), "specimen_labels.csv")
-                asyncio.run(process_specimen_labels(
-                    config.get_drawer_directory(d, "specimens"),
-                    spec_csv,
-                    api_key=config.api_keys["anthropic"],
-                    prompts=config.prompts,
-                    model_config=config.claude_config,
-                ))
-            else:
-                log("transcribe_speclabels skipped (disabled in config)")
-
-        elif step == "validate_speclabels":
-            if config.processing_flags.get("transcribe_specimen_labels", False):
-                spec_csv = os.path.join(config.get_drawer_directory(d, "specimen_level"), "specimen_labels.csv")
-                validated_csv = os.path.join(config.get_drawer_directory(d, "specimen_level"), "location_checked.csv")
-                asyncio.run(validate_transcriptions(
-                    input_csv=spec_csv,
-                    output_csv=validated_csv,
-                    api_key=config.api_keys["anthropic"],
-                    prompts=config.prompts["validation"],
-                    model_config=config.claude_config,
-                ))
-            else:
-                log("validate_speclabels skipped (disabled in config)")
-
         elif step in ("transcribe_barcodes", "transcribe_geocodes", "transcribe_taxonomy"):
-            label_type, flag_key, default_on = {
-                "transcribe_barcodes": ("barcode",  "transcribe_barcodes", False),
-                "transcribe_geocodes": ("geocode",  "transcribe_geocodes", False),
-                "transcribe_taxonomy": ("taxonomy", "transcribe_taxonomy", True),
+            flag_key, csv_name, default_on = {
+                "transcribe_barcodes": ("transcribe_barcodes", "unit_barcodes.csv", False),
+                "transcribe_geocodes": ("transcribe_geocodes", "geocodes.csv",      False),
+                "transcribe_taxonomy": ("transcribe_taxonomy", "taxonomy.csv",       True),
             }[step]
 
             if config.processing_flags.get(flag_key, default_on):
-                process_image_folder(
-                    config.get_drawer_directory(d, "labels"),
-                    config.get_drawer_directory(d, "tray_level"),
-                    label_type=label_type,
+                import asyncio
+                tray_level_dir = config.get_drawer_directory(d, "tray_level")
+                os.makedirs(tray_level_dir, exist_ok=True)
+                output_csv = os.path.join(tray_level_dir, csv_name)
+
+                # ocr_header determines barcode/geocode/taxonomy mode from the csv filename
+                prompt_key = {
+                    "transcribe_barcodes": "barcode",
+                    "transcribe_geocodes": "geocode",
+                    "transcribe_taxonomy": "taxonomy",
+                }[step]
+
+                asyncio.run(process_image_folder(
+                    folder_path=config.get_drawer_directory(d, "labels"),
+                    output_csv=output_csv,
                     api_key=config.api_keys["anthropic"],
-                    model=config.claude_config["model"],
-                    max_tokens=config.claude_config["max_tokens"],
-                    prompts=config.prompts,
-                )
+                    prompts=config.prompts.get(prompt_key, {}),
+                    model_config=config.claude_config,
+                ))
             else:
                 log(f"{step} skipped (disabled in config)")
+
+        elif step == "transcribe_specimens":
+            if config.processing_flags.get("transcribe_specimens", False):
+                tray_level_path = config.get_drawer_directory(d, "tray_level")
+                tray_level_dir = tray_level_path if os.path.exists(tray_level_path) else None
+
+                process_tray_context(
+                    specimens_dir=config.get_drawer_directory(d, "specimens"),
+                    resized_trays_coords_dir=config.get_drawer_directory(d, "resized_trays_coordinates"),
+                    trays_dir=config.get_drawer_directory(d, "trays"),
+                    resized_trays_dir=config.get_drawer_directory(d, "resized_trays"),
+                    guides_dir=config.get_drawer_directory(d, "guides"),
+                    output_dir=config.get_drawer_directory(d, "tray_context"),
+                    config=config,
+                    tray_level_dir=tray_level_dir,
+                )
+            else:
+                log("transcribe_specimens skipped (disabled in config)")
 
         elif step == "merge_data":
             def _p(subdir, filename):
@@ -243,7 +241,7 @@ def run_step_for_drawer(step, config, drawer_id, args):
             merge_data(
                 specimens_dir=config.get_drawer_directory(d, "specimens"),
                 measurements_path=_p("measurements", "measurements.csv"),
-                location_checked_path=_p("specimen_level", "location_checked.csv"),
+                specimen_localities_path=_p("tray_context", "specimen_localities.csv"),
                 taxonomy_path=_p("tray_level", "taxonomy.csv"),
                 unit_barcodes_path=_p("tray_level", "unit_barcodes.csv"),
                 geocodes_path=_p("tray_level", "geocodes.csv"),
@@ -263,15 +261,15 @@ ALL_STEPS = [
     "resize_trays", "find_traylabels", "crop_labels", "find_specimens",
     "crop_specimens", "create_traymaps", "outline_specimens", "create_masks",
     "fix_masks", "measure_specimens", "censor_background", "outline_pins",
-    "create_pinmask", "create_transparency", "transcribe_speclabels",
-    "validate_speclabels", "transcribe_barcodes", "transcribe_geocodes",
-    "transcribe_taxonomy", "merge_data",
+    "create_pinmask", "create_transparency",
+    "transcribe_barcodes", "transcribe_geocodes", "transcribe_taxonomy",
+    "transcribe_specimens", "merge_data",
 ]
 
 SPECIMEN_ONLY_STEPS = {
     "outline_specimens", "create_masks", "fix_masks", "measure_specimens",
     "censor_background", "outline_pins", "create_pinmask", "create_transparency",
-    "transcribe_speclabels", "validate_speclabels", "merge_data",
+    "merge_data",
 }
 
 
@@ -332,7 +330,6 @@ def determine_steps(args):
     if not args.steps or "all" in args.steps:
         return step_range
 
-    # Named steps + optional range
     result = list(args.steps)
     if args.from_step or args.until_step:
         result.extend(s for s in step_range if s not in result)
@@ -356,29 +353,28 @@ def confirm_rerun(steps_to_run, drawers):
 def clear_existing_outputs(config, drawer_id, steps_to_run):
     """Delete output files for the given steps so they will be regenerated."""
     step_clear_mapping = {
-        "resize_drawers":       ["resized"],
-        "find_trays":           ["coordinates"],
-        "crop_trays":           ["trays"],
-        "resize_trays":         ["resized_trays"],
-        "find_traylabels":      ["label_coordinates"],
-        "crop_labels":          ["labels"],
-        "find_specimens":       ["resized_trays_coordinates"],
-        "crop_specimens":       ["specimens"],
-        "create_traymaps":      ["guides"],
-        "outline_specimens":    ["mask_coordinates"],
-        "create_masks":         ["mask_png"],
-        "fix_masks":            [],
-        "measure_specimens":    ["measurements"],
-        "censor_background":    ["no_background"],
-        "outline_pins":         ["pin_coordinates"],
-        "create_pinmask":       ["full_masks"],
-        "create_transparency":  ["transparencies", "whitebg_specimens"],
-        "transcribe_speclabels":["specimen_level"],
-        "validate_speclabels":  [],
-        "transcribe_barcodes":  ["tray_level"],
-        "transcribe_geocodes":  [],
-        "transcribe_taxonomy":  [],
-        "merge_data":           ["data"],
+        "resize_drawers":         ["resized"],
+        "find_trays":             ["coordinates"],
+        "crop_trays":             ["trays"],
+        "resize_trays":           ["resized_trays"],
+        "find_traylabels":        ["label_coordinates"],
+        "crop_labels":            ["labels"],
+        "find_specimens":         ["resized_trays_coordinates"],
+        "crop_specimens":         ["specimens"],
+        "create_traymaps":        ["guides"],
+        "outline_specimens":      ["mask_coordinates"],
+        "create_masks":           ["mask_png"],
+        "fix_masks":              [],
+        "measure_specimens":      ["measurements"],
+        "censor_background":      ["no_background"],
+        "outline_pins":           ["pin_coordinates"],
+        "create_pinmask":         ["full_masks"],
+        "create_transparency":    ["transparencies", "whitebg_specimens"],
+        "transcribe_barcodes":    ["tray_level"],
+        "transcribe_geocodes":    [],
+        "transcribe_taxonomy":    [],
+        "transcribe_specimens": ["tray_context"],
+        "merge_data":             ["data"],
     }
 
     cleared = []
@@ -402,47 +398,41 @@ def clear_existing_outputs(config, drawer_id, steps_to_run):
 # Status report
 # ---------------------------------------------------------------------------
 
-# Maps each step to the directory key whose contents indicate completion.
-# Steps that produce a specific file are handled separately in _has_output().
 STEP_OUTPUT_DIRS = {
-    "resize_drawers":       "resized",
-    "find_trays":           "coordinates",
-    "crop_trays":           "trays",
-    "resize_trays":         "resized_trays",
-    "find_traylabels":      "label_coordinates",
-    "crop_labels":          "labels",
-    "find_specimens":       "resized_trays_coordinates",
-    "crop_specimens":       "specimens",
-    "create_traymaps":      "guides",
-    "outline_specimens":    "mask_coordinates",
-    "create_masks":         "mask_png",
-    "measure_specimens":    "measurements",
-    "censor_background":    "no_background",
-    "outline_pins":         "pin_coordinates",
-    "create_pinmask":       "full_masks",
-    "create_transparency":  "transparencies",
-    "transcribe_speclabels":"specimen_level",
-    "validate_speclabels":  "specimen_level",
-    "transcribe_barcodes":  "tray_level",
-    "transcribe_geocodes":  "tray_level",
-    "transcribe_taxonomy":  "tray_level",
-    "merge_data":           "data",
+    "resize_drawers":         "resized",
+    "find_trays":             "coordinates",
+    "crop_trays":             "trays",
+    "resize_trays":           "resized_trays",
+    "find_traylabels":        "label_coordinates",
+    "crop_labels":            "labels",
+    "find_specimens":         "resized_trays_coordinates",
+    "crop_specimens":         "specimens",
+    "create_traymaps":        "guides",
+    "outline_specimens":      "mask_coordinates",
+    "create_masks":           "mask_png",
+    "measure_specimens":      "measurements",
+    "censor_background":      "no_background",
+    "outline_pins":           "pin_coordinates",
+    "create_pinmask":         "full_masks",
+    "create_transparency":    "transparencies",
+    "transcribe_barcodes":    "tray_level",
+    "transcribe_geocodes":    "tray_level",
+    "transcribe_taxonomy":    "tray_level",
+    "transcribe_specimens": "tray_context",
+    "merge_data":             "data",
 }
 
-# Steps whose output lives in nested tray subfolders rather than the root dir
 NESTED_OUTPUT_STEPS = {
     "crop_specimens", "outline_specimens", "create_masks",
     "censor_background", "outline_pins", "create_pinmask", "create_transparency",
 }
 
-# Steps that are complete only when a specific file exists
 SENTINEL_FILES = {
-    "measure_specimens":    "measurements.csv",
-    "transcribe_speclabels":"specimen_labels.csv",
-    "validate_speclabels":  "location_checked.csv",
-    "transcribe_barcodes":  "unit_barcodes.csv",
-    "transcribe_geocodes":  "geocodes.csv",
-    "transcribe_taxonomy":  "taxonomy.csv",
+    "measure_specimens":      "measurements.csv",
+    "transcribe_barcodes":    "unit_barcodes.csv",
+    "transcribe_geocodes":    "geocodes.csv",
+    "transcribe_taxonomy":    "taxonomy.csv",
+    "transcribe_specimens": "group_localities.csv",
 }
 
 
@@ -515,9 +505,9 @@ def generate_status_report(config, write_report=False):
                 drawer_status[step] = "missing"
 
         if complete:
-            log(f"  ✓ Completed: {', '.join(complete)}")
+            log(f"  Complete: {', '.join(complete)}")
         if missing:
-            log(f"  ✗ Missing:   {', '.join(missing)}")
+            log(f"  Missing:  {', '.join(missing)}")
         if "merge_data_timestamp" in drawer_status:
             log(f"  Most recent merge: {drawer_status['merge_data_timestamp']}")
 

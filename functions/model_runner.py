@@ -67,13 +67,17 @@ class RoboflowModelRunner:
     def predict(self, image_path: str, confidence: float = 50, overlap: float = 50) -> dict:
         """
         Run inference and return the Roboflow SDK's native JSON output.
-        Segmentation models do not accept the overlap parameter, so we fall
-        back to calling without it if the first attempt raises a TypeError.
+        Segmentation models do not accept the overlap parameter, and
+        classification models accept neither confidence nor overlap,
+        so we fall back progressively.
         """
         try:
             return self._model.predict(image_path, confidence=confidence, overlap=overlap).json()
         except TypeError:
-            return self._model.predict(image_path, confidence=confidence).json()
+            try:
+                return self._model.predict(image_path, confidence=confidence).json()
+            except TypeError:
+                return self._model.predict(image_path).json()
 
 
 class LocalModelRunner:

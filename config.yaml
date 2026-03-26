@@ -25,7 +25,7 @@ api_keys:
 # Claude (LLM for transcription steps)
 # ------------------------------------------------------------
 claude:
-  model: "claude-sonnet-4-20250514"  # substitute with any claude model; price may vary
+  model: "claude-sonnet-4-6"  # substitute with any claude model; price may vary
   max_tokens: 600  # default max tokens; increase for complicated tasks, decrease for simple ones
 
 # ------------------------------------------------------------
@@ -40,56 +40,46 @@ roboflow:
       confidence: 70 # adjustable, set from 1-99 (higher # = greater threshold for predictions)
       overlap: 50    # adjustable, set from 1-99 (higher # = higher expected overlap between bounding boxes)
     tray:
-      endpoint: "bugfinder-kdn9e" # obj detection, finds specimens in trays
-      version: 20
-      confidence: 50
+      endpoint: "bugfinder-kdn9e"
+      version: 19
+      confidence: 57
       overlap: 50
     label:
-      endpoint: "labelfinder" # obj detection, finds label parts
+      endpoint: "labelfinder"
       version: 10
-      confidence: 10
+      confidence: 5
       overlap: 50
     mask:
-      endpoint: "bugmasker-all"  # segmentation, outlines specimen bodies
+      endpoint: "bugmasker-all"
       version: 12
-      confidence: 50
+      confidence: 62
     pin:
-      endpoint: "pinmasker" # segmentation, outlines pin
+      endpoint: "pinmasker"
       version: 6
-      confidence: 70
+      confidence: 13
+    bugcleaner:
+      endpoint: "bugcleaner"
+      version: 3
 
 # ------------------------------------------------------------
 # Local Inference  (used when deployment: "local")
 # ------------------------------------------------------------
 local:
-  # Expected layout:
-  #   weights/
-  #   ├── drawer/   drawer -> tray model .pt
-  #   ├── tray/     tray -> specimen model .pt
-  #   ├── label/    tray -> tray label text model .pt
-  #   ├── mask/     specimen -> masked specimen model .pt
-  #   └── pin/      masked specimen -> masked pin .pt
   weights_dir: "weights"
-
-  # Compute device for YOLO inference.
-  # Options:
-  #   "auto"   - auto-detect: CUDA → MPS → CPU (recommended)
-  #   "cpu"    - force CPU
-  #   "cuda"   - force NVIDIA GPU
-  #   "mps"    - force Apple Silicon GPU
-  device: "auto"
-
-  # Optional: manually specify weights filenames.
-  # Only needed if a folder contains multiple .pt files and you want
-  # to control which one is used. Otherwise leave blank and the file
-  # will be detected automatically.
+  device: "auto" # can force "cpu", "cuda", or "mps"
   models:
-    drawer: # optional: specify filename HERE if folder contains multiple .pt files
-    tray:   # optional: specify filename HERE if folder contains multiple .pt files
-    label:  # optional: specify filename HERE if folder contains multiple .pt files
-    mask:   # optional: specify filename HERE if folder contains multiple .pt files
-    pin:    # optional: specify filename HERE if folder contains multiple .pt files
+    drawer:
+    tray:
+    label:
+    mask:
+    pin:
+    bugcleaner: # no weights for bugcleaner available currently
 
+traycontext_settings:
+  bugcleaner_confidence_threshold: 95
+  max_tokens: 12000
+  include_tray_image: true # can exclude to save tokens
+  max_specimens_per_batch: 20
 
 # ------------------------------------------------------------
 # Processing toggles
@@ -99,16 +89,16 @@ processing:
   transcribe_barcodes: false         # set to true for tray-level barcodes
   transcribe_geocodes: false         # set to true for tray-level geocodes
   transcribe_taxonomy: false         # set to true for taxonomic label transcription
-  transcribe_specimen_labels: false   # set to true for specimen label transcription (experimental)
+  transcribe_specimens: false        # set to true for specimen label transcription helper
 
 # ------------------------------------------------------------
-# Prompts (for LLM transcription steps)
+# Prompts
 # ------------------------------------------------------------
 prompts:
-  barcode: # prompt for transcribing barcodes
+  barcode: # prompt for transcribing FMNH-style unit tray barcodes
     system: |
       You are a barcode reading tool. You should output only the numbers found in the image.
-      The barcode always starts with an 8 and is five digits long.
+      The barcode is always five digits long.
       If no valid barcode is found, output 'none'.
     user: |
       Read the barcode number. Output only the code, no explanations.
@@ -152,82 +142,173 @@ prompts:
     user: |
       Transcribe this taxonomic label, preserving the exact text and extracting
       the taxonomic name and authority. Output only the dictionary, no explanations.
-
-  specimen_label: # prompt for transcribing any visible text, verbatim, from specimen labels
+      
+  traycontext:
     system: |
-      You are a natural history specimen label transcription tool specializing in precise, verbatim transcription. Your task is to:
-          1. Transcribe ALL visible text exactly as it appears, including:
-             - Unclear, handwritten, or partially visible text
-          2. Do not interpret, correct, or standardize any text
-          3. Most text will be horizontal, read left-to-right.
-          4. Occasionally, text may be vertical or upside-down.
+      You are a transcription tool for pinned insect specimen labels in a natural
+      history collection. You will receive:
+        1. TRAY HEADER CONTEXT: geocode, taxonomy, and/or barcode from the tray header.
+        2. A TRAY OVERVIEW IMAGE: a downsized photo of the full unit tray.
+        3. INDIVIDUAL SPECIMEN CROPS: separate close-up images of each specimen,
+           labeled by ID. Use these to read the label text.
+ 
+      Labels are small pieces of paper pinned beneathor beside each insect. They
+      are often handwritten, rotated 90 degrees, partially obscured, and very small.
+      There may be multiple labels per specimen (locality, determination, collection).
+ 
+      When using the TRAY OVERVIEW IMAGE:
+      - Use it to see how specimens are arranged in rows. Specimens in the same
+        row often (but not always) share a collecting event.
+      - Notice label SIZE and COLOR patterns across specimens. A block of 8
+        specimens with identical small white labels next to 4 specimens with
+        larger yellowed labels suggests at least two different collecting events.
+      - Labels are often ROTATED 90 degrees and pinned beneath or beside the
+        specimen. The overview helps you see which labels belong to which specimen
+        when crops are ambiguous.
+ 
+      == STEP 1: TRANSCRIBE EACH SPECIMEN INDEPENDENTLY ==
+ 
+      For EVERY specimen, examine its crop image carefully and transcribe ALL visible
+      label text into a "verbatim_text" field.
+        - Preserve original spelling, punctuation, abbreviations, and line breaks.
+        - Use [?] for single unclear characters, [illeg.] for unreadable words.
+        - If multiple labels are visible, separate them with " | ".
+        - If no text is visible at all, set verbatim_text to "".
+ 
+      CRITICAL: During transcription, read each specimen's labels independently.
+      Do NOT copy or assume text from one specimen onto another. Many labels in
+      the same tray LOOK similar but say different things. Transcribe what you
+      actually see on each crop — grouping comes later in Step 3.
+ 
+      == STEP 2: PARSE EACH SPECIMEN'S TEXT ==
+ 
+      For each specimen, parse its transcribed text into DarwinCore fields.
+      Do this BEFORE grouping — each specimen gets its own parsed fields first.
+ 
+      Parsing rules:
+      - ONLY fill in fields where the text provides clear, direct evidence.
+      - DO NOT guess or infer geography from ambiguous place names.
+        Example: "Charleston" with no state → put in "municipality" only.
+      - US state abbreviations on specimen labels are typically two letters
+        without periods: CA, OR, WA, ID, MT, CO, IN, IL, etc. Be cautious
+        with period-abbreviated codes like "N.M." — these may be
+        state abbreviations OR parts of institution names. Look for surrounding
+        context to decide.
+      - These are NOT locations:
+          "Col." or "Coll." = collector (not Colorado)
+          "Det." = determiner/identifier (not Detroit)
+          "FMNH" or "Field Museum" = Field Museum of Natural History (institution)
+          "C.N.H.M." or "CNHM" = Chicago Natural History Museum (institution)
+          "Mus.", "Museum" = institution, not a place
+      - Dates preceded by "det." or "Det." are DETERMINATION dates (when the
+        specimen was identified), NOT collection dates. Only use dates from
+        locality/collecting labels, not from determination labels.
+      - IGNORE taxonomic names — taxonomy is handled separately.
+      - IGNORE catalog numbers, accession numbers, barcodes.
+      - DarwinCore fields must contain ONLY clean values. Never put [?] or
+        [illegible] in DarwinCore fields, but feel free to fill in fields if the string can be understood despite fragmentation, e.g. "L[ake?] Elsinore = Lake Elsinore"
+ 
+      == STEP 3: GROUP BASED ON EVIDENCE ==
+ 
+      After transcribing and parsing each specimen, compare your verbatim_text
+      outputs across specimens. Look for recurring fragments — if 10 specimens
+      all have pieces of "IND. Porter Co." or "POLAND: Kam[?] woj.", these are
+      almost certainly the same collecting event. The fragments don't need to be
+      identical; they need to be CONSISTENT.
+ 
+      GROUPING RULES:
+      - Group on parsed DarwinCore fields: if multiple specimens parsed to the
+        same country + state, or the same country + locality fragments, group them
+        as match_type="similar". Use the most complete verbatim_text and the most
+        detailed parsed fields from the group.
+      - Use BOTH visual and textual cues for grouping. Similar-looking labels
+        (same paper, handwriting style, label size) combined with consistent
+        text fragments (same place names, dates, abbreviations) are strong
+        evidence of a shared collecting event.
+      - When specimens clearly come from different locations (one says "Idaho" and
+        another says "Oregon"), keep them in separate groups even if they're adjacent.
+      - match_type values:
+          "identical" = you can confirm the labels contain the same text
+          "similar"   = labels share some geographic information (e.g. same country)
+                        but may differ in specifics — useful for grouping during review
+          "unique"    = no confirmed overlap with other specimens
+ 
+      == CROSS-REFERENCE ==
+      Use the tray header context to sanity-check your results:
+      - If the geocode is NEA (Nearctic = US, Canada, northern Mexico), a label
+        reading "Argentina" is suspect — add a flag "geocode_mismatch".
+      - Geocode regions:
+          NEA = Nearctic (US, Canada, northern Mexico)
+          NEO = Neotropical (southern Mexico, Central/South America, Caribbean)
+          PAL = Palearctic (Europe, North Africa, temperate/northern Asia)
+          AFR = Afrotropical (sub-Saharan Africa, Madagascar)
+          ORI = Oriental (tropical South/Southeast Asia)
+          AUS = Australasian (Australia, New Guinea, New Zealand)
+          PAC = Pacific (oceanic Pacific islands)
+      - Mexico straddles NEA/NEO. Indonesia straddles ORI/AUS. Egypt straddles
+        PAL/AFR. These borderline cases should NOT be flagged.
+ 
+      == OUTPUT FORMAT ==
+      Return ONLY a JSON object. No other text before or after.
+      {
+        "groups": [
+          {
+            "label_group": 1,
+            "specimen_ids": ["..._spec_001"],
+            "match_type": "unique",
+            "verbatim_text": "raw label text with [?] and [illegible] as needed",
+            "country": "",
+            "stateProvince": "",
+            "county": "",
+            "municipality": "",
+            "locality": "",
+            "collector": "",
+            "date": "",
+            "flags": []
+          }
+        ]
+      }
+ 
+      == FIELD DEFINITIONS ==
+      - label_group: integer, starting at 1
+      - specimen_ids: list of specimen ID strings
+      - match_type: "identical", "similar", or "unique"
+      - verbatim_text: raw label text from the clearest specimen in the group
+      - country, stateProvince, county (name only, e.g. "Jefferson", NOT "Jefferson County"): administrative geography
+      - municipality: city or town (e.g. "Needles", "Pentwater", "Salt Lake City")
+      - locality: specific place within a municipality — parks, beaches, neighborhoods,
+        natural features, landmarks (e.g. "Indiana Dunes State Park", "Miller Beach",
+        "Hot Creek Falls")
+      For place names below county level, default to locality unless the
+      name is obviously a city or town. When in doubt, use locality.
+      - collector: person who collected (from "Col.", "Coll.", "leg.", etc.)
+      - date: collection date in ISO format (YYYY-MM-DD) if possible, otherwise
+        as written. Only collection dates, NOT determination dates.
+      - flags: list of strings. Use when applicable:
+          "no_location", "ambiguous_locality", "historical_name: X = Y",
+          "handwritten_difficult", "partial_text", "multiple_labels",
+          "conflicting_info", "coordinates_found", "geocode_mismatch"
+ 
+      == RULES ==
+      - Every specimen must appear in exactly one group.
+      - A specimen with a unique label is a group of one (match_type: "unique").
+      - Leave DarwinCore fields empty (not "none") when information is absent.
+      - If you cannot read a handwritten label at all, still include it as a unique group
+        and add "handwritten_difficult" flag.
     user: |
-      Transcribe any visible text. Output 'no text found' if none visible.
-      Transcribe text verbatim. No explanations, descriptions, or commentary.
-
-  location: # prompt for estimating locations from verbatim text
-    system: |
-      You are a geographic data extractor specialized in natural history specimen labels.
-      Your task is to:
-      1. Look for geographic information only, considering:
-         - Country, state/province, county, city, specific locality
-      2. IGNORE non-geographic elements:
-         - Collection metadata (Det., Coll., FMNH, Field Museum, Museum)
-         - Taxonomic information
-         - Dates and collector names
-      3. For geographic inference:
-         - Only infer larger regions when unambiguous (e.g., "Paris, France" -> "France")
-         - Do not infer if multiple possibilities exist (e.g., "Springfield" could be many states)
-         - Include only explicitly stated or unambiguously implied locations
-      4. Handle special cases:
-         - Historical place names: use historical name, add modern name in brackets
-    user: |
-      Extract geographic location from this text: {text}. Format: largest to
-      smallest unit, comma-separated. Output 'no location found' if none present.
-      No explanations or notes.
-
-  validation: # prompt for comparing/validating estimated locations to the verbatim text
-    system: |
-      You are a geographic data validator specializing in museum specimen labels.
-      Your task is to:
-      1. Examine the transcribed text and interpreted location to evaluate whether they are a strong match
-      2. Make a final location determination considering:
-         - The verbatim transcribed text
-         - The proposed location
-         - Standard geographic abbreviations in specimen labels (e.g., USA: MT = USA, Montana)
-         - Some partial information is still valid (e.g., a clear state/province even without city/county)
-         - Conventional collection abbreviations, e.g. Det. / Col. are typically not locations
-         - Locations derived from 'Field Museum' or 'FMNH' or 'Chicago Field Museum'
-           are not valid, as this is where many specimens are housed
-         - Avoid specific directional information as this easy to misinterpret
-
-      3. Respond with a dictionary containing these fields:
-        {
-          'verbatim_text': The raw text exactly as transcribed from the original image,
-          'proposed_location': The location string being validated,
-          'validation_status': Must be one of these exact values:
-              'VERIFIED' - Use when:
-                  - Text contains clear geographic identifiers (e.g., standard country/state codes like "USA: MT")
-                  - Location matches established abbreviation conventions
-                  - Partial location information is okay if unambiguous (e.g., clear state without county)
-              'UNRELIABLE' - Use when:
-                  - Geographic terms are ambiguous or could be non-geographic
-                  - Location interpretation goes beyond what's supported by the text
-                  - Proposed location misinterprets collection abbreviations (e.g., reading 'Det.' as Detroit)
-              'UNKNOWN' - Use when no clear location information is found in the text,
-          'final_location': Must be either:
-              - A standardized location string from largest to smallest unit (e.g., "USA, Montana")
-                which can be:
-                * A new determination if the proposed location was incorrect
-                * An expansion of a previous valid determination with newly validated details
-                * A more conservative version of the proposed location if only part can be verified
-                (only if status is VERIFIED)
-              - 'UNKNOWN' (for UNRELIABLE or UNKNOWN status),
-        }
-    user: |
-      Validate this location data:
-      Transcribed text: {transcribed_text}
-      Proposed location: {proposed_location}
+      Tray header context (use this to sanity-check your results):
+      {tray_context}
+ 
+      Specimens in this tray: {specimen_ids}
+ 
+      Follow these steps in order:
+      1. TRANSCRIBE each specimen's labels independently — read what YOU can see
+         on each crop, do not copy text from other specimens
+      2. PARSE each specimen's text into DarwinCore fields individually
+      3. Compare your verbatim outputs and parsed fields across specimens, then
+         group those with consistent location fragments
+ 
+      Return only the JSON object, no other text.
 
 # ------------------------------------------------------------
 # Directories
@@ -253,8 +334,8 @@ directories:
     full_masks: "masks/full_masks"
     transparencies: "transparencies"
     whitebg_specimens: "whitebg_specimens"
-    specimen_level: "transcriptions/specimen_labels"
     tray_level: "transcriptions/tray_labels"
+    tray_context: "transcriptions/tray_context"
     data: "data"
 
 # ------------------------------------------------------------
