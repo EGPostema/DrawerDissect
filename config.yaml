@@ -22,11 +22,27 @@ api_keys:
   roboflow: "ROBOFLOW_API_KEY"   # (not needed when deployment: local)
 
 # ------------------------------------------------------------
-# Claude (LLM for transcription steps)
+# LLM (for transcription / OCR steps)
 # ------------------------------------------------------------
-claude:
-  model: "claude-sonnet-4-6"  # substitute with any claude model; price may vary
-  max_tokens: 600  # default max tokens; increase for complicated tasks, decrease for simple ones
+# Controls which LLM is used for barcodes, geocodes, taxonomy, and specimen labels.
+#
+# provider options:
+#   "anthropic"         - Anthropic Claude API (default; requires ANTHROPIC_API_KEY)
+#   "openai_compatible" - Any OpenAI-compatible local server (Ollama, LM Studio, vLLM, etc.)
+#                         Does NOT require an Anthropic key.
+#
+llm:
+  provider: "anthropic"       # "anthropic" or "openai_compatible"
+  model: "claude-sonnet-4-6"  # model name
+  max_tokens: 600             # default for simple transcription tasks
+ 
+# ---- OpenAI-compatible / local model settings ----
+# Only used when provider: "openai_compatible"
+# Works with Ollama, LM Studio, vLLM, Jan, and any OpenAI-compatible server.
+
+  openai_compatible:
+    base_url: "http://localhost:11434/v1"   # Ollama default; adjust for your setup
+    api_key: "ollama"                       # ignored by most local servers; required by OpenAI SDK
 
 # ------------------------------------------------------------
 # Roboflow  (used when deployment: "roboflow")
