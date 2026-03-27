@@ -35,6 +35,7 @@ llm:
   provider: "anthropic"       # "anthropic" or "openai_compatible"
   model: "claude-sonnet-4-6"  # model name
   max_tokens: 600             # default for simple transcription tasks
+  temperature: 0              # from 0 to 1; 0 is most predictable, 1 is least
  
 # ---- OpenAI-compatible / local model settings ----
 # Only used when provider: "openai_compatible"
@@ -94,7 +95,7 @@ local:
 traycontext_settings:
   bugcleaner_confidence_threshold: 95
   max_tokens: 12000
-  include_tray_image: true # can exclude to save tokens
+  include_tray_image: false # can exclude to save tokens
   max_specimens_per_batch: 20
 
 # ------------------------------------------------------------
@@ -118,12 +119,12 @@ prompts:
       If no valid barcode is found, output 'none'.
     user: |
       Read the barcode number. Output only the code, no explanations.
-
+ 
   geocode: # prompt for recognizing 3-letter geocodes
     system: |
       You are a geocode recognition tool for natural history specimens.
       Your task is to identify the 3-letter geocode visible in the image.
-
+ 
       The geocode is always a 3-letter code (all capital letters):
       - "NEO"
       - "PAL"
@@ -132,12 +133,12 @@ prompts:
       - "ORI"
       - "AUS"
       - "PAC"
-
+ 
       Output only the 3-letter geocode. If no valid 3-letter geocode is visible
       or if the text is unclear, output 'UNK' (Unknown).
     user: |
       Identify the 3-letter geocode visible in this image. Output only the code (e.g., NEO, PAL), no explanations.
-
+ 
   taxonomy: # prompt for transcribing and organizing taxonomic IDs
     system: |
       You are a taxonomic label transcription tool specializing in natural
@@ -147,7 +148,7 @@ prompts:
          and subspecies information
       3. If ONLY higher order taxonomic information is available (family -dae, tribe -ini, subfamily -nae), report this in 'taxonomy'
       4. Extract the taxonomic authority (author and/or year)
-
+ 
       For missing elements, output 'none'. Format your response as a structured
       dictionary with these three keys:
       {
@@ -168,7 +169,7 @@ prompts:
         3. INDIVIDUAL SPECIMEN CROPS: separate close-up images of each specimen,
            labeled by ID. Use these to read the label text.
  
-      Labels are small pieces of paper pinned beneathor beside each insect. They
+      Labels are small pieces of paper pinned beneath or beside each insect. They
       are often handwritten, rotated 90 degrees, partially obscured, and very small.
       There may be multiple labels per specimen (locality, determination, collection).
  
@@ -221,6 +222,26 @@ prompts:
         locality/collecting labels, not from determination labels.
       - IGNORE taxonomic names — taxonomy is handled separately.
       - IGNORE catalog numbers, accession numbers, barcodes.
+      - Conflicting state fragments: if a label contains two different state
+        names or abbreviations that cannot both be correct (e.g. "IDAHO" and
+        "Utah" on the same label), do NOT pick one — leave stateProvince empty
+        and add a "conflicting_info" flag. Only populate stateProvince when a
+        single state is unambiguously indicated.
+      - Geographic context overrides isolated abbreviations: if a city or county
+        name on the label strongly implies a particular state, do not let an
+        isolated abbreviation contradict it. Example: "San Diego" is a strong
+        California signal — if "Ariz." also appears, it is more likely part of
+        a compound place name (e.g. Anza-Borrego) than a state identifier.
+        Put such ambiguous abbreviations in verbatimLocality, not stateProvince.
+      - Uncertain fragments ([?]) must not assert county: a place name fragment
+        marked with [?] (e.g. "Riv[erside?]") is not reliable enough to
+        populate county. Leave county empty and put the fragment in
+        verbatimLocality only.
+      - Do not expand partial name fragments into full city names: if a fragment
+        like "Ana" or "Anna" appears on a label, do not assume it means the
+        city of Santa Ana. In a Southern California context "Ana" most likely
+        refers to the Santa Ana River — put it in locality, not municipality.
+        Only populate municipality when a city name is clearly and fully legible.
       - DarwinCore fields must contain ONLY clean values. Never put [?] or
         [illegible] in DarwinCore fields, but feel free to fill in fields if the string can be understood despite fragmentation, e.g. "L[ake?] Elsinore = Lake Elsinore"
  
@@ -245,8 +266,10 @@ prompts:
         another says "Oregon"), keep them in separate groups even if they're adjacent.
       - match_type values:
           "identical" = you can confirm the labels contain the same text
-          "similar"   = labels share some geographic information (e.g. same country)
-                        but may differ in specifics — useful for grouping during review
+          "similar"   = labels share the same country AND state/province, OR share
+                        the same country AND a recurring locality/municipality fragment.
+                        Same country alone is NOT sufficient — 50 US specimens do not
+                        share a collecting event.
           "unique"    = no confirmed overlap with other specimens
  
       == CROSS-REFERENCE ==
@@ -270,24 +293,26 @@ prompts:
         "groups": [
           {
             "label_group": 1,
-            "specimen_ids": ["..._spec_001"],
+            "specimen_ids": ["<tray_name>_spec_001"],
             "match_type": "unique",
-            "verbatim_text": "raw label text with [?] and [illegible] as needed",
+            "verbatim_text": "",
             "country": "",
             "stateProvince": "",
             "county": "",
             "municipality": "",
-            "verbatimLocality": "place description exactly as written on label",
-            "locality": "standardized/interpreted place description",
+            "verbatimLocality": "",
+            "locality": "",
             "waterBody": "",
             "islandGroup": "",
             "island": "",
-            "verbatimElevation": "elevation exactly as written (e.g. 1200ft, 3500m)",
+            "verbatimElevation": "",
+            "verbatimCoordinates": "",
             "habitat": "",
             "samplingProtocol": "",
             "collector": "",
             "verbatimEventDate": "",
             "identifiedBy": "",
+            "possibleName": "",
             "flags": []
           }
         ]
@@ -303,34 +328,47 @@ prompts:
       - verbatimLocality: the place description EXACTLY as written on the label,
         preserving original spelling, abbreviations, and punctuation
         (e.g. "2mi. NW of Fox Lake, rt. 12", "Satpura H[ills?]", "Formosa")
-      - locality: standardized/interpreted place description — correct perceived errors,
-        expand abbreviations, modernize historical names
-        (e.g. "2 mi NW of Fox Lake, Route 12", "Satpura Hills", "Kohchun")
-      For place names below county level, default to locality unless the
-      name is obviously a city or town. When in doubt, use locality.
-      - waterBody: name of the water body (river, lake, sea, ocean) if mentioned
-      - islandGroup: name of the island group or archipelago if applicable
-      - island: name of the specific island if applicable
-      - verbatimElevation: elevation exactly as written on the label (e.g. "1200 ft", "3500 m", "ca. 800m")
-      - habitat: habitat description (e.g. "oak savanna", "pre-cordilleran steppe", "sandy beach")
-      - samplingProtocol: collection method (e.g. "malaise trap", "UV light trap", "hand collected",
-        "under bark of log") — from "leg.", "Col.", collection method notes
+      - locality: the PRIMARY catch-all field for any named place, natural feature,
+        water body, or directional description more specific than municipality.
+        (e.g. "Indiana Dunes State Park", "Miller Beach", "2 mi NW of Fox Lake",
+        "Chewaucan River", "Mt. Shasta", "Lake Elsinore shore")
+        CRITICAL: Do NOT restate information already in country, stateProvince,
+        county, or municipality. "Pullman, Washington" is wrong — that's just
+        restating municipality + stateProvince. Leave locality empty if the label
+        only names a city or higher-level geography.
+      - waterBody, islandGroup, island: only populate when the water body or island
+        IS the entire location (nothing more specific on the label). If any other
+        locality detail is present alongside it, put everything in locality instead.
+        When in doubt, use locality.
+      - verbatimElevation: elevation exactly as written on the label (e.g. "1200 ft",
+        "3500 m", "ca. 800m")
+      - habitat: habitat description (e.g. "oak savanna", "sandy beach", "under bark")
+      - samplingProtocol: collection method if mentioned (e.g. "malaise trap",
+        "UV light trap", "hand collected", "under bark of log")
       - collector: person who collected (from "Col.", "Coll.", "leg.", etc.)
       - verbatimEventDate: the date exactly as written on the label, in any format
-        (e.g. "17IV1934", "spring 1910", "Marzo 2002", "1999-03-XX", "05-1970").
-        Only collection dates, NOT determination dates (those go in identifiedBy notes).
-      - identifiedBy: person who identified/determined the specimen (from "det.", "Det." labels)
-      - flags: list of strings. Use when applicable:
-          "no_location", "ambiguous_locality", "historical_name: X = Y",
-          "handwritten_difficult", "partial_text", "multiple_labels",
-          "conflicting_info", "coordinates_found", "geocode_mismatch"
+        (e.g. "17IV1934", "spring 1910", "Marzo 2002", "05-1970").
+        Only collection dates, NOT determination dates.
+      - identifiedBy: person who identified the specimen (from "det.", "Det." labels)
+      - possibleName: any name or initials that are clearly present on a label but
+        cannot be confidently attributed to collector or identifier — either because
+        the role label ("det.", "leg.", "Col.") is absent, illegible, or ambiguous.
+        Capture both bare initials (e.g. "R.F.", "M.H.") and full names where the
+        role is uncertain (e.g. "[det.?] Freitag"). If the role IS clear, use
+        collector or identifiedBy instead and leave this empty.
+      - verbatimCoordinates: coordinates exactly as written on the label, if present
+        (e.g. "41 05 54S 121 05 34W", "17T 630000 4833400"). Leave empty if absent.
+      - flags: list of strings. Use only when applicable:
+          "conflicting_info"  — labels on the same specimen give contradictory data
+                                (e.g. two locality labels with different countries)
+          "geocode_mismatch" — parsed country conflicts with the tray geocode
  
       == RULES ==
       - Every specimen must appear in exactly one group.
       - A specimen with a unique label is a group of one (match_type: "unique").
       - Leave DarwinCore fields empty (not "none") when information is absent.
-      - If you cannot read a handwritten label at all, still include it as a unique group
-        and add "handwritten_difficult" flag.
+      - If you cannot read a handwritten label at all, still include it as a unique
+        group with empty geography fields and empty verbatimCoordinates.
     user: |
       Tray header context (use this to sanity-check your results):
       {tray_context}
@@ -345,7 +383,7 @@ prompts:
          group those with consistent location fragments
  
       Return only the JSON object, no other text.
-
+   
 # ------------------------------------------------------------
 # Directories
 # ------------------------------------------------------------
