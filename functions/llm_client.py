@@ -100,10 +100,12 @@ class AnthropicLLMClient:
         max_tokens: int,
         system: str,
         messages: list,
+        temperature: float = 0,
     ) -> MessageResponse:
         response = self._client.messages.create(
             model=model,
             max_tokens=max_tokens,
+            temperature=temperature,
             system=system,
             messages=messages,
         )
@@ -169,6 +171,7 @@ class OpenAICompatibleLLMClient:
         max_tokens: int,
         system: str,
         messages: list,
+        temperature: float = 0,
     ) -> MessageResponse:
         # Build OpenAI-format messages.
         # For multimodal messages (content is a list), some vLLM backends
@@ -194,6 +197,7 @@ class OpenAICompatibleLLMClient:
         response = self._client.chat.completions.create(
             model=model,
             max_tokens=max_tokens,
+            temperature=temperature,
             messages=openai_messages,
         )
         text = (response.choices[0].message.content or "").strip()
