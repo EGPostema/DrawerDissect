@@ -12,7 +12,6 @@ For each tray, this module:
   3. Runs Python-side validation (geocode cross-check, flag aggregation)
   4. Writes specimen_localities.csv (one row per specimen)
 
-Drop this file into functions/.
 """
 
 import os
@@ -203,15 +202,11 @@ def call_claude_multicrop(
     user_text = user_text.replace("{specimen_ids}", ", ".join(specimen_crops.keys()))
 
     # Build content — context first, then images, then instructions
+    # Note: tray_context_str is injected via the {tray_context} template in user_text;
+    # do NOT prepend it as a separate block or it will be sent twice, wasting tokens.
     content = []
 
-    # First: tray header context (geocode, taxonomy, barcode) so the LLM is primed
-    content.append({
-        "type": "text",
-        "text": f"TRAY HEADER CONTEXT:\n{tray_context_str}",
-    })
-
-    # Then: the tray overview image (if enabled)
+    # First: the tray overview image (if enabled)
     if include_tray_image and tray_image_path:
         content.append({
             "type": "text",
@@ -235,7 +230,7 @@ def call_claude_multicrop(
     })
     for spec_id, crop_path in specimen_crops.items():
         content.append({"type": "text", "text": f"{spec_id}:"})
-        crop_b64, crop_media = encode_image_for_api(crop_path, max_long_edge=800, quality=85)
+        crop_b64, crop_media = encode_image_for_api(crop_path, max_long_edge=1000, quality=85)
         content.append({
             "type": "image",
             "source": {"type": "base64", "media_type": crop_media, "data": crop_b64},
@@ -245,13 +240,18 @@ def call_claude_multicrop(
     content.append({"type": "text", "text": user_text})
 
     max_attempts = 2
+    retry_messages = None
     for attempt in range(max_attempts):
         try:
+            # On retry, use the corrective message thread instead of raw content
+            call_messages = retry_messages if retry_messages else [{"role": "user", "content": content}]
+
             response = llm_client.create_message_sync(
                 model=model_config["model"],
                 max_tokens=model_config["max_tokens"],
+                temperature=model_config.get("temperature", 0),
                 system=system_prompt,
-                messages=[{"role": "user", "content": content}],
+                messages=call_messages,
             )
             raw = response.content[0].text.strip()
             tokens_in = response.usage.input_tokens
@@ -263,7 +263,19 @@ def call_claude_multicrop(
                 return result
 
             if attempt < max_attempts - 1:
-                log(f"    Parse failed, retrying...")
+                log(f"    Parse failed, retrying with corrective prompt...")
+                # Build a corrective turn: show Claude what it returned and ask it to fix it
+                retry_messages = [
+                    {"role": "user", "content": content},
+                    {"role": "assistant", "content": raw},
+                    {"role": "user", "content": (
+                        "Your response could not be parsed as JSON. "
+                        "Return ONLY the JSON object — no preamble, no markdown, no explanation. "
+                        "Start your response with { and end with }. "
+                        "If your previous response was truncated, shorten verbatim_text values "
+                        "and omit empty fields to fit within the token limit."
+                    )},
+                ]
                 continue
             return None
 
@@ -271,6 +283,7 @@ def call_claude_multicrop(
             log(f"  LLM API error: {e}")
             if attempt < max_attempts - 1:
                 log(f"    Retrying...")
+                retry_messages = None  # API errors retry fresh
                 continue
             return None
 
@@ -333,15 +346,15 @@ def validate_groups(groups, geocode_value):
         if amb_flag and amb_flag not in flags:
             flags.append(amb_flag)
 
-        # Clean DarwinCore fields
-        darwincore_fields = ["country", "stateProvince", "state_province",
-                            "county", "municipality",
-                            "verbatimLocality", "locality",
-                            "waterBody", "islandGroup", "island",
-                            "verbatimElevation",
-                            "habitat", "samplingProtocol",
-                            "collector", "verbatimEventDate", "identifiedBy"]
-        for field in darwincore_fields:
+        # Clean DarwinCore fields — strip [?] / [illeg.] artifacts from interpreted fields.
+        # Verbatim fields (verbatimLocality, verbatimElevation, verbatimEventDate) are
+        # intentionally excluded: they must preserve the label text exactly as written.
+        darwincore_clean_fields = ["country", "stateProvince", "state_province",
+                                   "county", "municipality", "locality",
+                                   "waterBody", "islandGroup", "island",
+                                   "habitat", "samplingProtocol",
+                                   "collector", "identifiedBy"]
+        for field in darwincore_clean_fields:
             val = group.get(field, "")
             if isinstance(val, str):
                 cleaned = re.sub(r'\[(\?|illegible|illeg\.)\]', '', val).strip()
@@ -350,11 +363,29 @@ def validate_groups(groups, geocode_value):
                 elif cleaned != val:
                     group[field] = cleaned
 
-        # Normalize 'none'/'null' to empty
-        for field in darwincore_fields + ["verbatim_text", "verbatimLocality"]:
+        # Normalize 'none'/'null' to empty across all output fields
+        all_output_fields = darwincore_clean_fields + [
+            "verbatimLocality", "verbatimElevation", "verbatimCoordinates",
+            "verbatimEventDate", "verbatim_text", "possibleName"
+        ]
+        for field in all_output_fields:
             val = group.get(field, "")
             if isinstance(val, str) and val.strip().lower() in ("none", "null", "n/a"):
                 group[field] = ""
+
+        # If locality is identical to a higher-level field, it adds no information — clear it.
+        # Only exact string matches (case-sensitive) are caught here; abbreviation differences
+        # are intentional and should be preserved for the reviewer.
+        locality_val = group.get("locality", "")
+        if locality_val:
+            higher_level = [
+                group.get("country", ""),
+                group.get("stateProvince", ""),
+                group.get("county", ""),
+                group.get("municipality", ""),
+            ]
+            if locality_val in higher_level:
+                group["locality"] = ""
 
         group["flags"] = flags
 
@@ -373,10 +404,10 @@ def write_outputs(groups, tray_name, notext_specimens, output_dir, model_name=""
         "country", "stateProvince", "county", "municipality",
         "verbatimLocality", "locality",
         "waterBody", "islandGroup", "island",
-        "verbatimElevation",
+        "verbatimElevation", "verbatimCoordinates",
         "habitat", "samplingProtocol",
         "collector", "verbatimEventDate",
-        "flags", "identifiedBy", "model",
+        "flags", "identifiedBy", "possibleName", "model",
     ]
 
     def _flatten_group(g, tray):
@@ -386,14 +417,18 @@ def write_outputs(groups, tray_name, notext_specimens, output_dir, model_name=""
                       "county", "municipality",
                       "verbatimLocality", "locality",
                       "waterBody", "islandGroup", "island",
-                      "verbatimElevation",
+                      "verbatimElevation", "verbatimCoordinates",
                       "habitat", "samplingProtocol",
                       "collector", "verbatimEventDate",
-                      "identifiedBy"):
+                      "identifiedBy", "possibleName"):
             val = g.get(field, "")
             if isinstance(val, list):
                 val = ", ".join(str(v) for v in val)
-            if isinstance(val, str) and val.strip().lower() in ("none", "null", "n/a"):
+            if isinstance(val, str):
+                # Strip embedded newlines — these cause Excel to render fake merged cells
+                val = val.replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
+                val = val.strip()
+            if isinstance(val, str) and val.lower() in ("none", "null", "n/a"):
                 val = ""
             row[field] = val
 
@@ -593,6 +628,15 @@ def process_tray_context(
                 batch_ids = spec_ids_list[start:end]
                 batch_crops = {sid: text_crops[sid] for sid in batch_ids}
 
+                # Tell Claude it's working on a subset so it doesn't try to cross-batch group
+                batch_note = (
+                    f"\n\nNOTE: This tray has {len(spec_ids_list)} specimens and is being processed "
+                    f"in {n_batches} batches. This is batch {batch_idx+1} of {n_batches} "
+                    f"({len(batch_crops)} specimens). Group ONLY within this batch — "
+                    f"do not attempt to reference specimens from other batches."
+                )
+                batched_user_prompt = user_prompt.rstrip() + batch_note
+
                 log(f"    Batch {batch_idx+1}/{n_batches}: {len(batch_crops)} crops, max_tokens={tc_max_tokens}")
                 batch_groups = call_claude_multicrop(
                     tray_image_path=tray_image_path,
@@ -601,7 +645,7 @@ def process_tray_context(
                     llm_client=llm_client,
                     model_config=model_cfg,
                     system_prompt=system_prompt,
-                    user_prompt=user_prompt,
+                    user_prompt=batched_user_prompt,
                     include_tray_image=include_tray,
                 )
 
