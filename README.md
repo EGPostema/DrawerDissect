@@ -377,7 +377,7 @@ The `transcribe_specimens` step sends a combination of filtered specimen images,
 traycontext_settings:
   bugcleaner_confidence_threshold: 95  # minimum confidence for text detection
   max_tokens: 12000                    # max output tokens per API call
-  include_tray_image: true             # send tray overview image for spatial context
+  include_tray_image: true             # send tray overview image for spatial context, can set 'false' to save tokens
   max_specimens_per_batch: 20          # split large trays into batches
 ```
 
@@ -417,12 +417,15 @@ DrawerDissect/
 Turn on/off specific steps:
 
 ```yaml
+# ------------------------------------------------------------
+# Processing toggles
+# ------------------------------------------------------------
 processing:
-  measurement_visualizations: "rand_sample"  # "on", "off", or "rand_sample" (max. 20 random measurement maps)
-  transcribe_barcodes: false  # Set to true for tray-level barcodes
-  transcribe_geocodes: false  # Set to true for tray-level geocodes
-  transcribe_taxonomy: true   # Set to false to skip taxonomy transcription
-  transcribe_specimens: true  # Set to true for specimen label transcription
+  measurement_visualizations: "off"  # "on", "off", or "rand_sample" (max 20 random visualizations)
+  transcribe_barcodes: false         # set to true for tray-level barcodes
+  transcribe_geocodes: false         # set to true for tray-level geocodes
+  transcribe_taxonomy: false         # set to true for taxonomic label transcription
+  transcribe_specimens: false        # set to true for specimen label transcription helper
 ```
 
 Example settings:
