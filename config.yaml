@@ -74,11 +74,12 @@ local:
     mask:
     pin:
     bugcleaner: # no weights for bugcleaner available currently
-
+ 
 traycontext_settings:
+  bugcleaner_enabled: true              # set to false to skip bugcleaner filtering (sends all specimens to Claude)
   bugcleaner_confidence_threshold: 95
-  max_tokens: 12000
-  include_tray_image: true # can exclude to save tokens
+  max_tokens: 15000
+  include_tray_image: true              # can exclude to save tokens, may reduce transcription quality
   max_specimens_per_batch: 20
 
 # ------------------------------------------------------------
