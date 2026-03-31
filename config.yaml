@@ -68,7 +68,7 @@ local:
   weights_dir: "weights"
   device: "auto" # can force "cpu", "cuda", or "mps"
   models:
-    drawer:
+    drawer: "trayfinderbasev5.pt" #uses non-FMNH-specific unit tray detection model by default
     tray:
     label:
     mask:
