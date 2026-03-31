@@ -358,18 +358,29 @@ The `transcribe_specimens` step sends a combination of filtered specimen images,
 
 **Output:** `specimen_localities.csv` with one row per specimen containing:
 
-| Field | Description |
+| Field (* = DarwinCore) | Description |
 |-------|-------------|
 | tray | Tray identifier |
 | specimen_id | Specimen identifier |
 | label_group | Group number (specimens that may share a collecting event) |
 | match_type | "identical", "similar", or "unique" |
 | verbatim_text | Raw label text as transcribed |
-| country, stateProvince, county, municipality, locality | Parsed DarwinCore geography |
-| collector | Collector name |
-| date | Collection date |
-| flags | Quality flags (e.g., handwritten_difficult, partial_text) |
-| model | model version used for transcription |
+| country*, stateProvince*, county*, municipality* | Parsed administrative geography |
+| verbatimLocality* | Place description exactly as written on the label |
+| locality* | Primary catch-all for named places, natural features, directional descriptions |
+| waterBody*, islandGroup*, island* | Aquatic/island location |
+| verbatimElevation* | Elevation exactly as written on the label |
+| habitat* | Habitat type or description |
+| samplingProtocol* | Collection method if mentioned |
+| collector* | Collector name |
+| verbatimEventDate* | Collection date exactly as written on the label |
+| identifiedBy* | Person who identified the specimen |
+| possibleName | Name or initials present on label but role unclear |
+| verbatimCoordinates* | Coordinates exactly as written on the label |
+| flags | Quality flags (e.g., geocode_mismatch, conflicting_info) |
+| model | Model version used for transcription |
+
+* = DrawerDissect-specific output (non-DarwinCore field)
 
 **Configuration:**
 
