@@ -587,6 +587,7 @@ def process_tray_context(
 
     # Load settings
     settings = config._config.get("traycontext_settings", {})
+    bc_enabled   = settings.get("bugcleaner_enabled", True)
     bc_threshold = settings.get("bugcleaner_confidence_threshold", 95)
     tc_max_tokens = settings.get("max_tokens", 4000)
 
@@ -602,13 +603,18 @@ def process_tray_context(
         log("Warning: traycontext prompts not found in config.yaml.")
         return
 
-    # Build bugcleaner runner
-    bc_runner = build_model_runner(config, "bugcleaner")
+    # Build bugcleaner runner (only if enabled)
+    bc_runner = None
+    if bc_enabled:
+        bc_runner = build_model_runner(config, "bugcleaner")
+        if bc_runner is None:
+            log("  Warning: bugcleaner unavailable, proceeding without filtering")
+            bc_enabled = False
 
     # Load cached bugcleaner results
     bc_cache_path = os.path.join(output_dir, "bugcleaner_results.csv")
     bc_cache = {}
-    if os.path.isfile(bc_cache_path):
+    if bc_enabled and os.path.isfile(bc_cache_path):
         with open(bc_cache_path, "r", newline="", encoding="utf-8") as f:
             for row in csv.DictReader(f):
                 bc_cache[row["specimen_id"]] = row["has_text"].lower() == "true"
@@ -654,32 +660,38 @@ def process_tray_context(
             continue
 
         # ----- Run bugcleaner (cached + parallel for new crops) -----
-        cached_crops  = {sid: path for sid, path in all_crops.items() if sid in bc_cache}
-        uncached_crops = {sid: path for sid, path in all_crops.items() if sid not in bc_cache}
+        if not bc_enabled:
+            # Bugcleaner disabled — send all crops to Claude
+            text_crops = dict(all_crops)
+            notext_specimens = []
+            log(f"    Bugcleaner disabled: sending all {len(text_crops)} crops")
+        else:
+            cached_crops   = {sid: path for sid, path in all_crops.items() if sid in bc_cache}
+            uncached_crops = {sid: path for sid, path in all_crops.items() if sid not in bc_cache}
 
-        text_crops      = {sid: path for sid, path in cached_crops.items() if bc_cache[sid]}
-        notext_specimens = [sid for sid in cached_crops if not bc_cache[sid]]
+            text_crops       = {sid: path for sid, path in cached_crops.items() if bc_cache[sid]}
+            notext_specimens = [sid for sid in cached_crops if not bc_cache[sid]]
 
-        if uncached_crops:
-            new_text, new_notext, new_bc_results = run_bugcleaner_parallel(
-                uncached_crops, bc_runner, bc_threshold
-            )
-            text_crops.update(new_text)
-            notext_specimens.extend(new_notext)
+            if uncached_crops:
+                new_text, new_notext, new_bc_results = run_bugcleaner_parallel(
+                    uncached_crops, bc_runner, bc_threshold
+                )
+                text_crops.update(new_text)
+                notext_specimens.extend(new_notext)
 
-            # Update in-memory cache
-            for r in new_bc_results:
-                bc_cache[r["specimen_id"]] = r["has_text"].lower() == "true"
+                # Update in-memory cache
+                for r in new_bc_results:
+                    bc_cache[r["specimen_id"]] = r["has_text"].lower() == "true"
 
-            # Persist new results
-            bc_exists = os.path.isfile(bc_cache_path)
-            with open(bc_cache_path, "a", newline="", encoding="utf-8") as f:
-                writer = csv.DictWriter(f, fieldnames=["specimen_id", "has_text"])
-                if not bc_exists:
-                    writer.writeheader()
-                writer.writerows(new_bc_results)
+                # Persist new results
+                bc_exists = os.path.isfile(bc_cache_path)
+                with open(bc_cache_path, "a", newline="", encoding="utf-8") as f:
+                    writer = csv.DictWriter(f, fieldnames=["specimen_id", "has_text"])
+                    if not bc_exists:
+                        writer.writeheader()
+                    writer.writerows(new_bc_results)
 
-        log(f"    Bugcleaner: {len(text_crops)} text / {len(notext_specimens)} no-text")
+            log(f"    Bugcleaner: {len(text_crops)} text / {len(notext_specimens)} no-text")
 
         if not text_crops:
             log(f"    No text-bearing specimens in {tray_name}, writing empty rows")
