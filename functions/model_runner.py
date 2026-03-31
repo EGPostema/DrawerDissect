@@ -159,18 +159,52 @@ def build_model_runner(config, model_key: str):
     Factory — returns the correct runner based on config.deployment.
     Results are cached on the config object so each model is only loaded once.
 
+    For bugcleaner specifically:
+    - If deployment is "local" but no weights are found, falls back to Roboflow
+      (since no local bugcleaner weights are currently available).
+    - If Roboflow is also unavailable, returns None so the caller can decide
+      whether to skip filtering or abort.
+
     Args:
         config:    DrawerDissectConfig instance
-        model_key: One of "drawer", "tray", "label", "mask", "pin"
+        model_key: One of "drawer", "tray", "label", "mask", "pin", "bugcleaner"
 
     Returns:
-        RoboflowModelRunner or LocalModelRunner
+        RoboflowModelRunner, LocalModelRunner, or None (bugcleaner only)
     """
     cached = config.get_cached_runner(model_key)
     if cached is not None:
         return cached
 
     if config.deployment == "roboflow":
+        runner = _build_roboflow_runner(config, model_key)
+
+    elif config.deployment == "local":
+        # For bugcleaner, fall back to Roboflow if no local weights exist
+        if model_key == "bugcleaner":
+            try:
+                config.get_local_weights_path(model_key)
+                runner = _build_local_runner(config, model_key)
+            except (FileNotFoundError, ValueError):
+                log(f"[local] No bugcleaner weights found — falling back to Roboflow")
+                runner = _build_roboflow_runner(config, model_key, allow_fail=True)
+        else:
+            runner = _build_local_runner(config, model_key)
+
+    else:
+        raise ValueError(
+            f"Unknown deployment mode: '{config.deployment}'. "
+            "Set deployment to 'roboflow' or 'local' in config.yaml."
+        )
+
+    if runner is not None:
+        config.set_cached_runner(model_key, runner)
+    return runner
+
+
+def _build_roboflow_runner(config, model_key: str, allow_fail: bool = False):
+    """Build a RoboflowModelRunner, optionally returning None on failure."""
+    try:
         _, workspace_instance = config.get_roboflow_instance()
         model_cfg = config.roboflow_models[model_key]
         rf_model = (
@@ -185,20 +219,19 @@ def build_model_runner(config, model_key: str):
             del rf_model.preprocessing["resize"]
 
         log(f"[roboflow] {model_key}: {model_cfg['endpoint']} v{model_cfg['version']}")
-        runner = RoboflowModelRunner(rf_model)
+        return RoboflowModelRunner(rf_model)
 
-    elif config.deployment == "local":
-        log(f"[local] {model_key}: {config.get_local_weights_path(model_key)}")
-        runner = LocalModelRunner(
-            config.get_local_weights_path(model_key),
-            device=config.local_device,
-        )
+    except Exception as e:
+        if allow_fail:
+            log(f"[roboflow] {model_key} unavailable: {e}")
+            return None
+        raise
 
-    else:
-        raise ValueError(
-            f"Unknown deployment mode: '{config.deployment}'. "
-            "Set deployment to 'roboflow' or 'local' in config.yaml."
-        )
 
-    config.set_cached_runner(model_key, runner)
-    return runner
+def _build_local_runner(config, model_key: str):
+    """Build a LocalModelRunner."""
+    log(f"[local] {model_key}: {config.get_local_weights_path(model_key)}")
+    return LocalModelRunner(
+        config.get_local_weights_path(model_key),
+        device=config.local_device,
+    )
