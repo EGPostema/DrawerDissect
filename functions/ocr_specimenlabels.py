@@ -79,7 +79,7 @@ def run_bugcleaner_on_crop(crop_path, runner, confidence_threshold=95):
 # 2. IMAGE ENCODING
 # ===================================================================
 
-def encode_image_for_api(image_path, max_long_edge=800, quality=85):
+def encode_image_for_api(image_path, max_long_edge=1000, quality=95):
     """
     Load an image, resize to max_long_edge, convert to JPEG,
     return base64 string + media type.
@@ -218,7 +218,7 @@ def call_claude_multicrop(
             "type": "text",
             "text": "TRAY OVERVIEW (use this to see spatial layout, row arrangement, and label patterns):",
         })
-        tray_b64, tray_media = encode_image_for_api(tray_image_path, max_long_edge=1500, quality=85)
+        tray_b64, tray_media = encode_image_for_api(tray_image_path, max_long_edge=1500, quality=95)
         content.append({
             "type": "image",
             "source": {"type": "base64", "media_type": tray_media, "data": tray_b64},
