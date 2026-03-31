@@ -386,8 +386,6 @@ The `transcribe_specimens` step sends a combination of filtered specimen images,
 | flags | Quality flags (e.g., geocode_mismatch, conflicting_info) |
 | model | Model version used for transcription |
 
-* = DrawerDissect-specific output (non-DarwinCore field)
-
 **Configuration:**
 
 ```yaml
