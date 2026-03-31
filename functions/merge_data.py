@@ -260,8 +260,13 @@ def add_tray_context_data(specimen_df, specimen_localities_path):
 
     specimen_localities.csv has columns:
       tray, specimen_id, label_group, match_type, verbatim_text,
-      country, stateProvince, county, municipality, locality,
-      collector, date, flags, model
+      country, stateProvince, county, municipality,
+      verbatimLocality, locality,
+      waterBody, islandGroup, island,
+      verbatimElevation, habitat, samplingProtocol,
+      collector, verbatimEventDate,
+      identifiedBy, possibleName, verbatimCoordinates,
+      flags, model
 
     We join on specimen_id matching full_id (the filename stem).
     """
@@ -281,13 +286,20 @@ def add_tray_context_data(specimen_df, specimen_localities_path):
             print("Warning: specimen_localities.csv missing 'specimen_id' column")
             return specimen_df
 
-        # Columns to bring in
+        # Columns to bring in — only keep those that exist in the CSV
+        # (guards against older CSVs that predate the full field set)
         locality_cols = [
             'specimen_id', 'label_group', 'match_type', 'verbatim_text',
-            'country', 'stateProvince', 'county', 'municipality', 'locality',
-            'collector', 'date', 'flags', 'model',
+            'country', 'stateProvince', 'county', 'municipality',
+            'verbatimLocality', 'locality',
+            'waterBody', 'islandGroup', 'island',
+            'verbatimElevation',
+            'habitat', 'samplingProtocol',
+            'collector', 'verbatimEventDate',
+            'identifiedBy', 'possibleName',
+            'verbatimCoordinates',
+            'flags', 'model',
         ]
-        # Only keep columns that actually exist in the CSV
         locality_cols = [c for c in locality_cols if c in loc_df.columns]
 
         merged_df = pd.merge(
