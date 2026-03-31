@@ -51,7 +51,7 @@ python -m venv dissectenv
 .\dissectenv\Scripts\activate
 ```
 
-**2. Install PyTorch (local deployment only)**
+**2. Install PyTorch/Ultralytics (local deployment only)**
 
 If you plan to run models locally on your own hardware, install PyTorch *before* the next step. The correct version depends on your hardware:
 
@@ -64,6 +64,12 @@ pip install torch torchvision
 
 # CPU only
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+```
+
+Then install the local inference library:
+
+```bash
+pip install ultralytics
 ```
 
 Skip this step if using Roboflow cloud deployment.
