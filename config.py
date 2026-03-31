@@ -211,6 +211,7 @@ class DrawerDissectConfig:
     @property
     def traycontext_settings(self) -> Dict[str, Any]:
         defaults = {
+            "bugcleaner_enabled": True,
             "bugcleaner_confidence_threshold": 95,
             "max_tokens": 12000,
             "include_tray_image": True,
