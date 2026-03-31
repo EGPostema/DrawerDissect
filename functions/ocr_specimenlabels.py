@@ -21,13 +21,46 @@ import json
 import base64
 import ast
 import io
+import time
+import random
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from PIL import Image
 from logging_utils import log, log_found
 
 from functions.model_runner import build_model_runner
 from functions.geocode_lookup import check_geocode_country, check_ambiguous_locality
+
+
+# ===================================================================
+# RETRY UTILITY
+# ===================================================================
+
+def retry_with_backoff(func, max_retries=3, base_delay=2, max_delay=60):
+    """
+    Retry a function with exponential backoff on server/transient errors.
+    Raises the last exception if all attempts fail.
+    """
+    for attempt in range(max_retries + 1):
+        try:
+            return func()
+        except Exception as e:
+            error_str = str(e).lower()
+            is_transient = any(
+                kw in error_str
+                for kw in ("500", "502", "503", "529", "internal server error",
+                           "server error", "timeout", "connection", "rate limit",
+                           "overloaded")
+            )
+            if is_transient and attempt < max_retries:
+                delay = min(base_delay * (2 ** attempt) + random.uniform(0, 1), max_delay)
+                log(f"    Transient error (attempt {attempt + 1}/{max_retries + 1}), "
+                    f"retrying in {delay:.1f}s: {e}")
+                time.sleep(delay)
+            else:
+                raise
+    raise RuntimeError(f"Failed after {max_retries + 1} attempts")
 
 
 # ===================================================================
@@ -40,7 +73,7 @@ def run_bugcleaner_on_crop(crop_path, runner, confidence_threshold=95):
     Returns True if text detected above threshold, False otherwise.
     """
     try:
-        result = runner.predict(crop_path)
+        result = retry_with_backoff(lambda: runner.predict(crop_path))
 
         if hasattr(result, "json"):
             result = result.json()
@@ -75,11 +108,45 @@ def run_bugcleaner_on_crop(crop_path, runner, confidence_threshold=95):
         return True
 
 
+def run_bugcleaner_parallel(all_crops, runner, confidence_threshold=95, max_workers=8):
+    """
+    Run bugcleaner on all crops in parallel using ThreadPoolExecutor.
+    Returns (text_crops dict, notext_specimens list, new_bc_results list).
+    """
+    def _check(item):
+        spec_id, crop_path = item
+        has_text = run_bugcleaner_on_crop(crop_path, runner, confidence_threshold)
+        return spec_id, crop_path, has_text
+
+    text_crops = {}
+    notext_specimens = []
+    new_bc_results = []
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {executor.submit(_check, item): item for item in all_crops.items()}
+        for future in as_completed(futures):
+            try:
+                spec_id, crop_path, has_text = future.result()
+                new_bc_results.append({"specimen_id": spec_id, "has_text": str(has_text)})
+                if has_text:
+                    text_crops[spec_id] = crop_path
+                else:
+                    notext_specimens.append(spec_id)
+            except Exception as e:
+                spec_id, crop_path = futures[future]
+                log(f"  Warning: bugcleaner failed on {crop_path}: {e}")
+                # Default to True (include) on failure
+                text_crops[spec_id] = crop_path
+                new_bc_results.append({"specimen_id": spec_id, "has_text": "True"})
+
+    return text_crops, notext_specimens, new_bc_results
+
+
 # ===================================================================
 # 2. IMAGE ENCODING
 # ===================================================================
 
-def encode_image_for_api(image_path, max_long_edge=1000, quality=95):
+def encode_image_for_api(image_path, max_long_edge=1000, quality=100):
     """
     Load an image, resize to max_long_edge, convert to JPEG,
     return base64 string + media type.
@@ -101,6 +168,26 @@ def encode_image_for_api(image_path, max_long_edge=1000, quality=95):
     img.save(buf, format="JPEG", quality=quality)
     b64 = base64.standard_b64encode(buf.getvalue()).decode("utf-8")
     return b64, "image/jpeg"
+
+
+def encode_image_for_api_parallel(crops_dict, max_long_edge=1000, quality=100, max_workers=8):
+    """
+    Encode multiple images in parallel.
+    Returns dict of {spec_id: (b64, media_type)}, preserving input order.
+    """
+    def _encode(item):
+        spec_id, crop_path = item
+        b64, media = encode_image_for_api(crop_path, max_long_edge=max_long_edge, quality=quality)
+        return spec_id, b64, media
+
+    results = {}
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {executor.submit(_encode, item): item for item in crops_dict.items()}
+        for future in as_completed(futures):
+            spec_id, b64, media = future.result()
+            results[spec_id] = (b64, media)
+
+    return results
 
 
 # ===================================================================
@@ -179,7 +266,32 @@ def find_tray_image(resized_trays_dir, tray_name, tray_stem):
 
 
 # ===================================================================
-# 5. CLAUDE CALL — tray image + individual crops + header context
+# 5. SPECIMEN CROP DISCOVERY
+# ===================================================================
+
+def build_crop_index(specimens_dir):
+    """
+    Walk specimens_dir once and return a dict mapping tray_name prefix
+    to {spec_id: crop_path}. Avoids repeated os.walk calls per tray.
+    """
+    index = {}
+    for root, _, files in os.walk(specimens_dir):
+        for f in sorted(files):
+            if f.startswith("."):
+                continue
+            spec_id = os.path.splitext(f)[0]
+            # Extract tray prefix: everything before _spec_
+            match = re.match(r"(.+_tray_\d+)_spec_", spec_id)
+            if match:
+                tray_prefix = match.group(1)
+                if tray_prefix not in index:
+                    index[tray_prefix] = {}
+                index[tray_prefix][spec_id] = os.path.join(root, f)
+    return index
+
+
+# ===================================================================
+# 6. CLAUDE CALL — tray image + individual crops + header context
 # ===================================================================
 
 def call_claude_multicrop(
@@ -195,6 +307,7 @@ def call_claude_multicrop(
 ):
     """
     One Claude call with: optional tray image + all specimen crops + context.
+    Encodes all specimen crops in parallel before assembling the request.
     Returns parsed response (list of group dicts), or None.
     """
     import anthropic
@@ -202,6 +315,11 @@ def call_claude_multicrop(
     # Fill in user prompt template
     user_text = user_prompt.replace("{tray_context}", tray_context_str)
     user_text = user_text.replace("{specimen_ids}", ", ".join(specimen_crops.keys()))
+
+    # Encode all specimen crops in parallel
+    encoded_crops = encode_image_for_api_parallel(
+        specimen_crops, max_long_edge=1000, quality=100
+    )
 
     # Build content — context first, then images, then instructions
     content = []
@@ -218,7 +336,7 @@ def call_claude_multicrop(
             "type": "text",
             "text": "TRAY OVERVIEW (use this to see spatial layout, row arrangement, and label patterns):",
         })
-        tray_b64, tray_media = encode_image_for_api(tray_image_path, max_long_edge=1500, quality=95)
+        tray_b64, tray_media = encode_image_for_api(tray_image_path, max_long_edge=1500, quality=100)
         content.append({
             "type": "image",
             "source": {"type": "base64", "media_type": tray_media, "data": tray_b64},
@@ -229,17 +347,17 @@ def call_claude_multicrop(
             "text": "No tray overview image provided. Use only the individual specimen crops below.",
         })
 
-    # Then: each specimen crop, labeled
+    # Then: each specimen crop, labeled (preserving order)
     content.append({
         "type": "text",
         "text": "INDIVIDUAL SPECIMEN CROPS (use these to read label text):",
     })
-    for spec_id, crop_path in specimen_crops.items():
+    for spec_id in specimen_crops:
+        b64, media = encoded_crops[spec_id]
         content.append({"type": "text", "text": f"{spec_id}:"})
-        crop_b64, crop_media = encode_image_for_api(crop_path, max_long_edge=800, quality=85)
         content.append({
             "type": "image",
-            "source": {"type": "base64", "media_type": crop_media, "data": crop_b64},
+            "source": {"type": "base64", "media_type": media, "data": b64},
         })
 
     # Finally: the instructions
@@ -247,35 +365,46 @@ def call_claude_multicrop(
 
     client = anthropic.Anthropic(api_key=api_key)
 
-    max_attempts = 2
-    for attempt in range(max_attempts):
-        try:
-            response = client.messages.create(
+    # API call with transient-error retry
+    try:
+        response = retry_with_backoff(
+            lambda: client.messages.create(
                 model=model,
                 max_tokens=max_tokens,
                 system=system_prompt,
                 messages=[{"role": "user", "content": content}],
             )
-            raw = response.content[0].text.strip()
-            tokens_in = response.usage.input_tokens
-            tokens_out = response.usage.output_tokens
-            log(f"    Tokens: {tokens_in} in / {tokens_out} out")
+        )
+    except Exception as e:
+        log(f"  Claude API error (all retries exhausted): {e}")
+        return None
 
-            result = parse_claude_response(raw)
-            if result is not None:
-                return result
+    raw = response.content[0].text.strip()
+    tokens_in  = response.usage.input_tokens
+    tokens_out = response.usage.output_tokens
+    log(f"    Tokens: {tokens_in} in / {tokens_out} out")
 
-            if attempt < max_attempts - 1:
-                log(f"    Parse failed, retrying...")
-                continue
-            return None
+    # Parse with one retry on failure
+    result = parse_claude_response(raw)
+    if result is not None:
+        return result
 
-        except Exception as e:
-            log(f"  Claude API error: {e}")
-            if attempt < max_attempts - 1:
-                log(f"    Retrying...")
-                continue
-            return None
+    log(f"    Parse failed, retrying API call...")
+    try:
+        response = retry_with_backoff(
+            lambda: client.messages.create(
+                model=model,
+                max_tokens=max_tokens,
+                system=system_prompt,
+                messages=[{"role": "user", "content": content}],
+            )
+        )
+        raw = response.content[0].text.strip()
+        log(f"    Tokens: {response.usage.input_tokens} in / {response.usage.output_tokens} out")
+        return parse_claude_response(raw)
+    except Exception as e:
+        log(f"  Claude API error on retry: {e}")
+        return None
 
 
 def parse_claude_response(raw_text):
@@ -310,7 +439,7 @@ def parse_claude_response(raw_text):
 
 
 # ===================================================================
-# 6. PYTHON-SIDE VALIDATION
+# 7. PYTHON-SIDE VALIDATION
 # ===================================================================
 
 def validate_groups(groups, geocode_value):
@@ -365,7 +494,7 @@ def validate_groups(groups, geocode_value):
 
 
 # ===================================================================
-# 7. OUTPUT
+# 8. OUTPUT
 # ===================================================================
 
 def write_outputs(groups, tray_name, notext_specimens, output_dir, model_name=""):
@@ -440,7 +569,7 @@ def write_outputs(groups, tray_name, notext_specimens, output_dir, model_name=""
 
 
 # ===================================================================
-# 8. MAIN ENTRY POINT
+# 9. MAIN ENTRY POINT
 # ===================================================================
 
 def process_tray_context(
@@ -503,6 +632,10 @@ def process_tray_context(
     if not coord_files:
         return
 
+    # Build crop index once for all trays rather than walking per tray
+    log("  Building specimen crop index...")
+    crop_index = build_crop_index(specimens_dir)
+
     for tray_idx, coord_file in enumerate(coord_files, 1):
         tray_stem = Path(coord_file).stem
         tray_name = tray_stem.replace("_1000", "")
@@ -513,37 +646,32 @@ def process_tray_context(
 
         log(f"  [{tray_idx}/{len(coord_files)}] Processing tray: {tray_name}")
 
-        # ----- Find specimen crops -----
-        all_crops = {}
-        for root, _, files in os.walk(specimens_dir):
-            for f in sorted(files):
-                if f.startswith(tray_name + "_spec_") and not f.startswith("."):
-                    spec_id = os.path.splitext(f)[0]
-                    all_crops[spec_id] = os.path.join(root, f)
+        # ----- Find specimen crops (from pre-built index) -----
+        all_crops = crop_index.get(tray_name, {})
 
         if not all_crops:
             log(f"    No specimen crop files found for {tray_name}, skipping")
             continue
 
-        # ----- Run bugcleaner (with caching) -----
-        text_crops = {}
-        notext_specimens = []
-        new_bc_results = []
-        for spec_id, crop_path in all_crops.items():
-            if spec_id in bc_cache:
-                has_text = bc_cache[spec_id]
-            else:
-                has_text = run_bugcleaner_on_crop(crop_path, bc_runner, bc_threshold)
-                bc_cache[spec_id] = has_text
-                new_bc_results.append({"specimen_id": spec_id, "has_text": str(has_text)})
+        # ----- Run bugcleaner (cached + parallel for new crops) -----
+        cached_crops  = {sid: path for sid, path in all_crops.items() if sid in bc_cache}
+        uncached_crops = {sid: path for sid, path in all_crops.items() if sid not in bc_cache}
 
-            if has_text:
-                text_crops[spec_id] = crop_path
-            else:
-                notext_specimens.append(spec_id)
+        text_crops      = {sid: path for sid, path in cached_crops.items() if bc_cache[sid]}
+        notext_specimens = [sid for sid in cached_crops if not bc_cache[sid]]
 
-        # Save any new bugcleaner results
-        if new_bc_results:
+        if uncached_crops:
+            new_text, new_notext, new_bc_results = run_bugcleaner_parallel(
+                uncached_crops, bc_runner, bc_threshold
+            )
+            text_crops.update(new_text)
+            notext_specimens.extend(new_notext)
+
+            # Update in-memory cache
+            for r in new_bc_results:
+                bc_cache[r["specimen_id"]] = r["has_text"].lower() == "true"
+
+            # Persist new results
             bc_exists = os.path.isfile(bc_cache_path)
             with open(bc_cache_path, "a", newline="", encoding="utf-8") as f:
                 writer = csv.DictWriter(f, fieldnames=["specimen_id", "has_text"])
@@ -569,11 +697,10 @@ def process_tray_context(
 
         # ----- Call Claude (with batch splitting for large trays) -----
         max_per_batch = settings.get("max_specimens_per_batch", 20)
-        include_tray = settings.get("include_tray_image", True)
+        include_tray  = settings.get("include_tray_image", True)
         spec_ids_list = list(text_crops.keys())
 
         if len(spec_ids_list) <= max_per_batch:
-            # Single call
             log(f"    Sending {len(text_crops)} crops, max_tokens={tc_max_tokens}")
             groups = call_claude_multicrop(
                 tray_image_path=tray_image_path,
@@ -587,7 +714,6 @@ def process_tray_context(
                 include_tray_image=include_tray,
             )
         else:
-            # Split into batches
             import math
             n_batches = math.ceil(len(spec_ids_list) / max_per_batch)
             log(f"    Splitting {len(spec_ids_list)} crops into {n_batches} batches of ~{max_per_batch}")
@@ -596,8 +722,8 @@ def process_tray_context(
 
             for batch_idx in range(n_batches):
                 start = batch_idx * max_per_batch
-                end = min(start + max_per_batch, len(spec_ids_list))
-                batch_ids = spec_ids_list[start:end]
+                end   = min(start + max_per_batch, len(spec_ids_list))
+                batch_ids  = spec_ids_list[start:end]
                 batch_crops = {sid: text_crops[sid] for sid in batch_ids}
 
                 log(f"    Batch {batch_idx+1}/{n_batches}: {len(batch_crops)} crops, max_tokens={tc_max_tokens}")
@@ -614,7 +740,6 @@ def process_tray_context(
                 )
 
                 if batch_groups:
-                    # Renumber groups to avoid collisions across batches
                     for g in batch_groups:
                         g["label_group"] = g.get("label_group", 0) + group_offset
                     group_offset += len(batch_groups)
