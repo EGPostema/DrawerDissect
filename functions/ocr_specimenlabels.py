@@ -12,7 +12,6 @@ For each tray, this module:
   3. Runs Python-side validation (geocode cross-check, flag aggregation)
   4. Writes specimen_localities.csv (one row per specimen)
 
-Drop this file into functions/.
 """
 
 import os
@@ -339,8 +338,14 @@ def validate_groups(groups, geocode_value):
 
         # Clean DarwinCore fields
         darwincore_fields = ["country", "stateProvince", "state_province",
-                            "county", "municipality", "locality",
-                            "collector", "date"]
+                            "county", "municipality",
+                            "verbatimLocality", "locality",
+                            "waterBody", "islandGroup", "island",
+                            "verbatimElevation",
+                            "habitat", "samplingProtocol",
+                            "collector", "verbatimEventDate",
+                            "identifiedBy", "possibleName",
+                            "verbatimCoordinates"]
         for field in darwincore_fields:
             val = group.get(field, "")
             if isinstance(val, str):
@@ -351,7 +356,7 @@ def validate_groups(groups, geocode_value):
                     group[field] = cleaned
 
         # Normalize 'none'/'null' to empty
-        for field in darwincore_fields + ["verbatim_text"]:
+        for field in darwincore_fields + ["verbatim_text", "possibleName"]:
             val = group.get(field, "")
             if isinstance(val, str) and val.strip().lower() in ("none", "null", "n/a"):
                 group[field] = ""
@@ -370,8 +375,14 @@ def write_outputs(groups, tray_name, notext_specimens, output_dir, model_name=""
     specimen_fields = [
         "tray", "specimen_id", "label_group", "match_type",
         "verbatim_text",
-        "country", "stateProvince", "county", "municipality", "locality",
-        "collector", "date",
+        "country", "stateProvince", "county", "municipality",
+        "verbatimLocality", "locality",
+        "waterBody", "islandGroup", "island",
+        "verbatimElevation",
+        "habitat", "samplingProtocol",
+        "collector", "verbatimEventDate",
+        "identifiedBy", "possibleName",
+        "verbatimCoordinates",
         "flags", "model",
     ]
 
@@ -379,8 +390,14 @@ def write_outputs(groups, tray_name, notext_specimens, output_dir, model_name=""
         row = {"tray": tray, "model": model_name}
         for field in ("label_group", "match_type", "verbatim_text",
                       "country", "stateProvince", "state_province",
-                      "county", "municipality", "locality",
-                      "collector", "date"):
+                      "county", "municipality",
+                      "verbatimLocality", "locality",
+                      "waterBody", "islandGroup", "island",
+                      "verbatimElevation",
+                      "habitat", "samplingProtocol",
+                      "collector", "verbatimEventDate",
+                      "identifiedBy", "possibleName",
+                      "verbatimCoordinates"):
             val = g.get(field, "")
             if isinstance(val, list):
                 val = ", ".join(str(v) for v in val)
