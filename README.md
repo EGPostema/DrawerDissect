@@ -228,6 +228,8 @@ python process_images.py all --drawers drawer_001
 python process_images.py all --drawers drawer_001,drawer_005
 ```
 
+<i>This includes drawers that are in the 'unsorted' folder!</i>
+
 **Run individual step(s):**
 ```bash
 python process_images.py resize_drawers
