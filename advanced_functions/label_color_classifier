@@ -1,0 +1,340 @@
+"""
+label_color_classifier.py
+
+Classifies unit tray label background colors into biogeographic realms
+and writes results to geocodes.csv in DrawerDissect's tray_labels
+transcription folder.
+
+Calibrated on CMN (Ottowa) Cicindelidae labels using HSV hue + saturation.
+Filters out dark text pixels before computing background color.
+
+── DrawerDissect integration ────────────────────────────────────────────────
+
+Output written to:
+    <drawer_root>/
+        transcriptions/
+                tray_labels/
+                    geocodes.csv          ← appended, one row per tray
+
+geocodes.csv schema:
+    tray_id, geocode
+
+── Usage ────────────────────────────────────────────────────────────────────
+
+Single drawer (name only):
+    python label_color_classifier.py --drawer Cicindelidae_Drawer
+
+All drawers in drawers/:
+    python label_color_classifier.py --all
+
+    Optional prefix filter:
+    python label_color_classifier.py --all --prefix Cicindelidae
+
+Calibrate a new realm from a known label crop:
+    python label_color_classifier.py --calibrate <path/to/label_image> <RealmName>
+
+Re-run / overwrite existing geocodes.csv:
+    python label_color_classifier.py --drawer Cicindelidae_Drawer --rerun
+
+─────────────────────────────────────────────────────────────────────────────
+"""
+
+import sys
+import csv
+import colorsys
+from pathlib import Path
+from collections import Counter
+
+import numpy as np
+from PIL import Image
+
+
+# ── Realm color map ───────────────────────────────────────────────────────────
+#
+# hue_deg  : target hue in degrees (0–360)
+# hue_tol  : ± tolerance in degrees
+# min_sat  : minimum saturation (0–1) — lower bound
+# max_sat  : maximum saturation (0–1) — upper bound (use 1.0 for no limit)
+#            PAL and AUS share the same hue; max_sat on AUS separates them.
+#
+# To add a new realm, run:
+#   python label_color_classifier.py --calibrate <image> <RealmName>
+# and paste the printed entry here.
+
+REALM_MAP = [
+    # Code   hue_deg  hue_tol  min_sat  max_sat   # label colour / realm
+    # PAL and AUS share nearly the same hue (~347°) but differ in saturation:
+    # AUS is muted (sat ~0.19), PAL is darker/richer (sat ~0.40).
+    # max_sat on AUS caps it below PAL's range so they don't collide.
+    ("NEA",  199.3,   35.0,   0.05,    1.00),    # muted blue       / Nearctic
+    ("NEO",  141.2,   35.0,   0.05,    1.00),    # muted green      / Neotropical
+    ("AUS",  348.7,   35.0,   0.05,    0.30),    # muted pink       / Australasian (wraps near 0°)
+    ("PAL",  346.7,   20.0,   0.30,    1.00),    # dark pink/red    / Palearctic
+    ("AFR",   34.6,   20.0,   0.45,    1.00),    # saturated orange / Afrotropical
+    ("ORI",   51.0,   25.0,   0.20,    1.00),    # muted yellow     / Oriental
+    # ("PAC", ???,   35.0,   0.05,    1.00),     # ← not yet calibrated
+]
+
+UNKNOWN_LABEL = "UNK"
+BRIGHTNESS_PERCENTILE = 50   # discard pixels darker than this percentile
+
+GEOCODES_CSV = Path("transcriptions/tray_labels/geocodes.csv")
+LABELS_DIR   = Path("labels")
+
+# ── Color analysis ────────────────────────────────────────────────────────────
+
+def get_background_hsv(image_path: Path, border_frac: float = 0.15) -> tuple:
+    """
+    Load a label crop, strip border margin, filter dark (text) pixels,
+    return mean HSV of remaining background + avg RGB for diagnostics.
+    """
+    img = Image.open(image_path).convert("RGB")
+    w, h = img.size
+
+    mw = int(w * border_frac)
+    mh = int(h * border_frac)
+    crop = img.crop((mw, mh, w - mw, h - mh))
+
+    arr = np.array(crop, dtype=np.float32)
+    pixels = arr.reshape(-1, 3)
+
+    brightness = pixels.sum(axis=1)
+    threshold = np.percentile(brightness, BRIGHTNESS_PERCENTILE)
+    light = pixels[brightness > threshold]
+    if len(light) == 0:
+        light = pixels
+
+    r, g, b = light[:, 0].mean() / 255, light[:, 1].mean() / 255, light[:, 2].mean() / 255
+    h, s, v = colorsys.rgb_to_hsv(r, g, b)
+    avg_rgb = (int(r * 255), int(g * 255), int(b * 255))
+    return h * 360, s, v, avg_rgb
+
+
+def hue_distance(a: float, b: float) -> float:
+    diff = abs(a - b) % 360
+    return min(diff, 360 - diff)
+
+
+def classify_hsv(hue_deg: float, saturation: float) -> tuple:
+    """Returns (realm_name, hue_distance_to_match)."""
+    best_realm = UNKNOWN_LABEL
+    best_dist  = float("inf")
+    for realm, target_hue, hue_tol, min_sat, max_sat in REALM_MAP:
+        if saturation < min_sat or saturation > max_sat:
+            continue
+        dist = hue_distance(hue_deg, target_hue)
+        if dist <= hue_tol and dist < best_dist:
+            best_dist = dist
+            best_realm = realm
+    return best_realm, best_dist
+
+
+# ── DrawerDissect path helpers ────────────────────────────────────────────────
+
+def find_label_images(drawer_root: Path) -> list[tuple[str, Path]]:
+    """
+    Walk labels/<tray_id>/*_label.jpg
+    Returns list of (tray_id, image_path) sorted by tray_id.
+    """
+    labels_root = drawer_root / LABELS_DIR
+    if not labels_root.exists():
+        return []
+
+    results = []
+    for tray_dir in sorted(labels_root.iterdir()):
+        if not tray_dir.is_dir():
+            continue
+        tray_num = tray_dir.name   # e.g. "01", "02"
+        label_files = sorted(tray_dir.glob("*_label.jpg"))
+        if label_files:
+            # Derive full tray_id from the label filename, e.g. Cicindelidae_Drawer_tray_01
+            full_id = label_files[0].stem.replace("_label", "")
+            results.append((full_id, label_files[0]))
+    return results
+
+
+def geocodes_csv_path(drawer_root: Path) -> Path:
+    return drawer_root / GEOCODES_CSV
+
+
+def already_processed(csv_path: Path) -> set[str]:
+    """Return set of tray_ids already present in geocodes.csv."""
+    if not csv_path.exists():
+        return set()
+    with open(csv_path, newline="") as f:
+        reader = csv.DictReader(f)
+        return {row["tray_id"] for row in reader}
+
+
+def write_rows(csv_path: Path, rows: list[dict], overwrite: bool = False):
+    """Append (or overwrite) rows to geocodes.csv, creating dirs if needed."""
+    csv_path.parent.mkdir(parents=True, exist_ok=True)
+    mode = "w" if overwrite or not csv_path.exists() else "a"
+    write_header = mode == "w" or not csv_path.exists()
+
+    with open(csv_path, mode, newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=["tray_id", "geocode", "hue_deg", "sat", "avg_r", "avg_g", "avg_b"])
+        if write_header:
+            writer.writeheader()
+        writer.writerows(rows)
+
+
+# ── Per-drawer processing ─────────────────────────────────────────────────────
+
+def process_drawer(drawer_root: Path, rerun: bool = False, verbose: bool = True) -> list[dict]:
+    """
+    Classify all label images in one drawer and write/append geocodes.csv.
+    Returns list of result dicts.
+    """
+    drawer_root = Path(drawer_root)
+    csv_path    = geocodes_csv_path(drawer_root)
+    label_images = find_label_images(drawer_root)
+
+    if not label_images:
+        if verbose:
+            print(f"  [!] No label images found: {drawer_root / LABELS_DIR}")
+        return []
+
+    done = set() if rerun else already_processed(csv_path)
+
+    new_rows = []
+    results  = []
+
+    for tray_id, img_path in label_images:
+        if tray_id in done:
+            if verbose:
+                print(f"  [skip] tray {tray_id} — already in geocodes.csv")
+            continue
+
+        try:
+            hue, sat, val, avg_rgb = get_background_hsv(img_path)
+            realm, dist = classify_hsv(hue, sat)
+        except Exception as e:
+            realm, dist = UNKNOWN_LABEL, -1.0
+            if verbose:
+                print(f"  [!] Error on tray {tray_id}: {e}")
+
+        row = {"tray_id": tray_id, "geocode": realm,
+               "hue_deg": round(hue, 1), "sat": round(sat, 3),
+               "avg_r": avg_rgb[0], "avg_g": avg_rgb[1], "avg_b": avg_rgb[2]}
+        new_rows.append(row)
+        results.append({**row, "hue_dist": round(dist, 1)})
+
+        if verbose:
+            flag = "✓" if realm != UNKNOWN_LABEL else "?"
+            print(f"  [{flag}] tray {tray_id}  →  {realm:<15}  "
+                  f"(hue: {hue:.1f}°  sat: {sat:.2f}  dist: {dist:.1f}°)")
+
+    if new_rows:
+        write_rows(csv_path, new_rows, overwrite=rerun)
+        if verbose:
+            print(f"  → wrote {len(new_rows)} row(s) to {csv_path}")
+
+    return results
+
+
+# ── CLI modes ─────────────────────────────────────────────────────────────────
+
+def resolve_path(name: str, default_parent: str = "drawers") -> Path:
+    """If name is not an existing path, look it up under default_parent relative to cwd."""
+    p = Path(name)
+    if p.exists():
+        return p
+    candidate = Path(default_parent) / name
+    return candidate  # caller handles missing path errors
+
+
+def mode_drawer(drawer_root: str, rerun: bool = False):
+    drawers = [d.strip() for d in drawer_root.split(",")]
+    all_results = []
+    for name in drawers:
+        path = resolve_path(name)
+        print(f"\nDrawer: {path}")
+        results = process_drawer(path, rerun=rerun)
+        all_results.extend(results)
+    counts = Counter(r["geocode"] for r in all_results)
+    if counts and len(drawers) > 1:
+        print("\n── Overall geocode summary " + "─" * 20)
+        for code, n in sorted(counts.items()):
+            print(f"  {code:<6} {n}")
+
+
+def mode_all(drawers_root: str = "drawers", prefix: str = None, rerun: bool = False):
+    root = resolve_path(drawers_root, default_parent=".")
+    drawers = sorted([d for d in root.iterdir() if d.is_dir()])
+    if prefix:
+        drawers = [d for d in drawers if d.name.lower().startswith(prefix.lower())]
+
+    if not drawers:
+        print(f"No drawer folders found in: {drawers_root}"
+              + (f" (prefix: '{prefix}')" if prefix else ""))
+        return
+
+    print(f"\nProcessing {len(drawers)} drawer(s) in: {drawers_root}\n")
+    all_results = []
+    for drawer in drawers:
+        print(f"── {drawer.name}")
+        results = process_drawer(drawer, rerun=rerun)
+        all_results.extend(results)
+        print()
+
+    counts = Counter(r["geocode"] for r in all_results)
+    print("── Overall geocode summary " + "─" * 20)
+    for code, n in sorted(counts.items()):
+        pct = 100 * n / max(len(all_results), 1)
+        print(f"  {code:<6} {n:>4}  ({pct:.0f}%)")
+
+
+def mode_calibrate(image_path: str, realm_name: str):
+    hue, sat, val, avg_rgb = get_background_hsv(Path(image_path))
+    print(f"\nCalibration — '{realm_name}'")
+    print(f"  avg_rgb : {avg_rgb}")
+    print(f"  hue_deg : {hue:.1f}°")
+    print(f"  sat     : {sat:.3f}")
+    print(f"  val     : {val:.3f}")
+    print(f"\nSuggested REALM_MAP entry (replace XXX with the 3-letter code, e.g. PAL, PAC):")
+    print(f'    ("XXX", {hue:.1f}, 25.0, {max(sat * 0.5, 0.05):.2f}),  # <colour> / {realm_name}')
+
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+
+def main():
+    args = sys.argv[1:]
+
+    if not args:
+        print(__doc__)
+        return
+
+    rerun  = "--rerun" in args
+    args   = [a for a in args if a != "--rerun"]
+
+    if args[0] == "--calibrate":
+        if len(args) < 3:
+            print("Usage: python label_color_classifier.py --calibrate <image> <RealmName>")
+            sys.exit(1)
+        mode_calibrate(args[1], args[2])
+
+    elif args[0] == "--drawer":
+        if len(args) < 2:
+            print("Usage: python label_color_classifier.py --drawer <drawer_root> [--rerun]")
+            sys.exit(1)
+        mode_drawer(args[1], rerun=rerun)
+
+    elif args[0] == "--all":
+        if len(args) < 2:
+            print("Usage: python label_color_classifier.py --all <drawers_root> [--prefix X] [--rerun]")
+            sys.exit(1)
+        prefix = None
+        if "--prefix" in args:
+            idx    = args.index("--prefix")
+            prefix = args[idx + 1]
+        mode_all(args[1], prefix=prefix, rerun=rerun)
+
+    else:
+        print(f"Unknown argument: {args[0]}\n")
+        print(__doc__)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
