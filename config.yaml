@@ -46,8 +46,8 @@ roboflow:
       overlap: 50
     label:
       endpoint: "labelfinder"
-      version: 10
-      confidence: 5
+      version: 12
+      confidence: 10
       overlap: 50
     mask:
       endpoint: "bugmasker-all"
@@ -89,7 +89,7 @@ processing:
   measurement_visualizations: "off"  # "on", "off", or "rand_sample" (max 20 random visualizations)
   transcribe_barcodes: false         # set to true for tray-level barcodes
   transcribe_geocodes: false         # set to true for tray-level geocodes
-  transcribe_taxonomy: false         # set to true for taxonomic label transcription
+  transcribe_taxonomy: true         # set to true for taxonomic label transcription
   transcribe_specimens: false        # set to true for specimen label transcription helper
 
 # ------------------------------------------------------------
