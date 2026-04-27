@@ -260,13 +260,8 @@ def add_tray_context_data(specimen_df, specimen_localities_path):
 
     specimen_localities.csv has columns:
       tray, specimen_id, label_group, match_type, verbatim_text,
-      country, stateProvince, county, municipality,
-      verbatimLocality, locality,
-      waterBody, islandGroup, island,
-      verbatimElevation, habitat, samplingProtocol,
-      collector, verbatimEventDate,
-      identifiedBy, possibleName, verbatimCoordinates,
-      flags, model
+      country, stateProvince, county, municipality, locality,
+      collector, date, flags, model
 
     We join on specimen_id matching full_id (the filename stem).
     """
@@ -286,20 +281,13 @@ def add_tray_context_data(specimen_df, specimen_localities_path):
             print("Warning: specimen_localities.csv missing 'specimen_id' column")
             return specimen_df
 
-        # Columns to bring in — only keep those that exist in the CSV
-        # (guards against older CSVs that predate the full field set)
+        # Columns to bring in
         locality_cols = [
             'specimen_id', 'label_group', 'match_type', 'verbatim_text',
-            'country', 'stateProvince', 'county', 'municipality',
-            'verbatimLocality', 'locality',
-            'waterBody', 'islandGroup', 'island',
-            'verbatimElevation',
-            'habitat', 'samplingProtocol',
-            'collector', 'verbatimEventDate',
-            'identifiedBy', 'possibleName',
-            'verbatimCoordinates',
-            'flags', 'model',
+            'country', 'stateProvince', 'county', 'municipality', 'locality',
+            'collector', 'date', 'flags', 'model',
         ]
+        # Only keep columns that actually exist in the CSV
         locality_cols = [c for c in locality_cols if c in loc_df.columns]
 
         merged_df = pd.merge(
@@ -385,11 +373,15 @@ def generate_drawer_summary(tray_df, specimen_df, output_path=None):
         'tray_id': 'nunique'
     }).reset_index().rename(columns={'tray_id': 'tray_count'})
 
-    specimen_count = specimen_df.groupby('drawer_id').size().reset_index(name='specimen_count')
-    summary_df = pd.merge(tray_summary, specimen_count, on='drawer_id', how='left')
+    if not specimen_df.empty and 'drawer_id' in specimen_df.columns:
+        specimen_count = specimen_df.groupby('drawer_id').size().reset_index(name='specimen_count')
+        summary_df = pd.merge(tray_summary, specimen_count, on='drawer_id', how='left')
+    else:
+        summary_df = tray_summary.copy()
+    summary_df['specimen_count'] = summary_df.get('specimen_count', 0)
     summary_df['specimen_count'] = summary_df['specimen_count'].fillna(0).astype(int)
 
-    if 'mask_found' in specimen_df.columns:
+    if 'mask_found' in specimen_df.columns and not specimen_df.empty:
         masked_counts = (specimen_df[specimen_df['mask_found'] == True]
                          .groupby('drawer_id').size()
                          .reset_index(name='masked_specimen_count'))
@@ -463,7 +455,7 @@ def merge_data(specimens_dir, measurements_path=None, specimen_localities_path=N
             specimen_df = add_tray_context_data(specimen_df, specimen_localities_path)
 
         # Merge tray-level header info onto specimens
-        if len(tray_df) > 0 and any(c in tray_df.columns for c in ['unit_barcode', 'geocode', 'full_taxonomy']):
+        if not specimen_df.empty and len(tray_df) > 0 and any(c in tray_df.columns for c in ['unit_barcode', 'geocode', 'full_taxonomy']):
             tray_info_cols = ['tray_id']
             for col in ['unit_barcode', 'geocode', 'full_taxonomy']:
                 if col in tray_df.columns:
@@ -474,15 +466,16 @@ def merge_data(specimens_dir, measurements_path=None, specimen_localities_path=N
                 specimen_df[col] = specimen_df[col].fillna("")
 
         # Completeness flag
-        specimen_df = add_data_completeness_flag(
-            specimen_df,
-            has_measurements=has_measurements,
-            has_taxonomy=has_taxonomy,
-            has_barcodes=has_barcodes,
-            has_geocodes=has_geocodes,
-            has_localities=has_localities,
-            has_mm_measurements=has_mm_measurements,
-        )
+        if not specimen_df.empty:
+            specimen_df = add_data_completeness_flag(
+                specimen_df,
+                has_measurements=has_measurements,
+                has_taxonomy=has_taxonomy,
+                has_barcodes=has_barcodes,
+                has_geocodes=has_geocodes,
+                has_localities=has_localities,
+                has_mm_measurements=has_mm_measurements,
+            )
 
         # Incomplete specimen counts on tray table
         if 'data_complete' in specimen_df.columns and len(specimen_df) > 0:
