@@ -172,7 +172,7 @@ class ImageTranscriber:
                     import ast, json, re
                     # Strip markdown code fences if present
                     cleaned = re.sub(r"```(?:json|python)?\s*", "", content).strip().rstrip("`").strip()
-                    # Try JSON first (Pixtral tends to return JSON), then Python literal
+                    # Try JSON first, then Python literal
                     try:
                         parsed = json.loads(cleaned)
                     except (json.JSONDecodeError, ValueError):
