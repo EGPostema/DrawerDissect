@@ -22,7 +22,7 @@ DrawerDissect has run successfully on the following systems:
 | Windows | Windows 11 | AMD Ryzen 7 7800X3D | 32 GB | NVIDIA GeForce RTX 4060 |
 | Windows | Windows 11 | Intel i5-13400F | 32 GB | NVIDIA GeForce RTX 4060 |
  
-Current Version: **v0.3.0**
+Current Version: **v0.4.0**
  
 ---
  
