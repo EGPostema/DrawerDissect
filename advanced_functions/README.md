@@ -5,8 +5,11 @@ that take the per-drawer outputs of `process_images.py`, aggregates them across
 drawers, loops in human curation, and produce repository-ready spreadsheets
 for upload to EMu, GBIF, and elsewhere.
 
+It also contains a tool for automatically processing unit tray labels 
+with color-coded biogeographical realms ([see instructions here](advanced_functions/README_labelcolor.md))
+
 If you've never run DrawerDissect's main pipeline, start with the project's
-top-level README first. This document assumes you have at least one drawer
+[top-level README](README.md) first. This document assumes you have at least one drawer
 that has finished processing and produced output in `drawers/<drawer_id>/`.
 
 ---
