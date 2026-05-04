@@ -51,7 +51,7 @@ python -m venv dissectenv
 .\dissectenv\Scripts\activate
 ```
 
-**2. Install PyTorch (local deployment only)**
+**2. Install PyTorch/Ultralytics (local deployment only)**
 
 If you plan to run models locally on your own hardware, install PyTorch *before* the next step. The correct version depends on your hardware:
 
@@ -64,6 +64,12 @@ pip install torch torchvision
 
 # CPU only
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+```
+
+Then install the local inference library:
+
+```bash
+pip install ultralytics
 ```
 
 Skip this step if using Roboflow cloud deployment.
@@ -222,6 +228,8 @@ python process_images.py all --drawers drawer_001
 python process_images.py all --drawers drawer_001,drawer_005
 ```
 
+<i>This includes drawers that are in the 'unsorted' folder!</i>
+
 **Run individual step(s):**
 ```bash
 python process_images.py resize_drawers
@@ -358,18 +366,27 @@ The `transcribe_specimens` step sends a combination of filtered specimen images,
 
 **Output:** `specimen_localities.csv` with one row per specimen containing:
 
-| Field | Description |
+| Field (* = DarwinCore) | Description |
 |-------|-------------|
 | tray | Tray identifier |
 | specimen_id | Specimen identifier |
 | label_group | Group number (specimens that may share a collecting event) |
 | match_type | "identical", "similar", or "unique" |
 | verbatim_text | Raw label text as transcribed |
-| country, stateProvince, county, municipality, locality | Parsed DarwinCore geography |
-| collector | Collector name |
-| date | Collection date |
-| flags | Quality flags (e.g., handwritten_difficult, partial_text) |
-| model | model version used for transcription |
+| country*, stateProvince*, county*, municipality* | Parsed administrative geography |
+| verbatimLocality* | Place description exactly as written on the label |
+| locality* | Primary catch-all for named places, natural features, directional descriptions |
+| waterBody*, islandGroup*, island* | Aquatic/island location |
+| verbatimElevation* | Elevation exactly as written on the label |
+| habitat* | Habitat type or description |
+| samplingProtocol* | Collection method if mentioned |
+| collector* | Collector name |
+| verbatimEventDate* | Collection date exactly as written on the label |
+| identifiedBy* | Person who identified the specimen |
+| possibleName | Name or initials present on label but role unclear |
+| verbatimCoordinates* | Coordinates exactly as written on the label |
+| flags | Quality flags (e.g., geocode_mismatch, conflicting_info) |
+| model | Model version used for transcription |
 
 **Configuration:**
 
@@ -377,7 +394,7 @@ The `transcribe_specimens` step sends a combination of filtered specimen images,
 traycontext_settings:
   bugcleaner_confidence_threshold: 95  # minimum confidence for text detection
   max_tokens: 12000                    # max output tokens per API call
-  include_tray_image: true             # send tray overview image for spatial context
+  include_tray_image: true             # send tray overview image for spatial context, can set 'false' to save tokens
   max_specimens_per_batch: 20          # split large trays into batches
 ```
 
@@ -417,12 +434,15 @@ DrawerDissect/
 Turn on/off specific steps:
 
 ```yaml
+# ------------------------------------------------------------
+# Processing toggles
+# ------------------------------------------------------------
 processing:
-  measurement_visualizations: "rand_sample"  # "on", "off", or "rand_sample" (max. 20 random measurement maps)
-  transcribe_barcodes: false  # Set to true for tray-level barcodes
-  transcribe_geocodes: false  # Set to true for tray-level geocodes
-  transcribe_taxonomy: true   # Set to false to skip taxonomy transcription
-  transcribe_specimens: true  # Set to true for specimen label transcription
+  measurement_visualizations: "off"  # "on", "off", or "rand_sample" (max 20 random visualizations)
+  transcribe_barcodes: false         # set to true for tray-level barcodes
+  transcribe_geocodes: false         # set to true for tray-level geocodes
+  transcribe_taxonomy: false         # set to true for taxonomic label transcription
+  transcribe_specimens: false        # set to true for specimen label transcription helper
 ```
 
 Example settings:

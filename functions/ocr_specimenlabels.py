@@ -21,6 +21,8 @@ import json
 import base64
 import ast
 import io
+import time
+import random
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -33,6 +35,36 @@ from functions.geocode_lookup import check_geocode_country, check_ambiguous_loca
 
 
 # ===================================================================
+# RETRY UTILITY
+# ===================================================================
+
+def retry_with_backoff(func, max_retries=3, base_delay=2, max_delay=60):
+    """
+    Retry a function with exponential backoff on server/transient errors.
+    Raises the last exception if all attempts fail.
+    """
+    for attempt in range(max_retries + 1):
+        try:
+            return func()
+        except Exception as e:
+            error_str = str(e).lower()
+            is_transient = any(
+                kw in error_str
+                for kw in ("500", "502", "503", "529", "internal server error",
+                           "server error", "timeout", "connection", "rate limit",
+                           "overloaded")
+            )
+            if is_transient and attempt < max_retries:
+                delay = min(base_delay * (2 ** attempt) + random.uniform(0, 1), max_delay)
+                log(f"    Transient error (attempt {attempt + 1}/{max_retries + 1}), "
+                    f"retrying in {delay:.1f}s: {e}")
+                time.sleep(delay)
+            else:
+                raise
+    raise RuntimeError(f"Failed after {max_retries + 1} attempts")
+
+
+# ===================================================================
 # 1. BUGCLEANER
 # ===================================================================
 
@@ -42,7 +74,7 @@ def run_bugcleaner_on_crop(crop_path, runner, confidence_threshold=95):
     Returns True if text detected above threshold, False otherwise.
     """
     try:
-        result = runner.predict(crop_path)
+        result = retry_with_backoff(lambda: runner.predict(crop_path))
 
         if hasattr(result, "json"):
             result = result.json()
@@ -339,14 +371,15 @@ def call_claude_multicrop(
                 system=system_prompt,
                 messages=call_messages,
             )
-            raw = response.content[0].text.strip()
-            tokens_in = response.usage.input_tokens
-            tokens_out = response.usage.output_tokens
-            log(f"    Tokens: {tokens_in} in / {tokens_out} out")
+        )
+    except Exception as e:
+        log(f"  Claude API error (all retries exhausted): {e}")
+        return None
 
-            result = parse_claude_response(raw)
-            if result is not None:
-                return result
+    raw = response.content[0].text.strip()
+    tokens_in  = response.usage.input_tokens
+    tokens_out = response.usage.output_tokens
+    log(f"    Tokens: {tokens_in} in / {tokens_out} out")
 
             if attempt < max_attempts - 1:
                 log(f"    Parse failed, retrying with corrective prompt...")
