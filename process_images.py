@@ -198,7 +198,6 @@ def run_step_for_drawer(step, config, drawer_id, args):
                 os.makedirs(tray_level_dir, exist_ok=True)
                 output_csv = os.path.join(tray_level_dir, csv_name)
 
-                # ocr_header determines barcode/geocode/taxonomy mode from the csv filename
                 prompt_key = {
                     "transcribe_barcodes": "barcode",
                     "transcribe_geocodes": "geocode",
@@ -208,9 +207,8 @@ def run_step_for_drawer(step, config, drawer_id, args):
                 asyncio.run(process_image_folder(
                     folder_path=config.get_drawer_directory(d, "labels"),
                     output_csv=output_csv,
-                    api_key=config.api_keys["anthropic"],
+                    config=config,
                     prompts=config.prompts.get(prompt_key, {}),
-                    model_config=config.claude_config,
                 ))
             else:
                 log(f"{step} skipped (disabled in config)")
@@ -373,7 +371,7 @@ def clear_existing_outputs(config, drawer_id, steps_to_run):
         "transcribe_barcodes":    ["tray_level"],
         "transcribe_geocodes":    [],
         "transcribe_taxonomy":    [],
-        "transcribe_specimens": ["tray_context"],
+        "transcribe_specimens":   ["tray_context"],
         "merge_data":             ["data"],
     }
 
@@ -418,7 +416,7 @@ STEP_OUTPUT_DIRS = {
     "transcribe_barcodes":    "tray_level",
     "transcribe_geocodes":    "tray_level",
     "transcribe_taxonomy":    "tray_level",
-    "transcribe_specimens": "tray_context",
+    "transcribe_specimens":   "tray_context",
     "merge_data":             "data",
 }
 
@@ -432,7 +430,7 @@ SENTINEL_FILES = {
     "transcribe_barcodes":    "unit_barcodes.csv",
     "transcribe_geocodes":    "geocodes.csv",
     "transcribe_taxonomy":    "taxonomy.csv",
-    "transcribe_specimens": "group_localities.csv",
+    "transcribe_specimens":   "group_localities.csv",
 }
 
 
