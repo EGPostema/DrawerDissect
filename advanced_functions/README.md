@@ -16,7 +16,7 @@ that has finished processing and produced output in `drawers/<drawer_id>/`.
 
 ## Contents
 
-1. [The big picture](#1-the-big-picture)
+1. [Overall workflow](#1-overall-workflow)
 2. [Quick reference](#2-quick-reference)
 3. [Folder structure](#3-folder-structure)
 4. [First-time walkthrough](#4-first-time-walkthrough)
@@ -31,7 +31,7 @@ that has finished processing and produced output in `drawers/<drawer_id>/`.
 
 ---
 
-## 1. The big picture
+## 1. Overall workflow
 
 DrawerDissect's advanced functions follow a linear flow from raw pipeline
 output → human curation → repository upload formats. The diagram below shows
@@ -52,11 +52,11 @@ how data moves through the system.
 ┌──────────────────────────────────────────────────────────────────────────┐    
 │                       CROSS-DRAWER AGGREGATION                           │    
 │                                                                          │    
-│   python master_merge.py --prefix <drawer_prefix>                        │ sort images by
-│                                                                          │────┐  species
-│   Outputs to master_data/master_<prefix>_<timestamp>/:                   │    │    │
-│     master_specimens.csv, master_trays.csv, master_drawers.csv           │    │    ▼
-│     master_inputs/  (taxonomy, barcodes, geocodes, localities,           │    │
+│   python master_merge.py --prefix <drawer_prefix>                        │
+│                                                                          │────┐  sort images
+│   Outputs to master_data/master_<prefix>_<timestamp>/:                   │    │  by species
+│     master_specimens.csv, master_trays.csv, master_drawers.csv           │    │      │
+│     master_inputs/  (taxonomy, barcodes, geocodes, localities,           │    │      ▼
 │                      measurements, bugcleaner_results)                   │    │
 └──────────────────────────────────────────────────────────────────────────┘    │
                                    │                                            │
@@ -92,15 +92,15 @@ how data moves through the system.
         ▼                          ▼                          ▼
 ┌────────────────────┐  ┌────────────────────┐  ┌────────────────────────┐
 │   EMU FORMAT       │  │   GBIF FORMAT      │  │  SORT SPECIMENS        │
-│                    │  │                    │  │  (no curation needed)  │
-│   emu_format.py    │  │   gbif_format.py   │  │                        │
-│   --master_dir <…> │  │   --master_dir <…> │  │  sort_specimens.py     │
-│                    │  │                    │  │   --master_dir <…>     │
-│   Outputs:         │  │   Outputs:         │  │                        │
-│     emu_catalog    │  │     occurrence     │  │  Outputs:              │
-│     emu_pending    │  │     gbif_pending   │  │   train/valid/test     │
-│     multimedia/    │  │     run_log        │  │   manifest.csv         │
-│     run_log        │  │                    │  │   run_log.txt          │
+│                    │  │                    │  │                        │
+│   emu_format.py    │  │   gbif_format.py   │  │  sort_specimens.py     │
+│   --master_dir <…> │  │   --master_dir <…> │  │   --master_dir <…>     │
+│                    │  │                    │  │                        │
+│   Outputs:         │  │   Outputs:         │  │  Outputs:              │
+│     emu_catalog    │  │     occurrence     │  │   train/valid/test     │
+│     emu_pending    │  │     gbif_pending   │  │   manifest.csv         │
+│     multimedia/    │  │     run_log        │  │   run_log              │
+│     run_log        │  │                    │  │                        │
 └────────────────────┘  └────────────────────┘  └────────────────────────┘
         │                          │                          │
         ▼                          ▼                          ▼
