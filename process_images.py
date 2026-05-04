@@ -371,7 +371,7 @@ def clear_existing_outputs(config, drawer_id, steps_to_run):
         "transcribe_barcodes":    ["tray_level"],
         "transcribe_geocodes":    [],
         "transcribe_taxonomy":    [],
-        "transcribe_specimens": ["tray_context"],
+        "transcribe_specimens":   ["tray_context"],
         "merge_data":             ["data"],
     }
 
@@ -416,7 +416,7 @@ STEP_OUTPUT_DIRS = {
     "transcribe_barcodes":    "tray_level",
     "transcribe_geocodes":    "tray_level",
     "transcribe_taxonomy":    "tray_level",
-    "transcribe_specimens": "tray_context",
+    "transcribe_specimens":   "tray_context",
     "merge_data":             "data",
 }
 
@@ -430,7 +430,7 @@ SENTINEL_FILES = {
     "transcribe_barcodes":    "unit_barcodes.csv",
     "transcribe_geocodes":    "geocodes.csv",
     "transcribe_taxonomy":    "taxonomy.csv",
-    "transcribe_specimens": "group_localities.csv",
+    "transcribe_specimens":   "group_localities.csv",
 }
 
 
