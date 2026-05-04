@@ -1,6 +1,6 @@
 """
-ocr_traycontext.py
-------------------
+ocr_specimenlabels.py
+---------------------
 Tray-level specimen label transcription using multi-crop approach.
 
 For each tray, this module:
@@ -22,6 +22,7 @@ import base64
 import ast
 import io
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from PIL import Image
 from logging_utils import log, log_found
@@ -76,11 +77,45 @@ def run_bugcleaner_on_crop(crop_path, runner, confidence_threshold=95):
         return True
 
 
+def run_bugcleaner_parallel(all_crops, runner, confidence_threshold=95, max_workers=8):
+    """
+    Run bugcleaner on all crops in parallel using ThreadPoolExecutor.
+    Returns (text_crops dict, notext_specimens list, new_bc_results list).
+    """
+    def _check(item):
+        spec_id, crop_path = item
+        has_text = run_bugcleaner_on_crop(crop_path, runner, confidence_threshold)
+        return spec_id, crop_path, has_text
+
+    text_crops = {}
+    notext_specimens = []
+    new_bc_results = []
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {executor.submit(_check, item): item for item in all_crops.items()}
+        for future in as_completed(futures):
+            try:
+                spec_id, crop_path, has_text = future.result()
+                new_bc_results.append({"specimen_id": spec_id, "has_text": str(has_text)})
+                if has_text:
+                    text_crops[spec_id] = crop_path
+                else:
+                    notext_specimens.append(spec_id)
+            except Exception as e:
+                spec_id, crop_path = futures[future]
+                log(f"  Warning: bugcleaner failed on {crop_path}: {e}")
+                # Default to True (include) on failure
+                text_crops[spec_id] = crop_path
+                new_bc_results.append({"specimen_id": spec_id, "has_text": "True"})
+
+    return text_crops, notext_specimens, new_bc_results
+
+
 # ===================================================================
 # 2. IMAGE ENCODING
 # ===================================================================
 
-def encode_image_for_api(image_path, max_long_edge=800, quality=85):
+def encode_image_for_api(image_path, max_long_edge=1000, quality=100):
     """
     Load an image, resize to max_long_edge, convert to JPEG,
     return base64 string + media type.
@@ -102,6 +137,26 @@ def encode_image_for_api(image_path, max_long_edge=800, quality=85):
     img.save(buf, format="JPEG", quality=quality)
     b64 = base64.standard_b64encode(buf.getvalue()).decode("utf-8")
     return b64, "image/jpeg"
+
+
+def encode_image_for_api_parallel(crops_dict, max_long_edge=1000, quality=100, max_workers=8):
+    """
+    Encode multiple images in parallel.
+    Returns dict of {spec_id: (b64, media_type)}, preserving input order.
+    """
+    def _encode(item):
+        spec_id, crop_path = item
+        b64, media = encode_image_for_api(crop_path, max_long_edge=max_long_edge, quality=quality)
+        return spec_id, b64, media
+
+    results = {}
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {executor.submit(_encode, item): item for item in crops_dict.items()}
+        for future in as_completed(futures):
+            spec_id, b64, media = future.result()
+            results[spec_id] = (b64, media)
+
+    return results
 
 
 # ===================================================================
@@ -180,7 +235,32 @@ def find_tray_image(resized_trays_dir, tray_name, tray_stem):
 
 
 # ===================================================================
-# 5. LLM CALL — tray image + individual crops + header context
+# 5. SPECIMEN CROP DISCOVERY
+# ===================================================================
+
+def build_crop_index(specimens_dir):
+    """
+    Walk specimens_dir once and return a dict mapping tray_name prefix
+    to {spec_id: crop_path}. Avoids repeated os.walk calls per tray.
+    """
+    index = {}
+    for root, _, files in os.walk(specimens_dir):
+        for f in sorted(files):
+            if f.startswith("."):
+                continue
+            spec_id = os.path.splitext(f)[0]
+            # Extract tray prefix: everything before _spec_
+            match = re.match(r"(.+_tray_\d+)_spec_", spec_id)
+            if match:
+                tray_prefix = match.group(1)
+                if tray_prefix not in index:
+                    index[tray_prefix] = {}
+                index[tray_prefix][spec_id] = os.path.join(root, f)
+    return index
+
+
+# ===================================================================
+# 6. LLM CALL — tray image + individual crops + header context
 # ===================================================================
 
 def call_claude_multicrop(
@@ -195,11 +275,17 @@ def call_claude_multicrop(
 ):
     """
     One LLM call with: optional tray image + all specimen crops + context.
+    Encodes all specimen crops in parallel before assembling the request.
     Returns parsed response (list of group dicts), or None.
     """
     # Fill in user prompt template
     user_text = user_prompt.replace("{tray_context}", tray_context_str)
     user_text = user_text.replace("{specimen_ids}", ", ".join(specimen_crops.keys()))
+
+    # Encode all specimen crops in parallel
+    encoded_crops = encode_image_for_api_parallel(
+        specimen_crops, max_long_edge=1000, quality=100
+    )
 
     # Build content — context first, then images, then instructions
     # Note: tray_context_str is injected via the {tray_context} template in user_text;
@@ -212,7 +298,7 @@ def call_claude_multicrop(
             "type": "text",
             "text": "TRAY OVERVIEW (use this to see spatial layout, row arrangement, and label patterns):",
         })
-        tray_b64, tray_media = encode_image_for_api(tray_image_path, max_long_edge=1500, quality=85)
+        tray_b64, tray_media = encode_image_for_api(tray_image_path, max_long_edge=1500, quality=100)
         content.append({
             "type": "image",
             "source": {"type": "base64", "media_type": tray_media, "data": tray_b64},
@@ -223,17 +309,17 @@ def call_claude_multicrop(
             "text": "No tray overview image provided. Use only the individual specimen crops below.",
         })
 
-    # Then: each specimen crop, labeled
+    # Then: each specimen crop, labeled (preserving order)
     content.append({
         "type": "text",
         "text": "INDIVIDUAL SPECIMEN CROPS (use these to read label text):",
     })
-    for spec_id, crop_path in specimen_crops.items():
+    for spec_id in specimen_crops:
+        b64, media = encoded_crops[spec_id]
         content.append({"type": "text", "text": f"{spec_id}:"})
-        crop_b64, crop_media = encode_image_for_api(crop_path, max_long_edge=1000, quality=85)
         content.append({
             "type": "image",
-            "source": {"type": "base64", "media_type": crop_media, "data": crop_b64},
+            "source": {"type": "base64", "media_type": media, "data": b64},
         })
 
     # Finally: the instructions
@@ -264,7 +350,7 @@ def call_claude_multicrop(
 
             if attempt < max_attempts - 1:
                 log(f"    Parse failed, retrying with corrective prompt...")
-                # Build a corrective turn: show Claude what it returned and ask it to fix it
+                # Build a corrective turn: show the model what it returned and ask it to fix it
                 retry_messages = [
                     {"role": "user", "content": content},
                     {"role": "assistant", "content": raw},
@@ -320,7 +406,7 @@ def parse_claude_response(raw_text):
 
 
 # ===================================================================
-# 6. PYTHON-SIDE VALIDATION
+# 7. PYTHON-SIDE VALIDATION
 # ===================================================================
 
 def validate_groups(groups, geocode_value):
@@ -374,8 +460,6 @@ def validate_groups(groups, geocode_value):
                 group[field] = ""
 
         # If locality is identical to a higher-level field, it adds no information — clear it.
-        # Only exact string matches (case-sensitive) are caught here; abbreviation differences
-        # are intentional and should be preserved for the reviewer.
         locality_val = group.get("locality", "")
         if locality_val:
             higher_level = [
@@ -391,7 +475,7 @@ def validate_groups(groups, geocode_value):
 
 
 # ===================================================================
-# 7. OUTPUT
+# 8. OUTPUT
 # ===================================================================
 
 def write_outputs(groups, tray_name, notext_specimens, output_dir, model_name=""):
@@ -467,7 +551,7 @@ def write_outputs(groups, tray_name, notext_specimens, output_dir, model_name=""
 
 
 # ===================================================================
-# 8. MAIN ENTRY POINT
+# 9. MAIN ENTRY POINT
 # ===================================================================
 
 def process_tray_context(
@@ -485,6 +569,7 @@ def process_tray_context(
 
     # Load settings
     settings = config._config.get("traycontext_settings", {})
+    bc_enabled   = settings.get("bugcleaner_enabled", True)
     bc_threshold = settings.get("bugcleaner_confidence_threshold", 95)
     tc_max_tokens = settings.get("max_tokens", 4000)
 
@@ -502,13 +587,18 @@ def process_tray_context(
         log("Warning: traycontext prompts not found in config.yaml.")
         return
 
-    # Build bugcleaner runner
-    bc_runner = build_model_runner(config, "bugcleaner")
+    # Build bugcleaner runner (only if enabled)
+    bc_runner = None
+    if bc_enabled:
+        bc_runner = build_model_runner(config, "bugcleaner")
+        if bc_runner is None:
+            log("  Warning: bugcleaner unavailable, proceeding without filtering")
+            bc_enabled = False
 
     # Load cached bugcleaner results
     bc_cache_path = os.path.join(output_dir, "bugcleaner_results.csv")
     bc_cache = {}
-    if os.path.isfile(bc_cache_path):
+    if bc_enabled and os.path.isfile(bc_cache_path):
         with open(bc_cache_path, "r", newline="", encoding="utf-8") as f:
             for row in csv.DictReader(f):
                 bc_cache[row["specimen_id"]] = row["has_text"].lower() == "true"
@@ -532,6 +622,10 @@ def process_tray_context(
     if not coord_files:
         return
 
+    # Build crop index once for all trays rather than walking per tray
+    log("  Building specimen crop index...")
+    crop_index = build_crop_index(specimens_dir)
+
     for tray_idx, coord_file in enumerate(coord_files, 1):
         tray_stem = Path(coord_file).stem
         tray_name = tray_stem.replace("_1000", "")
@@ -542,45 +636,46 @@ def process_tray_context(
 
         log(f"  [{tray_idx}/{len(coord_files)}] Processing tray: {tray_name}")
 
-        # ----- Find specimen crops -----
-        all_crops = {}
-        for root, _, files in os.walk(specimens_dir):
-            for f in sorted(files):
-                if f.startswith(tray_name + "_spec_") and not f.startswith("."):
-                    spec_id = os.path.splitext(f)[0]
-                    all_crops[spec_id] = os.path.join(root, f)
+        # ----- Find specimen crops (from pre-built index) -----
+        all_crops = crop_index.get(tray_name, {})
 
         if not all_crops:
             log(f"    No specimen crop files found for {tray_name}, skipping")
             continue
 
-        # ----- Run bugcleaner (with caching) -----
-        text_crops = {}
-        notext_specimens = []
-        new_bc_results = []
-        for spec_id, crop_path in all_crops.items():
-            if spec_id in bc_cache:
-                has_text = bc_cache[spec_id]
-            else:
-                has_text = run_bugcleaner_on_crop(crop_path, bc_runner, bc_threshold)
-                bc_cache[spec_id] = has_text
-                new_bc_results.append({"specimen_id": spec_id, "has_text": str(has_text)})
+        # ----- Run bugcleaner (cached + parallel for new crops) -----
+        if not bc_enabled:
+            # Bugcleaner disabled — send all crops to LLM
+            text_crops = dict(all_crops)
+            notext_specimens = []
+            log(f"    Bugcleaner disabled: sending all {len(text_crops)} crops")
+        else:
+            cached_crops   = {sid: path for sid, path in all_crops.items() if sid in bc_cache}
+            uncached_crops = {sid: path for sid, path in all_crops.items() if sid not in bc_cache}
 
-            if has_text:
-                text_crops[spec_id] = crop_path
-            else:
-                notext_specimens.append(spec_id)
+            text_crops       = {sid: path for sid, path in cached_crops.items() if bc_cache[sid]}
+            notext_specimens = [sid for sid in cached_crops if not bc_cache[sid]]
 
-        # Save any new bugcleaner results
-        if new_bc_results:
-            bc_exists = os.path.isfile(bc_cache_path)
-            with open(bc_cache_path, "a", newline="", encoding="utf-8") as f:
-                writer = csv.DictWriter(f, fieldnames=["specimen_id", "has_text"])
-                if not bc_exists:
-                    writer.writeheader()
-                writer.writerows(new_bc_results)
+            if uncached_crops:
+                new_text, new_notext, new_bc_results = run_bugcleaner_parallel(
+                    uncached_crops, bc_runner, bc_threshold
+                )
+                text_crops.update(new_text)
+                notext_specimens.extend(new_notext)
 
-        log(f"    Bugcleaner: {len(text_crops)} text / {len(notext_specimens)} no-text")
+                # Update in-memory cache
+                for r in new_bc_results:
+                    bc_cache[r["specimen_id"]] = r["has_text"].lower() == "true"
+
+                # Persist new results
+                bc_exists = os.path.isfile(bc_cache_path)
+                with open(bc_cache_path, "a", newline="", encoding="utf-8") as f:
+                    writer = csv.DictWriter(f, fieldnames=["specimen_id", "has_text"])
+                    if not bc_exists:
+                        writer.writeheader()
+                    writer.writerows(new_bc_results)
+
+            log(f"    Bugcleaner: {len(text_crops)} text / {len(notext_specimens)} no-text")
 
         if not text_crops:
             log(f"    No text-bearing specimens in {tray_name}, writing empty rows")
@@ -598,11 +693,10 @@ def process_tray_context(
 
         # ----- Call LLM (with batch splitting for large trays) -----
         max_per_batch = settings.get("max_specimens_per_batch", 20)
-        include_tray = settings.get("include_tray_image", True)
+        include_tray  = settings.get("include_tray_image", True)
         spec_ids_list = list(text_crops.keys())
 
         if len(spec_ids_list) <= max_per_batch:
-            # Single call
             log(f"    Sending {len(text_crops)} crops, max_tokens={tc_max_tokens}")
             groups = call_claude_multicrop(
                 tray_image_path=tray_image_path,
@@ -615,7 +709,6 @@ def process_tray_context(
                 include_tray_image=include_tray,
             )
         else:
-            # Split into batches
             import math
             n_batches = math.ceil(len(spec_ids_list) / max_per_batch)
             log(f"    Splitting {len(spec_ids_list)} crops into {n_batches} batches of ~{max_per_batch}")
@@ -624,11 +717,11 @@ def process_tray_context(
 
             for batch_idx in range(n_batches):
                 start = batch_idx * max_per_batch
-                end = min(start + max_per_batch, len(spec_ids_list))
-                batch_ids = spec_ids_list[start:end]
+                end   = min(start + max_per_batch, len(spec_ids_list))
+                batch_ids  = spec_ids_list[start:end]
                 batch_crops = {sid: text_crops[sid] for sid in batch_ids}
 
-                # Tell Claude it's working on a subset so it doesn't try to cross-batch group
+                # Tell the LLM it's working on a subset so it doesn't try to cross-batch group
                 batch_note = (
                     f"\n\nNOTE: This tray has {len(spec_ids_list)} specimens and is being processed "
                     f"in {n_batches} batches. This is batch {batch_idx+1} of {n_batches} "
