@@ -1,6 +1,10 @@
 # <img src="https://github.com/user-attachments/assets/26e883f0-f643-4715-80d6-abb2225bdb75" width="150" height="150" valign="middle">DrawerDissect
 **DrawerDissect** is an AI-driven pipeline for processing whole-drawer images of insect specimens. It can crop out specimen photos, measure specimens, transcribe various kinds of text, and create "masked" specimens for phenotypic analysis and species identification models.
 
+>NEW: More advanced curation & databasing workflows are here!
+>
+>See the [README file in the advanced_functions folder](advanced_functions/README.md) for more information.
+
 ---
 
 ## Prerequisites
