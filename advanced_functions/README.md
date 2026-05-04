@@ -42,52 +42,53 @@ how data moves through the system.
 │                       PER-DRAWER PIPELINE (existing)                     │
 │                                                                          │
 │   python process_images.py --drawer <drawer_id>                          │
-│                                                                          │
-│   Outputs to drawers/<drawer_id>/:                                       │
-│     fullsize/, specimens/, transparencies/, trays/, labels/, masks/,     │
-│     measurements/, transcriptions/, data/merged_data_<timestamp>/        │
-└──────────────────────────────────────────────────────────────────────────┘
-                                   │
-                                   ▼
-┌──────────────────────────────────────────────────────────────────────────┐
-│                       CROSS-DRAWER AGGREGATION                           │
-│                                                                          │
-│   python master_merge.py --prefix <drawer_prefix>                        │
-│                                                                          │
-│   Outputs to master_data/master_<prefix>_<timestamp>/:                   │
-│     master_specimens.csv, master_trays.csv, master_drawers.csv           │
-│     master_inputs/  (taxonomy, barcodes, geocodes, localities,           │
-│                      measurements, bugcleaner_results)                   │
-└──────────────────────────────────────────────────────────────────────────┘
-                                   │
-                                   ▼
-┌──────────────────────────────────────────────────────────────────────────┐
-│                       CREATE CURATION SCAFFOLDING                        │
-│                                                                          │
-│   python advanced_functions/scaffold_barcodes.py                         │
-│       --master_dir master_data/master_<...>                              │
-│                                                                          │
-│   python advanced_functions/scaffold_locations.py                        │
-│       --master_dir master_data/master_<...>                              │
-│                                                                          │
-│   Appends new rows (one per specimen) to:                                │
-│     curation/specimen_barcodes.csv                                       │
-│     curation/checked_locations.csv                                       │
-└──────────────────────────────────────────────────────────────────────────┘
-                                   │
-                                   ▼
-┌──────────────────────────────────────────────────────────────────────────┐
-│                       MANUAL CURATION (CSV)                              │
-│                                                                          │
-│   curation/specimen_barcodes.csv:                                        │
-│     - Fill in institution-specifc, specimen-level barcodes               │
-│                                                                          │
-│   curation/checked_locations.csv:                                        │
-│     - Validate LLM-parsed fields & fill in missing information           │
-│     - Set approved=yes for validated rows                                │
-└──────────────────────────────────────────────────────────────────────────┘
-                                   │
-        ┌──────────────────────────┼──────────────────────────┐
+│                                                                          │ 
+│   Outputs to drawers/<drawer_id>/:                                       │    
+│     specimen images, masks, and data                                     │    
+│     (data stored in: data/merged_data_<timestamp>/)                      │    
+└──────────────────────────────────────────────────────────────────────────┘    
+                                   │                                            
+                                   ▼                                            
+┌──────────────────────────────────────────────────────────────────────────┐    
+│                       CROSS-DRAWER AGGREGATION                           │    
+│                                                                          │    
+│   python master_merge.py --prefix <drawer_prefix>                        │ sort images by
+│                                                                          │────┐  species
+│   Outputs to master_data/master_<prefix>_<timestamp>/:                   │    │    │
+│     master_specimens.csv, master_trays.csv, master_drawers.csv           │    │    ▼
+│     master_inputs/  (taxonomy, barcodes, geocodes, localities,           │    │
+│                      measurements, bugcleaner_results)                   │    │
+└──────────────────────────────────────────────────────────────────────────┘    │
+                                   │                                            │
+                                   ▼                                            │
+┌──────────────────────────────────────────────────────────────────────────┐    │
+│                       CREATE CURATION SCAFFOLDING                        │    │
+│                                                                          │    │
+│   python advanced_functions/scaffold_barcodes.py                         │    │
+│       --master_dir master_data/master_<...>                              │    │
+│                                                                          │    │
+│   python advanced_functions/scaffold_locations.py                        │    │
+│       --master_dir master_data/master_<...>                              │    │
+│                                                                          │    │
+│   Appends new rows (one per specimen) to:                                │    │
+│     curation/specimen_barcodes.csv                                       │    │
+│     curation/checked_locations.csv                                       │    │
+└──────────────────────────────────────────────────────────────────────────┘    │
+                                   │                                            │                 
+                                   ▼                                            │
+┌──────────────────────────────────────────────────────────────────────────┐    │
+│                       MANUAL CURATION (CSV)                              │    │
+│                                                                          │    │
+│   curation/specimen_barcodes.csv:                                        │    │
+│     - Fill in institution-specifc, specimen-level barcodes               │    │
+│                                                                          │    │
+│   curation/checked_locations.csv:                                        │    │
+│     - Validate LLM-parsed fields & fill in missing information           │    │
+│     - Set approved=yes for validated rows                                │    │
+└──────────────────────────────────────────────────────────────────────────┘    │
+                                   │                                            │
+        ┌──────────────────────────┘                          ┌─────────────────┘
+        │                          │                          │
         ▼                          ▼                          ▼
 ┌────────────────────┐  ┌────────────────────┐  ┌────────────────────────┐
 │   EMU FORMAT       │  │   GBIF FORMAT      │  │  SORT SPECIMENS        │
@@ -104,12 +105,7 @@ how data moves through the system.
         │                          │                          │
         ▼                          ▼                          ▼
 ┌────────────────────┐  ┌────────────────────┐  ┌────────────────────────┐
-│  IRN-resolution    │  │  Manual upload to  │  │  Train classification  │
-│  pipeline (Wei     │  │  GBIF IPT (Inte-   │  │  models (PyTorch /     │
-│  Han's R script)   │  │  grated Publishing │  │  Keras compatible      │
-│                    │  │  Toolkit)          │  │  folder layout)        │
-│  Then: manual EMu  │  │                    │  │                        │
-│  import            │  │                    │  │                        │
+│  manual emu import │  │ manual gbif import │  │ train species ID model │
 └────────────────────┘  └────────────────────┘  └────────────────────────┘
         │                          │
         └──────────────┬───────────┘
