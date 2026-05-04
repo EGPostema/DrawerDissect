@@ -33,10 +33,10 @@ api_keys:
 #
 llm:
   provider: "anthropic"       # "anthropic" or "openai_compatible"
-  model: "claude-sonnet-4-6"  # model name
+  model: "claude-sonnet-4-6"  # model name; price may vary
   max_tokens: 600             # default for simple transcription tasks
-  temperature: 0              # from 0 to 1; 0 is most predictable, 1 is least
- 
+  temperature: 0              # 0 = most predictable, 1 = most variable
+
 # ---- OpenAI-compatible / local model settings ----
 # Only used when provider: "openai_compatible"
 # Works with Ollama, LM Studio, vLLM, Jan, and any OpenAI-compatible server.
@@ -58,18 +58,18 @@ roboflow:
       overlap: 50    # adjustable, set from 1-99 (higher # = higher expected overlap between bounding boxes)
     tray:
       endpoint: "bugfinder-kdn9e"
-      version: 19
+      version: 21
       confidence: 57
       overlap: 50
     label:
       endpoint: "labelfinder"
-      version: 10
+      version: 13
       confidence: 5
       overlap: 50
     mask:
       endpoint: "bugmasker-all"
-      version: 12
-      confidence: 62
+      version: 14
+      confidence: 69
     pin:
       endpoint: "pinmasker"
       version: 6
@@ -85,17 +85,18 @@ local:
   weights_dir: "weights"
   device: "auto" # can force "cpu", "cuda", or "mps"
   models:
-    drawer:
+    drawer: "trayfinderbasev5.pt" #uses non-FMNH-specific unit tray detection model by default
     tray:
     label:
     mask:
     pin:
     bugcleaner: # no weights for bugcleaner available currently
-
+ 
 traycontext_settings:
-  bugcleaner_confidence_threshold: 95
-  max_tokens: 12000
-  include_tray_image: false # can exclude to save tokens
+  bugcleaner_enabled: true              # set to false to skip bugcleaner filtering (sends all specimens to LLM)
+  bugcleaner_confidence_threshold: 25
+  max_tokens: 15000
+  include_tray_image: true              # can exclude to save tokens, may reduce transcription quality
   max_specimens_per_batch: 20
 
 # ------------------------------------------------------------
@@ -105,7 +106,7 @@ processing:
   measurement_visualizations: "off"  # "on", "off", or "rand_sample" (max 20 random visualizations)
   transcribe_barcodes: false         # set to true for tray-level barcodes
   transcribe_geocodes: false         # set to true for tray-level geocodes
-  transcribe_taxonomy: false         # set to true for taxonomic label transcription
+  transcribe_taxonomy: true         # set to true for taxonomic label transcription
   transcribe_specimens: false        # set to true for specimen label transcription helper
 
 # ------------------------------------------------------------
@@ -119,12 +120,12 @@ prompts:
       If no valid barcode is found, output 'none'.
     user: |
       Read the barcode number. Output only the code, no explanations.
- 
+
   geocode: # prompt for recognizing 3-letter geocodes
     system: |
       You are a geocode recognition tool for natural history specimens.
       Your task is to identify the 3-letter geocode visible in the image.
- 
+
       The geocode is always a 3-letter code (all capital letters):
       - "NEO"
       - "PAL"
@@ -133,12 +134,12 @@ prompts:
       - "ORI"
       - "AUS"
       - "PAC"
- 
+
       Output only the 3-letter geocode. If no valid 3-letter geocode is visible
       or if the text is unclear, output 'UNK' (Unknown).
     user: |
       Identify the 3-letter geocode visible in this image. Output only the code (e.g., NEO, PAL), no explanations.
- 
+
   taxonomy: # prompt for transcribing and organizing taxonomic IDs
     system: |
       You are a taxonomic label transcription tool specializing in natural
@@ -148,7 +149,7 @@ prompts:
          and subspecies information
       3. If ONLY higher order taxonomic information is available (family -dae, tribe -ini, subfamily -nae), report this in 'taxonomy'
       4. Extract the taxonomic authority (author and/or year)
- 
+
       For missing elements, output 'none'. Format your response as a structured
       dictionary with these three keys:
       {
@@ -355,7 +356,8 @@ prompts:
         the role label ("det.", "leg.", "Col.") is absent, illegible, or ambiguous.
         Capture both bare initials (e.g. "R.F.", "M.H.") and full names where the
         role is uncertain (e.g. "[det.?] Freitag"). If the role IS clear, use
-        collector or identifiedBy instead and leave this empty.
+        collector or identifiedBy instead and leave this empty; but this should be the 
+        DEFAULT placement for names as role is often ambiguous.
       - verbatimCoordinates: coordinates exactly as written on the label, if present
         (e.g. "41 05 54S 121 05 34W", "17T 630000 4833400"). Leave empty if absent.
       - flags: list of strings. Use only when applicable:
@@ -383,7 +385,7 @@ prompts:
          group those with consistent location fragments
  
       Return only the JSON object, no other text.
-   
+
 # ------------------------------------------------------------
 # Directories
 # ------------------------------------------------------------
