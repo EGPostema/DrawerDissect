@@ -458,6 +458,7 @@ python process_images.py --drawers {your_folder_name} --from outline_specimens -
 ### Measurements
  
 <img src="https://github.com/user-attachments/assets/d28be360-914c-496d-b013-affe98211588" height="300">
+
 | length (mm) | width (mm) | area (mm2) |
 |--------|----|----|
 | 17.8 | 6.3 | 84.9 |
