@@ -361,7 +361,6 @@ def call_claude_multicrop(
     retry_messages = None
     for attempt in range(max_attempts):
         try:
-            # On retry, use the corrective message thread instead of raw content
             call_messages = retry_messages if retry_messages else [{"role": "user", "content": content}]
 
             response = llm_client.create_message_sync(
@@ -371,19 +370,18 @@ def call_claude_multicrop(
                 system=system_prompt,
                 messages=call_messages,
             )
-        
-    except Exception as e:
-        log(f"  Claude API error (all retries exhausted): {e}")
-        return None
 
-    raw = response.content[0].text.strip()
-    tokens_in  = response.usage.input_tokens
-    tokens_out = response.usage.output_tokens
-    log(f"    Tokens: {tokens_in} in / {tokens_out} out")
+            raw = response.content[0].text.strip()
+            tokens_in  = response.usage.input_tokens
+            tokens_out = response.usage.output_tokens
+            log(f"    Tokens: {tokens_in} in / {tokens_out} out")
+
+            parsed = parse_claude_response(raw)
+            if parsed is not None:
+                return parsed
 
             if attempt < max_attempts - 1:
                 log(f"    Parse failed, retrying with corrective prompt...")
-                # Build a corrective turn: show the model what it returned and ask it to fix it
                 retry_messages = [
                     {"role": "user", "content": content},
                     {"role": "assistant", "content": raw},
@@ -402,10 +400,9 @@ def call_claude_multicrop(
             log(f"  LLM API error: {e}")
             if attempt < max_attempts - 1:
                 log(f"    Retrying...")
-                retry_messages = None  # API errors retry fresh
+                retry_messages = None
                 continue
             return None
-
 
 def parse_claude_response(raw_text):
     """Parse the LLM's JSON response into a list of group dicts."""
