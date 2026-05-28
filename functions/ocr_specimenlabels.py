@@ -371,7 +371,7 @@ def call_claude_multicrop(
                 system=system_prompt,
                 messages=call_messages,
             )
-        )
+        
     except Exception as e:
         log(f"  Claude API error (all retries exhausted): {e}")
         return None
