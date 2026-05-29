@@ -7,4 +7,5 @@ roboflow==1.1.53
 anthropic==0.49.0
 aiofiles==24.1.0
 PyYAML==6.0.2
-openai>=1.0.0  # optional: only needed when llm.provider: "openai_compatible"
+openai>=1.0.0    # optional: only needed when llm.provider: "openai_compatible"
+pycountry>=23.12 # optional: only needed for gbif_format.py (country code lookup)
