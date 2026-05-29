@@ -1,4 +1,8 @@
-# <img src="https://github.com/user-attachments/assets/26e883f0-f643-4715-80d6-abb2225bdb75" width="150" height="150" valign="middle">DrawerDissect
+# DrawerDissect
+
+<img src="https://github.com/user-attachments/assets/26e883f0-f643-4715-80d6-abb2225bdb75" width="150" height="150" valign="middle"> 
+
+---
 **DrawerDissect** is an AI-driven pipeline for processing whole-drawer images of insect specimens. It can crop out specimen photos, measure specimens, transcribe various kinds of text, and create "masked" specimens for phenotypic analysis and species identification models.
 
 >NEW: More advanced curation & databasing workflows are here!
@@ -26,7 +30,7 @@ DrawerDissect has run successfully on the following systems:
 | Windows | Windows 11 | AMD Ryzen 7 7800X3D | 32 GB | NVIDIA GeForce RTX 4060 |
 | Windows | Windows 11 | Intel i5-13400F | 32 GB | NVIDIA GeForce RTX 4060 |
  
-Current Version: **v0.4.0**
+Current Version: **v0.5.0**
  
 ---
  
@@ -192,7 +196,7 @@ Requires an Anthropic API key. Claude performs well on both printed and handwrit
 ```yaml
 llm:
   provider: "anthropic"
-  model: "claude-sonnet-4-6"  # or claude-opus-4-6 for highest quality
+  model: "claude-sonnet-4-6"
   max_tokens: 600
   temperature: 0
 ```
