@@ -1,5 +1,9 @@
-# <img src="https://github.com/user-attachments/assets/26e883f0-f643-4715-80d6-abb2225bdb75" width="75" height="75" valign="middle">DrawerDissect
+# <img src="https://github.com/user-attachments/assets/26e883f0-f643-4715-80d6-abb2225bdb75" width="150" height="150" valign="middle">DrawerDissect
 **DrawerDissect** is an AI-driven pipeline for processing whole-drawer images of insect specimens. It can crop out specimen photos, measure specimens, transcribe various kinds of text, and create "masked" specimens for phenotypic analysis and species identification models.
+
+>NEW: More advanced curation & databasing workflows are here!
+>
+>See the [README file in the advanced_functions folder](advanced_functions/README.md) for more information.
 
 ---
 
@@ -444,6 +448,7 @@ python process_images.py --drawers {your_folder_name} --from outline_specimens -
 ### Specimen Locations in Trays
  
 <img src="https://github.com/user-attachments/assets/ea8322a6-a4a6-468a-a744-451136f762a1" width="500">
+
 ### Tray-Level Transcriptions
  
 <img src="https://github.com/user-attachments/assets/6ffe77b4-351f-4dc5-8fce-69f5226125af" height="250"> <img src="https://github.com/user-attachments/assets/2cbae42b-c04c-4bb0-a456-659cc367cb39" width="300">
@@ -452,6 +457,8 @@ python process_images.py --drawers {your_folder_name} --from outline_specimens -
 |--------|----|----|
 | <i>Cicindela (Cicindela) formosa gibsoni</i> | 57377 | NEA |
 | <i>Automeris io</i> | - | - |
+
+> If your instution uses color-coded unit tray labels to represent biogeographic realm, [see our tool for color extraction/mapping](advanced_functions/README_labelcolor.md)!
  
 ### Individual Specimen Images
  
@@ -543,7 +550,9 @@ drawer01/
 │   └── merged_data_01_05_2025_14_22/    # timestamped folder from previous run
 │       └── ... (same files)
 ```
- 
+
+> To begin shaping data across drawers for permanent databasing (e.g. EMu, GBIF), see [instructions for advanced_functions](advanced_functions/README.md)!
+
 ---
  
 ## User Settings

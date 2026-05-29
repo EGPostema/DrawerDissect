@@ -258,12 +258,9 @@ def add_tray_context_data(specimen_df, specimen_localities_path):
     """
     Add tray-context locality data to the specimen table.
 
-    specimen_localities.csv has columns:
-      tray, specimen_id, label_group, match_type, verbatim_text,
-      country, stateProvince, county, municipality, locality,
-      collector, date, flags, model
-
-    We join on specimen_id matching full_id (the filename stem).
+    Joins specimen_localities.csv onto the specimen table on specimen_id = full_id.
+    All columns from specimen_localities.csv are brought in except 'tray' (redundant
+    with tray_id already on the specimen table) and 'specimen_id' (the join key).
     """
     if not os.path.exists(specimen_localities_path):
         print(f"Specimen localities file not found at {specimen_localities_path}")
@@ -281,14 +278,11 @@ def add_tray_context_data(specimen_df, specimen_localities_path):
             print("Warning: specimen_localities.csv missing 'specimen_id' column")
             return specimen_df
 
-        # Columns to bring in
-        locality_cols = [
-            'specimen_id', 'label_group', 'match_type', 'verbatim_text',
-            'country', 'stateProvince', 'county', 'municipality', 'locality',
-            'collector', 'date', 'flags', 'model',
-        ]
-        # Only keep columns that actually exist in the CSV
-        locality_cols = [c for c in locality_cols if c in loc_df.columns]
+        # Bring in every column from the localities CSV except the ones that are
+        # redundant with the specimen table ('tray' duplicates tray_id) or are the
+        # join key itself ('specimen_id' is dropped after the merge).
+        cols_to_drop = {'tray'}
+        locality_cols = [c for c in loc_df.columns if c not in cols_to_drop]
 
         merged_df = pd.merge(
             specimen_df,
@@ -303,11 +297,14 @@ def add_tray_context_data(specimen_df, specimen_localities_path):
             merged_df.drop(columns=['specimen_id'], inplace=True)
 
         # Fill missing locality fields with empty strings (not 'NA')
-        for col in locality_cols:
-            if col != 'specimen_id' and col in merged_df.columns:
+        fill_cols = [c for c in locality_cols if c != 'specimen_id']
+        for col in fill_cols:
+            if col in merged_df.columns:
                 merged_df[col] = merged_df[col].fillna("")
 
-        print(f"Added tray-context locality data from {specimen_localities_path}")
+        brought_in = [c for c in fill_cols if c in merged_df.columns]
+        print(f"Added tray-context locality data from {specimen_localities_path} "
+              f"({len(brought_in)} columns: {', '.join(brought_in)})")
         return merged_df
 
     except Exception as e:
