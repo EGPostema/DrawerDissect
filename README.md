@@ -62,8 +62,14 @@ If you plan to run computer vision models locally on your own hardware, install 
  
 ```bash
 # NVIDIA GPU (Windows/Linux)
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
- 
+## Check your CUDA version first
+nvidia-smi
+
+## Then install the right torchvision build
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124  # version >12.4
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121  # version 12.1
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118  # version 11.8
+
 # Apple Silicon (Mac M1/M2/M3)
 pip install torch torchvision
  
