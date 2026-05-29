@@ -133,8 +133,8 @@ a taxonomy and an image goes in.
 
 | I want to... | Run this |
 |---|---|
-| Aggregate one drawer's outputs | `python master_merge.py --prefix <drawer_prefix>` |
-| Aggregate everything | `python master_merge.py` |
+| Aggregate a specific drawer/set of drawer's outputs | `python advanced_functions/master_merge.py --prefix <drawer_prefix>` |
+| Aggregate everything | `python advanced_functions/master_merge.py` |
 | Generate barcode entry sheet | `python advanced_functions/scaffold_barcodes.py --master_dir master_data/master_<...>` |
 | Generate locality validation sheet | `python advanced_functions/scaffold_locations.py --master_dir master_data/master_<...>` |
 | Build EMu upload | `python advanced_functions/emu_format.py --master_dir master_data/master_<...>` |
