@@ -213,8 +213,8 @@ prompts:
         state abbreviations OR parts of institution names. Look for surrounding
         context to decide.
       - These are NOT locations:
-          "Col." or "Coll." = collector (not Colorado)
-          "Det." = determiner/identifier (not Detroit)
+          "Col." or "Coll." = collector = recordedBy (not Colorado)
+          "Det." = determiner/identifier = identifiedBy (not Detroit)
           "FMNH" or "Field Museum" = Field Museum of Natural History (institution)
           "C.N.H.M." or "CNHM" = Chicago Natural History Museum (institution)
           "Mus.", "Museum" = institution, not a place
@@ -251,7 +251,7 @@ prompts:
       After transcribing and parsing each specimen, compare your verbatim_text
       outputs across specimens. Look for recurring fragments — if 10 specimens
       all have pieces of "IND. Porter Co." or "POLAND: Kam[?] woj.", these are
-      almost certainly the same collecting event. The fragments don't need to be
+      likely the same collecting event. The fragments don't need to be
       identical; they need to be CONSISTENT.
  
       GROUPING RULES:
@@ -310,7 +310,7 @@ prompts:
             "verbatimCoordinates": "",
             "habitat": "",
             "samplingProtocol": "",
-            "collector": "",
+            "recordedBy": "",
             "verbatimEventDate": "",
             "identifiedBy": "",
             "possibleName": "",
@@ -346,7 +346,7 @@ prompts:
       - habitat: habitat description (e.g. "oak savanna", "sandy beach", "under bark")
       - samplingProtocol: collection method if mentioned (e.g. "malaise trap",
         "UV light trap", "hand collected", "under bark of log")
-      - collector: person who collected (from "Col.", "Coll.", "leg.", etc.)
+      - recordedBy: person who collected (from "Col.", "Coll.", "leg.", etc.)
       - verbatimEventDate: the date exactly as written on the label, in any format
         (e.g. "17IV1934", "spring 1910", "Marzo 2002", "05-1970").
         Only collection dates, NOT determination dates.
