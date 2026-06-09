@@ -216,7 +216,7 @@ def process_specimens(master_specimens: Path, taxonomy: dict, barcodes: dict,
                 "verbatimElevation": location_row.get("verbatimElevation", ""),
                 "habitat": location_row.get("habitat", ""),
                 "samplingProtocol": location_row.get("samplingProtocol", ""),
-                "recordedBy": location_row.get("collector", ""),  # DwC term
+                "recordedBy": location_row.get("recordedBy", ""),
                 "verbatimEventDate": location_row.get("verbatimEventDate", ""),
                 "eventDate": location_row.get("eventDate", ""),
                 "identifiedBy": location_row.get("identifiedBy", ""),
