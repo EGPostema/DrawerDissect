@@ -469,7 +469,7 @@ def validate_groups(groups, geocode_value):
                                    "county", "municipality", "locality",
                                    "waterBody", "islandGroup", "island",
                                    "habitat", "samplingProtocol",
-                                   "collector", "identifiedBy"]
+                                   "recordedBy", "identifiedBy"]
         for field in darwincore_clean_fields:
             val = group.get(field, "")
             if isinstance(val, str):
@@ -520,7 +520,7 @@ def write_outputs(groups, tray_name, notext_specimens, output_dir, model_name=""
         "waterBody", "islandGroup", "island",
         "verbatimElevation", "verbatimCoordinates",
         "habitat", "samplingProtocol",
-        "collector", "verbatimEventDate",
+        "recordedBy", "verbatimEventDate",
         "flags", "identifiedBy", "possibleName", "model",
     ]
 
@@ -533,7 +533,7 @@ def write_outputs(groups, tray_name, notext_specimens, output_dir, model_name=""
                       "waterBody", "islandGroup", "island",
                       "verbatimElevation", "verbatimCoordinates",
                       "habitat", "samplingProtocol",
-                      "collector", "verbatimEventDate",
+                      "recordedBy", "verbatimEventDate",
                       "identifiedBy", "possibleName"):
             val = g.get(field, "")
             if isinstance(val, list):
