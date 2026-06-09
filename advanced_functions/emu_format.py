@@ -35,7 +35,7 @@ Otherwise it goes to emu_pending.csv with all failing reasons listed.
 Notable EMu field handling:
     - LocPermanentLocationRef.irn ← unit_barcode (already an IRN; EMu generated)
     - IdeTaxonRef_tab.irn         ← full_taxonomy string (R script overwrites)
-    - ColParticipantRef_tab.irn   ← collector string (R script overwrites)
+    - ColParticipantRef_tab.irn   ← recordedBy string (R script overwrites)
     - LotRegionSingleValue        ← geocode expanded to full realm name
                                     (NEA → Nearctic, etc.)
 
@@ -78,9 +78,6 @@ TIMESTAMP_FMT = "%Y-%m-%d-%H-%M"
 
 # ── EMu field mapping ────────────────────────────────────────────────────────
 # Headers below are the literal EMu field names expected by EMu's CSV import.
-# "Do Not Import" columns from the specialist's mapping (drawer_id, tray_id,
-# genus, site_num) are excluded entirely — they would either error in strict
-# import mode or be silently dropped in mapped mode.
 
 CATALOG_COLUMNS = [
     "LotOtherNo_tab",                                # full_id
@@ -88,11 +85,6 @@ CATALOG_COLUMNS = [
     "LocPermanentLocationRef.irn",                   # auto-populated from unit_barcode (EMu generated these)
     "IdeTaxonRef_tab.irn",                           # full_taxonomy text (R script overwrites with IRN)
     "irn",                                           # FMNH-INS#
-    # Measurements (length 1, length 2, area) intentionally omitted —
-    # EMu's nested-table grid syntax requires the Group attribute and
-    # multi-row CSV layout (see https://help.emu.axiell.com/...).
-    # Add via a separate measurement import once that's been clarified
-    # with the EMu specialist.
     "LotRegionSingleValue",                          # geocode expanded to full realm name
     "LotRegionCountry",                              # country
     "esites.LotRegionStateProvince",                 # state/province
@@ -110,7 +102,7 @@ CATALOG_COLUMNS = [
     "ColCollectionMethod",                           # collection method (matches boss's import format)
     "ecollectionevents.ColDateVisitedFrom",          # date visited from
     "ecollectionevents.ColDateVisitedTo",            # date visited to
-    "ColParticipantRef_tab.irn",                     # collector text (R script overwrites with IRN)
+    "ColParticipantRef_tab.irn",                     # recordedBy text (R script overwrites with IRN)
     "LotOtherNo_tab_other",                          # other_collect_nums (currently always blank)
     "PheSex_tab",                                    # sex (currently always blank)
     "PheStage_tab",                                  # lifestage (currently always blank)
@@ -118,8 +110,7 @@ CATALOG_COLUMNS = [
 ]
 NUM_COLUMNS = len(CATALOG_COLUMNS)  # 27
 
-# 3-letter geocode → full realm name. Authoritative source: label_color_classifier.py.
-# UNK and unrecognized codes resolve to "" (blank) so nothing fake gets written.
+# 3-letter geocode → full realm name.
 GEOCODE_TO_REALM = {
     "NEA": "Nearctic",
     "NEO": "Neotropical",
@@ -159,31 +150,10 @@ def load_csv_dict(path: Path, key_col: str) -> dict:
 
 
 def parse_taxonomy_for_filename(full_taxonomy: str) -> str:
-    """Build the taxonomy portion of a multimedia image filename.
-
-    - Strips parentheticals (subgenera).
-    - Keeps subspecies.
-    - For hybrids (taxonomies containing 'x' as a standalone word), drops any
-      repeated genus/species in the second half, keeping only the
-      differentiating species or subspecies after the 'x'.
-    - Sanitizes to alphanumerics only, joined with underscores.
-
-    Examples:
-        'Megacephala (Tetracha) virginica'
-            -> 'Megacephala_virginica'
-        'Cicindela hamata monti'
-            -> 'Cicindela_hamata_monti'
-        'Habroscelimorpha dorsalis saulcyi x dorsalis venusta'
-            -> 'Habroscelimorpha_dorsalis_saulcyi_x_venusta'
-        'Cicindela apache x Cicindela formosa'
-            -> 'Cicindela_apache_x_formosa'
-        ''
-            -> 'unknown'
-    """
+    """Build the taxonomy portion of a multimedia image filename."""
     if not full_taxonomy.strip():
         return "unknown"
 
-    # Strip subgenera and split into words
     cleaned = re.sub(r"\([^)]*\)", "", full_taxonomy)
     safe = lambda s: re.sub(r"[^A-Za-z0-9]", "", s)
     parts = [safe(p) for p in cleaned.split() if safe(p)]
@@ -191,8 +161,6 @@ def parse_taxonomy_for_filename(full_taxonomy: str) -> str:
     if not parts:
         return "unknown"
 
-    # Hybrid: 'x' as standalone word → keep before-x intact, take only the
-    # last word from after-x (the differentiating epithet)
     lower_parts = [p.lower() for p in parts]
     if "x" in lower_parts:
         x_idx = lower_parts.index("x")
@@ -200,7 +168,6 @@ def parse_taxonomy_for_filename(full_taxonomy: str) -> str:
         after = parts[x_idx + 1:]
         if before and after:
             return "_".join(before) + "_x_" + after[-1]
-        # Malformed (x at start or end) — fall through to default
         return "_".join(p for p in parts if p.lower() != "x")
 
     return "_".join(parts)
@@ -216,37 +183,18 @@ def parse_genus(full_taxonomy: str) -> str:
 
 
 def parse_elevation(verbatim: str) -> dict:
-    """Parse an elevation string into the four EMu columns.
-
-    Returns dict with keys:
-        elevation_fr, elevation_to, elevation_fr_ft, elevation_to_ft
-
-    Recognizes simple patterns:
-        "100m"       -> elevation_fr=100
-        "100-200m"   -> elevation_fr=100, elevation_to=200
-        "500ft"      -> elevation_fr_ft=500
-        "500-1000ft" -> elevation_fr_ft=500, elevation_to_ft=1000
-        "1500"       -> elevation_fr=1500   (no unit; assume meters)
-        ""           -> all blank
-
-    Falls back to all blank if the string doesn't match a clear pattern. The
-    raw verbatim text is not preserved here — the EMu schema doesn't have a
-    verbatimElevation field — so only confidently-parsed values are written.
-    """
+    """Parse an elevation string into the four EMu columns."""
     out = {"elevation_fr": "", "elevation_to": "",
            "elevation_fr_ft": "", "elevation_to_ft": ""}
     if not verbatim or not verbatim.strip():
         return out
 
     s = verbatim.strip().lower().replace(" ", "")
-    # Detect unit
     is_feet = s.endswith("ft") or "feet" in s or "'" in s
     is_meters = s.endswith("m") or "meters" in s or "metres" in s
-    # Strip unit suffix
     s_num = re.sub(r"(ft|feet|m|meters|metres|')$", "", s)
     s_num = s_num.replace("'", "")
 
-    # Range or single value
     range_match = re.match(r"^(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$", s_num)
     single_match = re.match(r"^(\d+(?:\.\d+)?)$", s_num)
 
@@ -261,26 +209,13 @@ def parse_elevation(verbatim: str) -> dict:
         out["elevation_fr_ft"] = fr
         out["elevation_to_ft"] = to
     else:
-        # Default to meters when ambiguous (unitless)
         out["elevation_fr"] = fr
         out["elevation_to"] = to
     return out
 
 
 def parse_event_date(event_date: str) -> tuple:
-    """Split an ISO 8601-ish eventDate into (date_from, date_to).
-
-    Handles:
-        "1958"           -> ("1958", "1958")
-        "1958-07"        -> ("1958-07", "1958-07")
-        "1958-07-15"     -> ("1958-07-15", "1958-07-15")
-        "1958/1959"      -> ("1958", "1959")        (range with slash)
-        "1958-07/1958-09"-> ("1958-07", "1958-09")  (range)
-        ""               -> ("", "")
-
-    The R script will format these into EMu's DMmmYYYY style; we just preserve
-    structured ISO output here.
-    """
+    """Split an ISO 8601-ish eventDate into (date_from, date_to)."""
     s = event_date.strip()
     if not s:
         return ("", "")
@@ -290,20 +225,12 @@ def parse_event_date(event_date: str) -> tuple:
     return (s, s)
 
 
-def format_collectors(collector_field: str) -> str:
-    """Normalize a collector value to use ',' as separator for multiple names.
-
-    Curators may write multiple collectors with various separators ('&', 'and',
-    ';', '|'). This converts to ',' for the format used in the team's existing
-    EMu imports (e.g. "B.A.S Medeiros,L. Chamorro, M. Buffington").
-    Single-name inputs pass through unchanged.
-    """
-    s = collector_field.strip()
+def format_collectors(recorded_by_field: str) -> str:
+    """Normalize a recordedBy value to use ',' as separator for multiple names."""
+    s = recorded_by_field.strip()
     if not s:
         return ""
-    # Replace common separators with ','
     s = re.sub(r"\s*(?:&|\band\b|\||;)\s*", ",", s, flags=re.IGNORECASE)
-    # Collapse repeated separators
     s = re.sub(r",+", ",", s)
     return s.strip(", ").strip()
 
@@ -320,15 +247,11 @@ def make_run_folder(prefixes: list) -> Path:
 # ── Image discovery & copy ──────────────────────────────────────────────────
 
 def find_specimen_image(drawers_dir: Path, drawer_id: str, full_id: str) -> Path | None:
-    """Recursively search drawers/<drawer_id>/specimens/ for an image matching full_id.
-
-    Returns the first match found (case-insensitive on extension), or None.
-    """
+    """Recursively search drawers/<drawer_id>/specimens/ for an image matching full_id."""
     specimens_root = drawers_dir / drawer_id / "specimens"
     if not specimens_root.is_dir():
         return None
     for ext in IMAGE_EXTENSIONS:
-        # Try lowercase and the bare extension via case-insensitive compare
         for candidate in specimens_root.rglob(f"{full_id}.*"):
             if candidate.suffix.lower() in IMAGE_EXTENSIONS:
                 return candidate
@@ -347,36 +270,24 @@ def build_image_filename(catalog_number: str, full_taxonomy: str,
 def build_emu_row(full_id: str, master_row: dict, location_row: dict,
                   geocode: str, catalog_number: str,
                   image_filename: str) -> list:
-    """Build a row using EMu field names as the column schema.
-
-    Reference fields named *.irn are filled with text values rather than
-    actual IRNs:
-        - LocPermanentLocationRef.irn ← unit_barcode (already an IRN)
-        - IdeTaxonRef_tab.irn         ← full_taxonomy string
-        - ColParticipantRef_tab.irn   ← collector string (comma-separated)
-
-    A downstream R script is expected to overwrite the taxonomy and collector
-    columns with real IRNs before EMu import. The location column already
-    carries the right value since unit_barcodes are themselves IRNs.
-    """
+    """Build a row using EMu field names as the column schema."""
     row = [""] * NUM_COLUMNS
 
     full_taxonomy = master_row.get("full_taxonomy", "")
     country = location_row.get("country", "")
-    collectors = format_collectors(location_row.get("collector", ""))
+    collectors = format_collectors(location_row.get("recordedBy", ""))
 
     elev = parse_elevation(location_row.get("verbatimElevation", ""))
     date_from, date_to = parse_event_date(location_row.get("eventDate", ""))
     region_name = GEOCODE_TO_REALM.get(geocode.strip().upper(), "")
 
-    # Position-by-position assignment matches CATALOG_COLUMNS order
     row[0]  = full_id                                       # LotOtherNo_tab
     row[1]  = image_filename                                # emultimedia.MulIdentifier
-    row[2]  = master_row.get("unit_barcode", "")            # LocPermanentLocationRef.irn (= unit_barcode)
-    row[3]  = full_taxonomy                                 # IdeTaxonRef_tab.irn (text; R script overwrites)
+    row[2]  = master_row.get("unit_barcode", "")            # LocPermanentLocationRef.irn
+    row[3]  = full_taxonomy                                 # IdeTaxonRef_tab.irn
     row[4]  = catalog_number                                # irn (= FMNH-INS#)
 
-    row[5]  = region_name                                   # LotRegionSingleValue (e.g. "Nearctic")
+    row[5]  = region_name                                   # LotRegionSingleValue
     row[6]  = country                                       # LotRegionCountry
     row[7]  = location_row.get("stateProvince", "")
     row[8]  = location_row.get("county", "")
@@ -396,7 +307,7 @@ def build_emu_row(full_id: str, master_row: dict, location_row: dict,
     row[19] = location_row.get("samplingProtocol", "")      # ColCollectionMethod
     row[20] = date_from
     row[21] = date_to
-    row[22] = collectors                                    # ColParticipantRef_tab.irn (text; R script overwrites)
+    row[22] = collectors                                    # ColParticipantRef_tab.irn (R script overwrites)
     # row[23] other_collect_nums — blank
     # row[24] sex — blank
     # row[25] lifestage — blank
@@ -408,12 +319,7 @@ def build_emu_row(full_id: str, master_row: dict, location_row: dict,
 def process_specimens(master_specimens: Path, taxonomy: dict, barcodes: dict,
                       locations: dict, geocodes: dict, prefixes: list,
                       drawers_dir: Path, camera: str):
-    """Iterate specimens, classify into catalog rows or pending rows.
-
-    For each catalog-bound specimen, also resolves the source image path
-    and target multimedia filename so the EMu row can carry the right
-    `filename` value and copy_multimedia doesn't need to re-discover.
-    """
+    """Iterate specimens, classify into catalog rows or pending rows."""
     catalog_rows = []
     pending_rows = []
     drawer_counts = Counter()
@@ -458,7 +364,6 @@ def process_specimens(master_specimens: Path, taxonomy: dict, barcodes: dict,
                 })
                 continue
 
-            # All gates passed — find the image and build the renamed filename
             src_image = find_specimen_image(drawers_dir, drawer_id, full_id)
             if src_image is not None:
                 image_filename = build_image_filename(
@@ -468,7 +373,6 @@ def process_specimens(master_specimens: Path, taxonomy: dict, barcodes: dict,
                     original_ext=src_image.suffix,
                 )
             else:
-                # No image found — leave filename blank; copy step will report
                 image_filename = ""
 
             geocode = geocodes.get(tray_id, {}).get("geocode", "")
@@ -495,8 +399,6 @@ def write_catalog_csv(path: Path, rows: list):
         writer = csv.writer(f)
         writer.writerow(CATALOG_COLUMNS)
         for entry in rows:
-            # entry = (full_id, full_taxonomy, catalog_number, src_image,
-            #          image_filename, catalog_row)
             writer.writerow(entry[5])
 
 
@@ -510,14 +412,7 @@ def write_pending_csv(path: Path, rows: list):
 
 
 def copy_multimedia(catalog_rows: list, multimedia_dir: Path) -> tuple:
-    """Copy specimen images into multimedia/ using pre-resolved paths/names.
-
-    Each entry in catalog_rows is (full_id, full_taxonomy, catalog_number,
-    src_image, image_filename, catalog_row). The image discovery and
-    filename construction were already done in process_specimens.
-
-    Returns (n_copied, n_missing, missing_ids).
-    """
+    """Copy specimen images into multimedia/ using pre-resolved paths/names."""
     multimedia_dir.mkdir(parents=True, exist_ok=True)
     n_copied = 0
     missing = []
