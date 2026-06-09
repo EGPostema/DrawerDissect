@@ -517,7 +517,7 @@ The `transcribe_specimens` step sends a combination of filtered specimen images,
 | verbatimElevation* | Elevation exactly as written on the label |
 | habitat* | Habitat type or description |
 | samplingProtocol* | Collection method if mentioned |
-| collector* | Collector name |
+| recordedBy* | Collector name |
 | verbatimEventDate* | Collection date exactly as written on the label |
 | identifiedBy* | Person who identified the specimen |
 | possibleName | Name or initials present on label but role unclear |
