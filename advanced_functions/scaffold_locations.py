@@ -49,7 +49,7 @@ LOCATION_COLUMNS = [
     "country", "stateProvince", "county", "municipality",
     "verbatimLocality", "locality", "waterBody", "islandGroup", "island",
     # DwC collection event
-    "verbatimElevation", "habitat", "samplingProtocol", "collector",
+    "verbatimElevation", "habitat", "samplingProtocol", "recordedBy",
     "verbatimEventDate", "eventDate", "identifiedBy",
     # Other
     "possibleName", "verbatimCoordinates",
@@ -132,7 +132,7 @@ def build_new_rows(source_csv: Path, prefixes: list, existing_ids: set):
                 "verbatimElevation": row.get("verbatimElevation", ""),
                 "habitat": row.get("habitat", ""),
                 "samplingProtocol": row.get("samplingProtocol", ""),
-                "collector": row.get("collector", ""),
+                "recordedBy": row.get("recordedBy", ""),
                 "verbatimEventDate": row.get("verbatimEventDate", ""),
                 "eventDate": "",  # ISO 8601 — curator fills in
                 "identifiedBy": row.get("identifiedBy", ""),
