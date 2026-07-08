@@ -34,12 +34,6 @@ Current Version: **v0.5.0**
  
 ---
  
-## Citation
- 
-Postema, E.G., Briscoe, L., Harder, C., Hancock, G.R.A., Guarnieri, L.D, Eisel, T., Welch, K., Fisher, N., Johnson, C., Souza, D., Sepulveda, T., Phillip, D., Baquiran, R., de Medeiros, B.A.S. 2025. **DrawerDissect: Whole-drawer insect imaging, segmentation, and trait extraction using AI.** <i>EcoEvoRxiv (pre-print)</i>. https://doi.org/10.32942/X2QW84
- 
----
- 
 ## Installation
  
 **1. Clone the repository and set up a Python environment**
@@ -723,3 +717,9 @@ resources:
 - Check internet connection for API calls
 - Ensure the configured LLM supports vision (image input), as text-only models will fail
 - Review and adjust prompts in `config.yaml` to match your text inputs
+
+---
+ 
+## Citation
+ 
+Postema, E.G., Briscoe, L., Harder, C., Hancock, G.R.A., Guarnieri, L.D, Eisel, T., Welch, K., Fisher, N., Johnson, C., Souza, D., Sepulveda, T., Phillip, D., Baquiran, R., de Medeiros, B.A.S. 2025. **DrawerDissect: Whole-drawer insect imaging, segmentation, and trait extraction using AI.** <i>EcoEvoRxiv (pre-print)</i>. https://doi.org/10.32942/X2QW84
